@@ -1,0 +1,14 @@
+I need to plan everything down to the minute details before starting to code.
+
+**My Preferences & UI Philosophy:**
+- **Clean & Minimal UI:** I want a very clean, minimal UI. No messy text, no overwhelming options. It should be as simple and clean to use as the Google Pay Android app.
+- **Clean Code:** Keep the code as minimal as possible. If something can be done with less code, do it (don't reinvent the wheel).
+- **Strict Configuration:** I want strict code constraints. For example, if the app expects an environment variable, do NOT use fallback hardcoding like `const baseUrl = process.env.BASE_URL || "https://placeholder.cc"`. The app must fail strictly if required configs are missing. No silent fallbacks.
+- **No Clutter:** I do not want messy UI. No AI-generated clutter where the app explains things in long paragraphs. The UX should be intuitive enough that a user understands how to use it immediately (e.g., after adding a car once, they know how the app works).
+
+**Project Identity:**
+- **App Name:** "Workshop"
+- **Domain:** `workshop.zeonweb.com`
+
+**About the Demo UI Reference:**
+The files in the `demo-ui` folder represent the *kind* of UI I want (clean). However, note that these demo files are NOT the final UI. They have issues: they are not responsive, not built with Tailwind, and not componentized. They are strictly for visual reference. I need the final UI to be responsive, built properly in React/Tailwind, and looking even better than the demo.

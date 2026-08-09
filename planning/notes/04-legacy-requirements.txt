@@ -1,0 +1,108 @@
+# GarageFlow - Development Reference (Legacy MVP)
+
+> Note: This is an older requirement document. The architecture and features have evolved, but this serves as a baseline reference for the original MVP scope.
+
+## Goal
+Build a simple, mobile-first Garage Management SaaS for small local garages. The app should replace paper notebooks, not become a complicated ERP.
+
+## Tech Stack (Legacy)
+* React + Vite + TypeScript
+* Material UI (MUI) -> *Updated to Tailwind CSS v4 in newer plans*
+* Cloudflare Pages
+* Cloudflare Workers
+* Cloudflare D1
+* Cloudflare R2
+* JWT Authentication
+* Google Sign-In
+
+## User Roles
+
+### Owner
+* Full access
+* Manage garage and staff
+* View reports and manage attendance
+* Generate invoices
+
+### Staff
+* Check In / Check Out
+* View personal attendance
+* View salary summary
+* Update assigned repair work (optional)
+
+## App Flow
+1. Google Login -> Garage Onboarding -> Dashboard
+2. Add Customer + Vehicle -> Take Vehicle Photos -> Add Complaint
+3. (Optional) Create Estimate -> Add Repair Work
+4. Generate Final Invoice -> Payment -> Mark Delivered -> Vehicle History Saved
+
+## Garage Onboarding
+Collect: Garage Name, Owner Name, Phone Number, Address, Current Workshop GPS Location, Logo (Optional).
+Note: "This information is used on invoices and for staff attendance."
+
+## Dashboard
+* **Cards:** Vehicles Today, Pending Repairs, Delivered Vehicles, Revenue, Staff Present.
+* **Quick Actions:** Add Vehicle, Customers, Estimates, Invoices, Staff.
+
+## Customer
+* **Fields:** Name, Phone Number, Address (Optional).
+* **Features:** Contact Picker, Search by Phone.
+
+## Vehicle
+* **Fields:** Vehicle Number, Brand, Model, Vehicle Type, Complaint, Photos.
+* **Actions:** Create Estimate, Add Repair, Generate Invoice, Mark Delivered.
+* **Status:** New, Repairing, Ready, Delivered.
+
+## Estimate
+* Includes: Labor, Parts, Extra Charges, Discount, Tax, Total.
+* Actions: Save, PDF, Convert to Invoice.
+
+## Repair
+* Fields: Work Done, Labor Cost, Parts Cost, Notes.
+
+## Invoice
+* Includes: Customer, Vehicle, Repair Items, Total, Payment Method, Payment Status.
+* Actions: PDF, Print, Share.
+
+## Staff
+* **Owner capabilities:** Add/Edit/Remove Staff, Set Salary, View Attendance.
+* **Staff Fields:** Name, Phone, Role, Salary.
+
+## Attendance
+* **Owner:** Attendance screen shows a QR Code. (Originally planned as dynamic/refreshing, later updated to static + GPS verification).
+* **Staff:** Open App -> Scan QR -> Allow Location -> Verify GPS -> Check In Successful. If outside workshop radius -> Attendance Rejected (Owner can manually approve if needed).
+* **Stored Data:** Check In, Check Out, Working Hours, GPS, Date.
+
+## Salary
+* Automatically calculate: Present Days, Absent Days, Working Hours, Estimated Salary.
+
+## Reports
+* Revenue, Vehicles, Attendance, Salary Summary.
+
+## Database (Legacy Tables)
+* `tenants`, `users`, `staff`, `customers`, `vehicles`, `vehicle_images`, `estimates`, `estimate_items`, `repairs`, `invoices`, `attendance`.
+* Every tenant-scoped table contains `tenant_id`.
+
+## Multi-Tenant
+* Each garage has its own users, customers, vehicles, invoices, and staff.
+* Strict data isolation: No garage can access another garage's data.
+
+## Future Features
+* Inventory, WhatsApp integration, Online Booking, Customer Portal, AI Features, OCR Number Plate reading, Voice Notes, Multi-Branch support.
+
+## Design Rules
+* Mobile First
+* Very Simple UI with large buttons and minimal typing.
+* Camera First.
+* Maximum 3 Taps for Common Actions.
+* Fast Navigation, suitable for Non-Technical Users.
+
+## Success Criteria
+* Add Customer: < 30 sec
+* Add Vehicle: < 1 min
+* Create Estimate: < 2 min
+* Generate Invoice: < 1 min
+* Staff Check-In: < 10 sec
+* Learn App: < 15 min
+
+## MVP Principle
+**Keep it Simple.** Every feature should answer this question: *"Will this save time for a small garage owner?"* If the answer is No, don't build it in the MVP.

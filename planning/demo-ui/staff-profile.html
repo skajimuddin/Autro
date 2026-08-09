@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              primary: '#2563eb',
+              'primary-hover': '#1d4ed8',
+              success: '#10b981',
+              warning: '#f59e0b',
+              danger: '#ef4444',
+              'bg-color': '#f1f5f9',
+              'card-bg': '#ffffff',
+              'text-primary': '#0f172a',
+              'text-secondary': '#64748b',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-slate-200 flex justify-center min-h-screen font-sans">
+    <div class="w-full max-w-[414px] bg-bg-color h-screen overflow-y-auto flex flex-col shadow-[0_0_20px_rgba(0,0,0,0.1)] relative">
+        <header class="flex justify-between items-center p-5 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] sticky top-0 z-10">
+            <div class="text-[1.2rem] font-semibold flex items-center gap-4">
+                <a href="staff.html" class="text-text-primary no-underline"><i class="fa-solid fa-arrow-left"></i></a>
+                <span>Rahul</span>
+            </div>
+        </header>
+
+        <main class="p-5 flex-1 flex flex-col gap-4 pb-[100px]">
+            <div class="text-center py-5">
+                <div class="w-[80px] h-[80px] bg-indigo-100 text-primary rounded-full flex justify-center items-center text-[2.5rem] mx-auto mb-4"><i class="fa-solid fa-user"></i></div>
+                <h2 class="mb-1 text-2xl font-bold">Rahul</h2>
+                <div class="text-text-secondary font-medium">Mechanic</div>
+            </div>
+
+            <div class="text-[0.95rem] text-text-secondary uppercase tracking-[1px] mt-2.5 font-bold">Today</div>
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_5px_rgba(0,0,0,0.02)] flex justify-around text-center">
+                <div>
+                    <div class="text-[0.9rem] text-text-secondary font-semibold">IN</div>
+                    <div class="text-[1.2rem] font-bold text-success mt-1">09:08 AM</div>
+                </div>
+                <div class="w-[1px] bg-slate-200"></div>
+                <div>
+                    <div class="text-[0.9rem] text-text-secondary font-semibold">OUT</div>
+                    <div class="text-[1.2rem] font-bold text-text-secondary mt-1">--:--</div>
+                </div>
+            </div>
+
+            <div class="text-[0.95rem] text-text-secondary uppercase tracking-[1px] mt-2.5 font-bold">This Month</div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl p-4 text-center shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="text-[0.9rem] text-text-secondary">Present</div>
+                    <div class="text-[1.4rem] font-bold text-text-primary">24 Days</div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 text-center shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="text-[0.9rem] text-text-secondary">Absent</div>
+                    <div class="text-[1.4rem] font-bold text-danger">2 Days</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_5px_rgba(0,0,0,0.02)] mt-2.5 flex justify-between items-center">
+                <div class="font-semibold text-text-secondary">Estimated Salary</div>
+                <div class="text-[1.4rem] font-bold text-primary">₹18,500</div>
+            </div>
+
+            <div class="flex flex-col gap-3 mt-2.5">
+                <button class="flex items-center justify-center gap-3 w-full p-[18px] rounded-2xl text-[1.1rem] font-semibold cursor-pointer border-2 border-primary no-underline transition-transform duration-100 active:scale-[0.98] bg-transparent text-primary">View Attendance</button>
+                <button class="flex items-center justify-center gap-3 w-full p-[18px] rounded-2xl text-[1.1rem] font-semibold cursor-pointer border-none no-underline transition-transform duration-100 active:scale-[0.98] bg-primary text-white shadow-[0_10px_15px_-3px_rgba(37,99,235,0.3)]">Edit Profile</button>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

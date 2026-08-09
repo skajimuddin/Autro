@@ -1,0 +1,32 @@
+# Application Flow
+
+- **Login:** Users log in using Google Auth only. 
+- **Onboarding:** After login, collect details like garage name, location (GPS), phone number, address, and logo. Add a short note explaining: "We need this information so that we can show it on invoices/bills and for staff attendance."
+
+# Vehicle Onboarding Flow
+
+- **Add Vehicle:** When a user clicks to add a vehicle, they can add:
+  1. Vehicle photos.
+  2. Vehicle registration number.
+  3. Customer Name: Include a contact picker icon. Tapping it requests mobile contact permissions and opens the device's contact list. The user can select a contact to auto-populate the name and phone number (manual entry is also allowed).
+  4. Customer Phone Number (auto-populated if contact is selected).
+  5. Vehicle Name.
+- **Management:** After adding, they can manage the vehicle by creating estimates, generating invoices, and logging repair work.
+
+# Staff Management Flow
+
+- **Invite:** The owner can add staff by inviting them via a link.
+- **Manage:** The owner can manage staff salaries, view attendance, and remove staff.
+- **Attendance (QR System):** 
+  - We save the exact workshop location during onboarding (or settings).
+  - When staff log in, they see a QR scanner to check in.
+  - The owner displays a static QR code on their device.
+  - The staff scans the QR code. The app asks for the staff's location and verifies if their current location matches the workshop's saved location.
+  - If it matches, check-in is successful. If not, it is rejected (this prevents staff from scanning a photo of the QR code from home).
+- **Owner Dashboard:** The admin/owner dashboard allows them to manage these attendance logs and staff details.
+
+# Invoicing Flow
+
+- There are two types of documents: Estimates and Final Invoices.
+- If a user creates an estimate first and later goes to create an invoice, there should be an "Import from Estimate" option. This copies the exact items from the estimate to the invoice, where they can be edited and finalized.
+- Similarly, viewing an estimate should have a button to "Convert to Final Invoice".

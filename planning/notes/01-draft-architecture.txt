@@ -1,0 +1,75 @@
+This is a preliminary plan for a garage (automobile workshop) management application. This is a high-level overview. I need to refine this plan (this is targeted at small, local garages, not massive enterprise operations).
+
+**Workshop Management System**
+
+The app name is not finalized, but it will be hosted under my main domain: `[name].zeonweb.com`. The logo will be decided later.
+
+I want to build this as a multi-tenant SaaS. The typical workflow will be:
+1. User creates an account.
+2. User completes onboarding (adds logo, address, and basic details).
+3. User begins using the SaaS.
+
+**Main Features:**
+* Manage the garage (I will refer to it as "garage" or "workshop").
+* Vehicle onboarding with customer details.
+* Create estimates and final bills/invoices.
+* Staff management (adding members, setting up roles, etc.).
+
+---
+
+**Technical Stack**
+* Frontend: React framework.
+* Backend: Cloudflare stack.
+* Database: Cloudflare D1 (structured so that it can be easily migrated to PostgreSQL later if needed to scale).
+* Authentication: Google Auth only (no email/password for now).
+* Framework: Hono.
+* App Type: PWA (Progressive Web App).
+
+**Staff Management & Attendance**
+The owner will register staff members. The staff will receive an invitation, and after accepting, they can log in to do check-ins and check-outs. 
+I am not using any external hardware for attendance. I plan to use a QR-based system. 
+During onboarding (or later in settings), the owner sets the exact GPS location of the garage. To check in, staff must scan a static QR code displayed by the owner. The app will ask for location permissions during the scan to verify they are actually inside the workshop radius. This prevents staff from taking a picture of the QR code and checking in from home. This is a cheap and effective solution.
+
+**Role Management & Multi-Garage**
+* A user can be staff in one garage today and create their own garage tomorrow. 
+* An owner can manage multiple garages.
+* There should be a role-switching system. If a user is staff in two garages and owns a third, they can easily switch between them using one login.
+
+**UI/UX Requirements**
+* Do not hardcode the word "Car". This is a "Workshop" management system (handles bikes, cars, etc.).
+* The UI must be super simple, clean, and have minimal text paragraphs. It should be intuitive so the user doesn't have to think. 
+* No AI explanations or messy text blocking the view.
+
+**Cost-Effective Architecture**
+* The app must be cost-effective. I can reduce features, but I cannot increase server costs.
+* Use client-side processing where possible to lower server load:
+  * Compress and convert image uploads to WebP on the client side to save bandwidth and storage.
+  * Generate PDF quotations and invoices on the client side (fetch data and render locally).
+
+**Estimates & Invoices**
+* There should be a seamless flow between estimates and invoices. 
+* If a user is on the final invoice page, they should be able to import an existing estimate as a starting point.
+* Conversely, they should be able to click a button on an estimate to convert it into a final invoice.
+
+**Data Model & Database Optimization**
+A few easy wins to ensure long-term performance:
+* Don't duplicate data. Store the customer and vehicle once, then link every service visit to that vehicle.
+* Use UUIDs for IDs.
+* Index frequently searched fields: Vehicle number, Phone number, `tenant_id`, Status.
+* Don't store totals twice if they can be calculated dynamically, EXCEPT for invoices (invoice totals must be frozen).
+* Use soft deletes (`deleted_at`) instead of permanently deleting records.
+* Paginate lists (e.g., never load 1,000 vehicles at once).
+* Archive old images if needed, but keep the service records.
+* Use Drizzle ORM.
+
+**Vehicle Flow**
+One vehicle can have many visits. Use the license/registration number as the unique key. 
+On a new visit: 
+1. The user types the vehicle number. 
+2. If the vehicle is found in the database, auto-populate the vehicle name, owner name, and details, then add a new visit.
+3. If not found, create the new vehicle and customer, then add the visit. 
+
+---
+
+**AI Agent Instructions**
+Plan the entire product first, break it down into small tasks, and then let the AI complete, review, and test ONE task at a time instead of trying to generate the whole application in a single prompt.
