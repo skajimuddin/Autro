@@ -1,0 +1,14 @@
+{
+  "name": "@workshop/api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workshop — Hono Backend (Cloudflare Workers)",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext ts --report-unused-disable-directives --max-warnings 0"
+  }
+}

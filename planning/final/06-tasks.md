@@ -26,7 +26,7 @@ DO:
 
 DONE WHEN: `npm install` runs without errors at root level
 ```
-- [ ] Completed
+- [x] Completed
 
 ### Task 0.2 — Setup Shared Package
 ```
