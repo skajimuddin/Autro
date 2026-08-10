@@ -53,7 +53,7 @@ DO:
 
 DONE WHEN: `npx tsc --noEmit` passes in packages/shared
 ```
-- [ ] Completed
+- [x] Completed
 
 ### Task 0.3 — Setup Frontend (Vite + React)
 ```
