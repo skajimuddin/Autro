@@ -213,6 +213,7 @@ Simple: just name + amount. No types.
 | `payment_status` | TEXT | NOT NULL, DEFAULT 'UNPAID' | `UNPAID`, `PAID` |
 | `notes` | TEXT | | |
 | `created_at` | TEXT | NOT NULL | |
+| `updated_at` | TEXT | NOT NULL | |
 | `paid_at` | TEXT | | When marked paid |
 
 ---

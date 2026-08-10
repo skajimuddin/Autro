@@ -143,6 +143,7 @@ workshop/
 │       │   │   ├── tenants.ts
 │       │   │   ├── vehicles.ts
 │       │   │   ├── customers.ts
+│       │   │   ├── visits.ts
 │       │   │   ├── estimates.ts
 │       │   │   ├── invoices.ts
 │       │   │   ├── staff.ts
@@ -157,18 +158,21 @@ workshop/
 │       ├── wrangler.toml
 │       └── package.json
 │
-└── plan/                         # Planning docs (stays, not deployed)
-    ├── index.txt
-    ├── 00-the-plan.txt
-    ├── 01-note.txt
-    ├── old.req.md
+└── planning/                     # Planning docs (stays, not deployed)
+    ├── notes/
+    │   ├── 01-draft-architecture.txt
+    │   ├── 02-draft-user-flows.txt
+    │   ├── 03-draft-ui-preferences.txt
+    │   └── 04-legacy-requirements.txt
+    ├── demo-ui/                  # Static HTML/CSS mockups
     └── final/                    # Finalized plan docs
         ├── 00-overview.md
         ├── 01-tech-stack.md
         ├── 02-folder-structure.md
         ├── 03-database.md
         ├── 04-api-routes.md
-        └── 05-ui-screens.md
+        ├── 05-ui-screens.md
+        └── 06-tasks.md
 ```
 
 ---

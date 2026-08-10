@@ -123,3 +123,4 @@ if (!baseUrl) throw new Error("BASE_URL is required");
 | `03-database.md` | Database schema, ER diagram, indexes |
 | `04-api-routes.md` | All backend API endpoints |
 | `05-ui-screens.md` | All screens, components, design system, user flows |
+| `06-tasks.md` | Atomic task breakdown — work from this |

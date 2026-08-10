@@ -347,10 +347,13 @@ READ: planning/final/04-api-routes.md (Vehicle Routes + Service Visit Routes)
 DO:
 1. Create src/routes/vehicles.ts (all vehicle endpoints)
 2. Create src/routes/customers.ts (customer search)
-3. POST /vehicles creates customer + vehicle + visit in one transaction
-4. GET /vehicles with pagination + status filter
-5. GET /vehicles/search for autocomplete
-6. Validate with shared Zod schemas
+3. Create src/routes/visits.ts (visit status + new visit for returning vehicles)
+4. POST /vehicles creates customer + vehicle + visit in one transaction
+5. POST /vehicles/:id/visits creates new visit for returning vehicle
+6. POST /vehicles/:id/images adds photo to existing vehicle
+7. GET /vehicles with pagination + status filter
+8. GET /vehicles/search for autocomplete
+9. Validate with shared Zod schemas
 
 DONE WHEN: All vehicle endpoints work via curl/Postman
 ```
@@ -483,10 +486,13 @@ READ: planning/final/04-api-routes.md (Estimate Routes)
 
 DO:
 1. Create src/routes/estimates.ts
-2. All estimate endpoints including item management
-3. Validate with shared Zod schemas
+2. GET /estimates/:id — get single estimate with items
+3. GET /estimates?status=X&cursor=X — list all estimates with pagination
+4. GET /estimates?visit_id=X — get estimate for a specific visit
+5. All estimate endpoints including item management
+6. Validate with shared Zod schemas
 
-DONE WHEN: Can create, update, add/remove items via API
+DONE WHEN: Can create, list, get by ID, update, add/remove items via API
 ```
 - [ ] Completed
 

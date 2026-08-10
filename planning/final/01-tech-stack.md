@@ -29,6 +29,7 @@
 | ORM | **Drizzle ORM** | Type-safe, lightweight, D1-compatible, easy migration to Postgres later |
 | File Storage | **Cloudflare R2** | S3-compatible, zero egress fees |
 | Auth | **Google OAuth 2.0** → **JWT** | Only login method, simple |
+| JWT | **jose** | JWT sign/verify that works in Workers (Edge Runtime compatible) |
 | Validation | **Zod** | Shared schemas between frontend and backend |
 
 ## Infrastructure

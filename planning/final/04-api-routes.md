@@ -44,6 +44,34 @@ sequenceDiagram
 | `GET` | `/tenants/mine` | JWT | Get the user's garage (redirect to onboarding if none) |
 | `PATCH` | `/tenants/:id` | JWT + Owner | Update garage details (settings page) |
 
+### POST `/tenants` Request Body
+
+```json
+{
+  "name": "Azim Auto Workshop",
+  "phone": "9876543210",
+  "address": "123, Main Road, Bhubaneswar",
+  "logo_url": "r2://logos/abc123.webp",
+  "latitude": 20.2961,
+  "longitude": 85.8245
+}
+```
+
+### PATCH `/tenants/:id` Request Body
+
+All fields optional — only send what changed:
+
+```json
+{
+  "name": "Azim Auto Workshop",
+  "phone": "9876543210",
+  "address": "456, New Road",
+  "logo_url": "r2://logos/new-logo.webp",
+  "latitude": 20.2961,
+  "longitude": 85.8245,
+  "gps_radius_meters": 150
+}
+
 ---
 
 ## Vehicle Routes
@@ -57,6 +85,8 @@ All require JWT + X-Tenant-ID.
 | `POST` | `/vehicles` | Create vehicle + customer + first service visit |
 | `GET` | `/vehicles/:id` | Get vehicle with customer, images, latest visit |
 | `PATCH` | `/vehicles/:id` | Update vehicle details |
+| `POST` | `/vehicles/:id/visits` | Create new service visit for returning vehicle |
+| `POST` | `/vehicles/:id/images` | Add photo to existing vehicle |
 
 ### POST `/vehicles` — What it does
 
@@ -78,6 +108,36 @@ This single endpoint handles the full "add vehicle" flow:
 }
 ```
 
+### PATCH `/vehicles/:id` Request Body
+
+All fields optional:
+
+```json
+{
+  "registration_number": "OD 02 AB 1234",
+  "name": "Honda City 2024"
+}
+```
+
+### POST `/vehicles/:id/visits` Request Body
+
+Creates a new service visit for a vehicle that already exists (returning customer):
+
+```json
+{
+  "complaint": "AC not cooling",
+  "image_urls": ["r2://path/to/image.webp"]
+}
+```
+
+### POST `/vehicles/:id/images` Request Body
+
+```json
+{
+  "image_url": "r2://path/to/image.webp"
+}
+```
+
 ---
 
 ## Service Visit Routes
@@ -94,6 +154,8 @@ This single endpoint handles the full "add vehicle" flow:
 | Method | Route | Description |
 |---|---|---|
 | `GET` | `/estimates?visit_id=X` | Get estimate for a visit |
+| `GET` | `/estimates?status=X&cursor=X` | List all estimates (paginated, filterable by status) |
+| `GET` | `/estimates/:id` | Get single estimate with items |
 | `POST` | `/estimates` | Create estimate with items |
 | `PATCH` | `/estimates/:id` | Update estimate (discount, tax, notes) |
 | `POST` | `/estimates/:id/items` | Add an item |
@@ -129,6 +191,47 @@ This single endpoint handles the full "add vehicle" flow:
 | `POST` | `/invoices/from-estimate/:estimateId` | Create invoice by importing estimate |
 | `PATCH` | `/invoices/:id` | Update invoice items/details |
 | `PATCH` | `/invoices/:id/pay` | Mark as paid (set payment_method, freeze total) |
+
+### POST `/invoices` Request Body (Fresh Invoice)
+
+```json
+{
+  "visit_id": "uuid",
+  "items": [
+    { "description": "Engine Repair", "amount": 3500, "quantity": 1 },
+    { "description": "Oil Change", "amount": 500, "quantity": 1 }
+  ],
+  "discount_type": "FLAT",
+  "discount_value": 200,
+  "tax_enabled": true,
+  "tax_percent": 18,
+  "notes": ""
+}
+```
+
+### PATCH `/invoices/:id` Request Body
+
+All fields optional — only send what changed:
+
+```json
+{
+  "discount_type": "PERCENT",
+  "discount_value": 10,
+  "tax_enabled": true,
+  "tax_percent": 18,
+  "notes": "Updated after discussion"
+}
+```
+
+### PATCH `/invoices/:id/pay` Request Body
+
+```json
+{
+  "payment_method": "UPI"
+}
+```
+
+This freezes `frozen_total`, sets `payment_status` to `PAID`, and records `paid_at`.
 
 ### POST `/invoices/from-estimate/:estimateId` — What it does
 
@@ -188,6 +291,25 @@ sequenceDiagram
 | `GET` | `/attendance/today` | Today's attendance summary (owner) |
 | `GET` | `/attendance/my-today` | Staff's own attendance for today |
 | `GET` | `/attendance/monthly?member_id=X&month=YYYY-MM` | Monthly report |
+
+### POST `/attendance/checkin` Request Body
+
+```json
+{
+  "qr_token": "abc123xyz",
+  "latitude": 20.2961,
+  "longitude": 85.8245
+}
+```
+
+### POST `/attendance/checkout` Request Body
+
+```json
+{
+  "latitude": 20.2961,
+  "longitude": 85.8245
+}
+```
 
 ### Check-in Verification Logic
 
