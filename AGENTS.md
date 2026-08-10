@@ -142,9 +142,48 @@ All decisions have been made. Do NOT deviate from these:
 
 ### Imports
 
-- Use path aliases if configured (`@/` prefix)
-- Group imports: external libs → shared package → project files
-- No circular imports
+**Rule: `@/` in app packages, relative imports in library packages.**
+
+| Package | Style | Reason |
+|---|---|---|
+| `apps/web/src/**` | Always `@/` | Alias configured, stays within app |
+| `apps/api/src/**` | Always `@/` | Alias configured, stays within app |
+| `packages/shared/src/**` | Always `./` or `../` | Cannot use `@/` — consuming apps (`apps/web`, `apps/api`) also have their own `@/` alias pointing to their own `src/`. If shared uses `@/` internally, those apps will try to resolve it against **their** `src/` and break. |
+
+```ts
+// ✅ apps/web or apps/api — always @/
+import { Button } from '@/components/ui/button'
+import type { Env } from '@/env'
+
+// ❌ Never relative inside app packages
+import { Button } from '../components/ui/button'
+
+// ✅ packages/shared — always relative (./  or ../)
+export * from './schemas/auth'
+import type { AuthResponseSchema } from '../schemas/auth'
+
+// ❌ Never @/ inside packages/shared — it will break consuming apps
+import type { AuthResponseSchema } from '@/schemas/auth'
+```
+
+**Import group order** (enforced, one blank line between groups):
+1. External libraries (`react`, `hono`, `zod`, etc.)
+2. Shared package (`@workshop/shared`)
+3. Internal project files (`@/...`)
+
+```ts
+// ✅ Correct order
+import { useState } from 'react'
+import { z } from 'zod'
+
+import type { CreateVehicle } from '@workshop/shared'
+
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-auth'
+```
+
+- No circular imports — ever
+- No barrel re-exports that cause circular chains
 
 ---
 

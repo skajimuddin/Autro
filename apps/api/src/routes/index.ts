@@ -2,7 +2,7 @@
  * Route barrel — register feature routes here as they are implemented.
  *
  * Example:
- *   import authRoutes from './auth';
+ *   import authRoutes from '@/routes/auth';
  *   export { authRoutes };
  */
 

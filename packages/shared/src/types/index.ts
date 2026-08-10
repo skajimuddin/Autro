@@ -1,13 +1,13 @@
 import type { z } from 'zod'
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
-import type { AuthResponseSchema, RefreshTokenSchema } from '../schemas/auth.ts'
+import type { AuthResponseSchema, RefreshTokenSchema } from '../schemas/auth'
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>
 export type RefreshToken = z.infer<typeof RefreshTokenSchema>
 
 // ── Tenant ───────────────────────────────────────────────────────────────────
-import type { CreateTenantSchema, UpdateTenantSchema } from '../schemas/tenant.ts'
+import type { CreateTenantSchema, UpdateTenantSchema } from '../schemas/tenant'
 
 export type CreateTenant = z.infer<typeof CreateTenantSchema>
 export type UpdateTenant = z.infer<typeof UpdateTenantSchema>
@@ -19,7 +19,7 @@ import type {
   CreateVisitSchema,
   UpdateVisitStatusSchema,
   AddVehicleImageSchema,
-} from '../schemas/vehicle.ts'
+} from '../schemas/vehicle'
 
 export type CreateVehicle = z.infer<typeof CreateVehicleSchema>
 export type UpdateVehicle = z.infer<typeof UpdateVehicleSchema>
@@ -28,7 +28,7 @@ export type UpdateVisitStatus = z.infer<typeof UpdateVisitStatusSchema>
 export type AddVehicleImage = z.infer<typeof AddVehicleImageSchema>
 
 // ── Customer ─────────────────────────────────────────────────────────────────
-import type { CustomerSearchSchema } from '../schemas/customer.ts'
+import type { CustomerSearchSchema } from '../schemas/customer'
 
 export type CustomerSearch = z.infer<typeof CustomerSearchSchema>
 
@@ -39,7 +39,7 @@ import type {
   UpdateEstimateSchema,
   AddEstimateItemSchema,
   UpdateEstimateItemSchema,
-} from '../schemas/estimate.ts'
+} from '../schemas/estimate'
 
 export type EstimateItem = z.infer<typeof EstimateItemSchema>
 export type CreateEstimate = z.infer<typeof CreateEstimateSchema>
@@ -55,7 +55,7 @@ import type {
   MarkInvoicePaidSchema,
   AddInvoiceItemSchema,
   UpdateInvoiceItemSchema,
-} from '../schemas/invoice.ts'
+} from '../schemas/invoice'
 
 export type InvoiceItem = z.infer<typeof InvoiceItemSchema>
 export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>
@@ -65,7 +65,7 @@ export type AddInvoiceItem = z.infer<typeof AddInvoiceItemSchema>
 export type UpdateInvoiceItem = z.infer<typeof UpdateInvoiceItemSchema>
 
 // ── Staff ────────────────────────────────────────────────────────────────────
-import type { CreateStaffInviteSchema, UpdateStaffSchema } from '../schemas/staff.ts'
+import type { CreateStaffInviteSchema, UpdateStaffSchema } from '../schemas/staff'
 
 export type CreateStaffInvite = z.infer<typeof CreateStaffInviteSchema>
 export type UpdateStaff = z.infer<typeof UpdateStaffSchema>
@@ -75,14 +75,14 @@ import type {
   CheckInSchema,
   CheckOutSchema,
   MonthlyAttendanceQuerySchema,
-} from '../schemas/attendance.ts'
+} from '../schemas/attendance'
 
 export type CheckIn = z.infer<typeof CheckInSchema>
 export type CheckOut = z.infer<typeof CheckOutSchema>
 export type MonthlyAttendanceQuery = z.infer<typeof MonthlyAttendanceQuerySchema>
 
 // ── Constants re-exports ─────────────────────────────────────────────────────
-export type { Role } from '../constants/roles.ts'
+export type { Role } from '../constants/roles'
 export type {
   VisitStatus,
   EstimateStatus,
@@ -91,4 +91,4 @@ export type {
   DiscountType,
   InviteStatus,
   AttendanceStatus,
-} from '../constants/status.ts'
+} from '../constants/status'

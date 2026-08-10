@@ -19,9 +19,8 @@
     "types": ["@cloudflare/workers-types"],
 
     /* @ alias → src/ */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts"],

@@ -1,16 +1,16 @@
 // ── Schemas ───────────────────────────────────────────────────────────────────
-export * from './schemas/auth.ts'
-export * from './schemas/tenant.ts'
-export * from './schemas/vehicle.ts'
-export * from './schemas/customer.ts'
-export * from './schemas/estimate.ts'
-export * from './schemas/invoice.ts'
-export * from './schemas/staff.ts'
-export * from './schemas/attendance.ts'
+export * from './schemas/auth'
+export * from './schemas/tenant'
+export * from './schemas/vehicle'
+export * from './schemas/customer'
+export * from './schemas/estimate'
+export * from './schemas/invoice'
+export * from './schemas/staff'
+export * from './schemas/attendance'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-export type * from './types/index.ts'
+export type * from './types/index'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-export * from './constants/roles.ts'
-export * from './constants/status.ts'
+export * from './constants/roles'
+export * from './constants/status'
