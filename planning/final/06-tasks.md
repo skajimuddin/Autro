@@ -108,7 +108,7 @@ DO:
 DONE WHEN: `npx wrangler dev` starts and GET /health returns { status: "ok" }
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 0.5 — ESLint + Prettier
 
@@ -124,7 +124,7 @@ DO:
 DONE WHEN: `npm run lint` and `npm run format` work without errors
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 

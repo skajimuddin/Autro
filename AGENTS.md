@@ -7,6 +7,20 @@
 
 ## 🚨 CRITICAL RULES (NEVER BREAK THESE)
 
+### 0. START EVERY SESSION BY READING PROGRESS.md
+
+**This is the most important rule.**
+
+- The FIRST thing you do in any session is: `read PROGRESS.md` at the project root
+- It tells you exactly what was done, what is next, and all the context you need
+- After completing a task, UPDATE `PROGRESS.md`:
+  - Move the finished task to the ✅ Completed table with today's date
+  - Set the new "🔴 NEXT TASK TO DO" block to the next uncompleted task
+  - Update the phase status table
+- Also mark the task `[x]` in `planning/final/06-tasks.md`
+- Never skip this. It's how sessions hand off to each other.
+
+
 ### 1. ONE TASK AT A TIME
 
 - You are working on ONE specific task from `planning/final/06-tasks.md`
@@ -144,10 +158,10 @@ All decisions have been made. Do NOT deviate from these:
 
 **Rule: `@/` in app packages, relative imports in library packages.**
 
-| Package | Style | Reason |
-|---|---|---|
-| `apps/web/src/**` | Always `@/` | Alias configured, stays within app |
-| `apps/api/src/**` | Always `@/` | Alias configured, stays within app |
+| Package                  | Style                | Reason                                                                                                                                                                                                                       |
+| ------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/src/**`        | Always `@/`          | Alias configured, stays within app                                                                                                                                                                                           |
+| `apps/api/src/**`        | Always `@/`          | Alias configured, stays within app                                                                                                                                                                                           |
 | `packages/shared/src/**` | Always `./` or `../` | Cannot use `@/` — consuming apps (`apps/web`, `apps/api`) also have their own `@/` alias pointing to their own `src/`. If shared uses `@/` internally, those apps will try to resolve it against **their** `src/` and break. |
 
 ```ts
@@ -167,6 +181,7 @@ import type { AuthResponseSchema } from '@/schemas/auth'
 ```
 
 **Import group order** (enforced, one blank line between groups):
+
 1. External libraries (`react`, `hono`, `zod`, etc.)
 2. Shared package (`@workshop/shared`)
 3. Internal project files (`@/...`)
