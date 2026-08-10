@@ -79,7 +79,7 @@ DO:
 
 DONE WHEN: `npm run dev --workspace=apps/web` shows a blank page without errors
 ```
-- [ ] Completed
+- [x] Completed
 
 ### Task 0.4 — Setup Backend (Hono + Cloudflare Workers)
 ```
