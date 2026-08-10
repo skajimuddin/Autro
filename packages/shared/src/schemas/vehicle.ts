@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * POST /vehicles — create vehicle + customer + first service visit in one call.
@@ -19,7 +19,7 @@ export const CreateVehicleSchema = z.object({
     .regex(/^\d+$/, 'Phone must contain only digits'),
   complaint: z.string().max(1000).optional(),
   image_urls: z.array(z.string().url()).max(10).default([]),
-});
+})
 
 /**
  * PATCH /vehicles/:id — update vehicle details.
@@ -33,7 +33,7 @@ export const UpdateVehicleSchema = z.object({
     .transform((v) => v.toUpperCase().trim())
     .optional(),
   name: z.string().min(1).max(100).optional(),
-});
+})
 
 /**
  * POST /vehicles/:id/visits — new service visit for returning vehicle.
@@ -41,18 +41,18 @@ export const UpdateVehicleSchema = z.object({
 export const CreateVisitSchema = z.object({
   complaint: z.string().max(1000).optional(),
   image_urls: z.array(z.string().url()).max(10).default([]),
-});
+})
 
 /**
  * PATCH /visits/:id/status — update service visit status.
  */
 export const UpdateVisitStatusSchema = z.object({
   status: z.enum(['NEW', 'REPAIRING', 'READY', 'DELIVERED']),
-});
+})
 
 /**
  * POST /vehicles/:id/images — add a single photo to existing vehicle.
  */
 export const AddVehicleImageSchema = z.object({
   image_url: z.string().url('Must be a valid URL'),
-});
+})

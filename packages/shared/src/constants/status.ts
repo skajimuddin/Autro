@@ -7,9 +7,9 @@ export const VISIT_STATUS = {
   REPAIRING: 'REPAIRING',
   READY: 'READY',
   DELIVERED: 'DELIVERED',
-} as const;
+} as const
 
-export type VisitStatus = (typeof VISIT_STATUS)[keyof typeof VISIT_STATUS];
+export type VisitStatus = (typeof VISIT_STATUS)[keyof typeof VISIT_STATUS]
 
 /**
  * Estimate statuses.
@@ -21,9 +21,9 @@ export const ESTIMATE_STATUS = {
   DRAFT: 'DRAFT',
   SENT: 'SENT',
   CONVERTED: 'CONVERTED',
-} as const;
+} as const
 
-export type EstimateStatus = (typeof ESTIMATE_STATUS)[keyof typeof ESTIMATE_STATUS];
+export type EstimateStatus = (typeof ESTIMATE_STATUS)[keyof typeof ESTIMATE_STATUS]
 
 /**
  * Invoice payment statuses.
@@ -31,9 +31,9 @@ export type EstimateStatus = (typeof ESTIMATE_STATUS)[keyof typeof ESTIMATE_STAT
 export const PAYMENT_STATUS = {
   UNPAID: 'UNPAID',
   PAID: 'PAID',
-} as const;
+} as const
 
-export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
+export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
 
 /**
  * Payment methods accepted at the garage.
@@ -43,9 +43,9 @@ export const PAYMENT_METHOD = {
   UPI: 'UPI',
   CARD: 'CARD',
   OTHER: 'OTHER',
-} as const;
+} as const
 
-export type PaymentMethod = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
+export type PaymentMethod = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD]
 
 /**
  * Discount types for estimates and invoices.
@@ -53,9 +53,9 @@ export type PaymentMethod = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD]
 export const DISCOUNT_TYPE = {
   FLAT: 'FLAT',
   PERCENT: 'PERCENT',
-} as const;
+} as const
 
-export type DiscountType = (typeof DISCOUNT_TYPE)[keyof typeof DISCOUNT_TYPE];
+export type DiscountType = (typeof DISCOUNT_TYPE)[keyof typeof DISCOUNT_TYPE]
 
 /**
  * Staff invite statuses.
@@ -64,9 +64,9 @@ export const INVITE_STATUS = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
   REVOKED: 'REVOKED',
-} as const;
+} as const
 
-export type InviteStatus = (typeof INVITE_STATUS)[keyof typeof INVITE_STATUS];
+export type InviteStatus = (typeof INVITE_STATUS)[keyof typeof INVITE_STATUS]
 
 /**
  * Attendance log statuses.
@@ -74,6 +74,6 @@ export type InviteStatus = (typeof INVITE_STATUS)[keyof typeof INVITE_STATUS];
 export const ATTENDANCE_STATUS = {
   PRESENT: 'PRESENT',
   ABSENT: 'ABSENT',
-} as const;
+} as const
 
-export type AttendanceStatus = (typeof ATTENDANCE_STATUS)[keyof typeof ATTENDANCE_STATUS];
+export type AttendanceStatus = (typeof ATTENDANCE_STATUS)[keyof typeof ATTENDANCE_STATUS]

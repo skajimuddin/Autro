@@ -179,12 +179,12 @@ workshop/
 
 ## Key Structural Decisions
 
-| Decision | Why |
-|---|---|
-| **Monorepo with npm workspaces** | Frontend + backend share Zod schemas from `packages/shared`. Zero extra tools. |
-| **`packages/shared`** | Single source of truth for validation schemas and types. No duplication. |
+| Decision                                     | Why                                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Monorepo with npm workspaces**             | Frontend + backend share Zod schemas from `packages/shared`. Zero extra tools.                     |
+| **`packages/shared`**                        | Single source of truth for validation schemas and types. No duplication.                           |
 | **`components/ui/` vs `components/domain/`** | Generic UI primitives (Button, Card) separate from business components (VehicleSearch, QRDisplay). |
-| **`pages/` = one file per route** | Simple mapping: URL → file. Easy to find things. |
-| **`lib/` for utilities** | All standalone logic (API client, image compression, PDF) lives here. Not mixed into components. |
-| **`providers/` for React context** | Auth, tenant, and query providers wrap the app. Clean separation. |
-| **`db/schema.ts` single file** | All Drizzle tables in one file. For a project this size, splitting is unnecessary. |
+| **`pages/` = one file per route**            | Simple mapping: URL → file. Easy to find things.                                                   |
+| **`lib/` for utilities**                     | All standalone logic (API client, image compression, PDF) lives here. Not mixed into components.   |
+| **`providers/` for React context**           | Auth, tenant, and query providers wrap the app. Clean separation.                                  |
+| **`db/schema.ts` single file**               | All Drizzle tables in one file. For a project this size, splitting is unnecessary.                 |

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Single invoice line item.
@@ -10,7 +10,7 @@ export const InvoiceItemSchema = z.object({
   amount: z.number().min(0, 'Amount must be non-negative'),
   quantity: z.number().int().min(1).default(1),
   sort_order: z.number().int().min(0).default(0),
-});
+})
 
 /**
  * POST /invoices — create a fresh invoice (not from estimate).
@@ -24,7 +24,7 @@ export const CreateInvoiceSchema = z.object({
   tax_enabled: z.boolean().default(false),
   tax_percent: z.number().min(0).max(100).default(0),
   notes: z.string().max(500).default(''),
-});
+})
 
 /**
  * PATCH /invoices/:id — update invoice details/items.
@@ -36,7 +36,7 @@ export const UpdateInvoiceSchema = z.object({
   tax_enabled: z.boolean().optional(),
   tax_percent: z.number().min(0).max(100).optional(),
   notes: z.string().max(500).optional(),
-});
+})
 
 /**
  * PATCH /invoices/:id/pay — mark invoice as paid.
@@ -44,18 +44,18 @@ export const UpdateInvoiceSchema = z.object({
  */
 export const MarkInvoicePaidSchema = z.object({
   payment_method: z.enum(['CASH', 'UPI', 'CARD', 'OTHER']),
-});
+})
 
 /**
  * POST /invoices/from-estimate/:estimateId — create invoice by importing estimate.
  * No body required — all data is copied from the estimate server-side.
  */
-export const CreateInvoiceFromEstimateSchema = z.object({}).strict();
+export const CreateInvoiceFromEstimateSchema = z.object({}).strict()
 
 /**
  * POST /invoices/:id/items — add a single item to an invoice.
  */
-export const AddInvoiceItemSchema = InvoiceItemSchema;
+export const AddInvoiceItemSchema = InvoiceItemSchema
 
 /**
  * PATCH /invoices/:id/items/:itemId — update a single invoice item.
@@ -66,4 +66,4 @@ export const UpdateInvoiceItemSchema = z.object({
   amount: z.number().min(0).optional(),
   quantity: z.number().int().min(1).optional(),
   sort_order: z.number().int().min(0).optional(),
-});
+})

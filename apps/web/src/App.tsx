@@ -8,5 +8,5 @@ export default function App(): React.JSX.Element {
         <p className="mt-2 text-sm text-gray-500">Setting up…</p>
       </div>
     </div>
-  );
+  )
 }

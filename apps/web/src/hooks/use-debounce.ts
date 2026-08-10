@@ -1,2 +1,2 @@
 // Utility hook
-export {};
+export {}

@@ -11,6 +11,7 @@
 ## What This App Does
 
 A simple, mobile-first web app for small garage/workshop owners to:
+
 - Register vehicles (any type — car, bike, truck, auto)
 - Track customers and their vehicle history
 - Create estimates and convert them to final invoices
@@ -22,24 +23,24 @@ A simple, mobile-first web app for small garage/workshop owners to:
 
 ## Design Principles
 
-| # | Principle | What it means |
-|---|---|---|
-| 1 | **Google Pay simplicity** | Clean, minimal, zero clutter. Each screen does ONE thing well |
-| 2 | **3-tap rule** | Any common action completable in ≤ 3 taps |
-| 3 | **No wheel reinvention** | Use existing libraries. Less code = less bugs |
-| 4 | **Strict code** | No fallback hardcoding. If env/config missing → crash, don't silently break |
-| 5 | **Cost-effective** | Client-side PDF, client-side WebP, paginated queries, minimal server compute |
-| 6 | **Mobile-first PWA** | Designed for phone screens. Desktop is secondary |
+| #   | Principle                 | What it means                                                                |
+| --- | ------------------------- | ---------------------------------------------------------------------------- |
+| 1   | **Google Pay simplicity** | Clean, minimal, zero clutter. Each screen does ONE thing well                |
+| 2   | **3-tap rule**            | Any common action completable in ≤ 3 taps                                    |
+| 3   | **No wheel reinvention**  | Use existing libraries. Less code = less bugs                                |
+| 4   | **Strict code**           | No fallback hardcoding. If env/config missing → crash, don't silently break  |
+| 5   | **Cost-effective**        | Client-side PDF, client-side WebP, paginated queries, minimal server compute |
+| 6   | **Mobile-first PWA**      | Designed for phone screens. Desktop is secondary                             |
 
 ### Code Philosophy
 
 ```typescript
 // ❌ NEVER
-const baseUrl = process.env.BASE_URL || "https://placeholder.cc";
+const baseUrl = process.env.BASE_URL || 'https://placeholder.cc'
 
 // ✅ ALWAYS
-const baseUrl = process.env.BASE_URL;
-if (!baseUrl) throw new Error("BASE_URL is required");
+const baseUrl = process.env.BASE_URL
+if (!baseUrl) throw new Error('BASE_URL is required')
 ```
 
 ---
@@ -47,12 +48,14 @@ if (!baseUrl) throw new Error("BASE_URL is required");
 ## User Roles
 
 ### Owner
+
 - Full access to everything
 - Manages garage, vehicles, estimates, invoices, staff
 - Generates QR for staff attendance
 - Views all reports and stats
 
 ### Staff
+
 - Login is **only for attendance**
 - Can: Check-in via QR scan, check-out, view own attendance
 - Cannot: Access vehicles, estimates, invoices, or any garage management
@@ -102,25 +105,25 @@ if (!baseUrl) throw new Error("BASE_URL is required");
 
 ## Success Criteria
 
-| Action | Target Time |
-|---|---|
-| Add a vehicle + customer | < 1 minute |
-| Create an estimate | < 2 minutes |
-| Convert estimate → invoice | < 30 seconds |
+| Action                       | Target Time  |
+| ---------------------------- | ------------ |
+| Add a vehicle + customer     | < 1 minute   |
+| Create an estimate           | < 2 minutes  |
+| Convert estimate → invoice   | < 30 seconds |
 | Generate & share invoice PDF | < 30 seconds |
-| Staff check-in | < 10 seconds |
-| New user learns the app | < 15 minutes |
+| Staff check-in               | < 10 seconds |
+| New user learns the app      | < 15 minutes |
 
 ---
 
 ## Plan Files Index
 
-| File | What it covers |
-|---|---|
-| `00-overview.md` | This file — product vision, principles, scope |
-| `01-tech-stack.md` | Full tech stack with rationale |
-| `02-folder-structure.md` | Complete project directory tree |
-| `03-database.md` | Database schema, ER diagram, indexes |
-| `04-api-routes.md` | All backend API endpoints |
-| `05-ui-screens.md` | All screens, components, design system, user flows |
-| `06-tasks.md` | Atomic task breakdown — work from this |
+| File                     | What it covers                                     |
+| ------------------------ | -------------------------------------------------- |
+| `00-overview.md`         | This file — product vision, principles, scope      |
+| `01-tech-stack.md`       | Full tech stack with rationale                     |
+| `02-folder-structure.md` | Complete project directory tree                    |
+| `03-database.md`         | Database schema, ER diagram, indexes               |
+| `04-api-routes.md`       | All backend API endpoints                          |
+| `05-ui-screens.md`       | All screens, components, design system, user flows |
+| `06-tasks.md`            | Atomic task breakdown — work from this             |

@@ -6,75 +6,75 @@
 
 ### Color Palette
 
-| Token | Hex | Usage |
-|---|---|---|
-| `primary` | `#2563eb` (Blue 600) | CTAs, active states, totals, links |
-| `primary-hover` | `#1d4ed8` (Blue 700) | Hover/pressed |
-| `primary-light` | `#dbeafe` (Blue 100) | Subtle backgrounds |
-| `bg` | `#f1f5f9` (Slate 100) | Page background |
-| `card` | `#ffffff` | Cards, inputs, nav |
-| `border` | `#cbd5e1` (Slate 300) | Input borders |
-| `divider` | `#e2e8f0` (Slate 200) | Divider lines |
-| `text` | `#0f172a` (Slate 900) | Primary text |
-| `text-secondary` | `#64748b` (Slate 500) | Labels, captions |
-| `success` | `#10b981` (Emerald 500) | Paid, present, done |
-| `success-light` | `#d1fae5` (Emerald 100) | Success badge bg |
-| `warning` | `#f59e0b` (Amber 500) | Pending, active |
-| `warning-light` | `#fef3c7` (Amber 100) | Warning badge bg |
-| `danger` | `#ef4444` (Red 500) | Absent, error |
-| `danger-light` | `#fee2e2` (Red 100) | Danger badge bg |
+| Token            | Hex                     | Usage                              |
+| ---------------- | ----------------------- | ---------------------------------- |
+| `primary`        | `#2563eb` (Blue 600)    | CTAs, active states, totals, links |
+| `primary-hover`  | `#1d4ed8` (Blue 700)    | Hover/pressed                      |
+| `primary-light`  | `#dbeafe` (Blue 100)    | Subtle backgrounds                 |
+| `bg`             | `#f1f5f9` (Slate 100)   | Page background                    |
+| `card`           | `#ffffff`               | Cards, inputs, nav                 |
+| `border`         | `#cbd5e1` (Slate 300)   | Input borders                      |
+| `divider`        | `#e2e8f0` (Slate 200)   | Divider lines                      |
+| `text`           | `#0f172a` (Slate 900)   | Primary text                       |
+| `text-secondary` | `#64748b` (Slate 500)   | Labels, captions                   |
+| `success`        | `#10b981` (Emerald 500) | Paid, present, done                |
+| `success-light`  | `#d1fae5` (Emerald 100) | Success badge bg                   |
+| `warning`        | `#f59e0b` (Amber 500)   | Pending, active                    |
+| `warning-light`  | `#fef3c7` (Amber 100)   | Warning badge bg                   |
+| `danger`         | `#ef4444` (Red 500)     | Absent, error                      |
+| `danger-light`   | `#fee2e2` (Red 100)     | Danger badge bg                    |
 
 ### Typography
 
 - **Font:** `'Inter', sans-serif` (Google Fonts)
 
-| Element | Size | Weight |
-|---|---|---|
-| Hero stat / Total | 2rem (32px) | 700 Bold |
-| Page title (topbar) | 1.2rem (19px) | 600 Semi-bold |
-| Card title / List name | 1.1rem (18px) | 700 Bold |
-| Body / Inputs | 1rem (16px) | 400 Regular |
-| Section header | 0.95rem | 700 Bold, UPPERCASE, 1px letter-spacing |
-| Badge / Nav label | 0.75rem (12px) | 700 Bold |
+| Element                | Size           | Weight                                  |
+| ---------------------- | -------------- | --------------------------------------- |
+| Hero stat / Total      | 2rem (32px)    | 700 Bold                                |
+| Page title (topbar)    | 1.2rem (19px)  | 600 Semi-bold                           |
+| Card title / List name | 1.1rem (18px)  | 700 Bold                                |
+| Body / Inputs          | 1rem (16px)    | 400 Regular                             |
+| Section header         | 0.95rem        | 700 Bold, UPPERCASE, 1px letter-spacing |
+| Badge / Nav label      | 0.75rem (12px) | 700 Bold                                |
 
 ### Spacing & Radius
 
-| Element | Value |
-|---|---|
-| Card radius | `16px` (rounded-2xl) |
-| Button radius | `16px` (rounded-2xl) |
-| Input radius | `12px` (rounded-xl) |
-| Page padding | `16px` |
-| Bottom padding | `100px` (to clear bottom nav) |
-| Mobile container max-width | `414px` |
+| Element                    | Value                         |
+| -------------------------- | ----------------------------- |
+| Card radius                | `16px` (rounded-2xl)          |
+| Button radius              | `16px` (rounded-2xl)          |
+| Input radius               | `12px` (rounded-xl)           |
+| Page padding               | `16px`                        |
+| Bottom padding             | `100px` (to clear bottom nav) |
+| Mobile container max-width | `414px`                       |
 
 ### Shadows
 
-| Element | Shadow |
-|---|---|
-| Card | `0 4px 6px -1px rgba(0,0,0,0.05)` |
-| Topbar | `0 2px 10px rgba(0,0,0,0.05)` |
-| Primary button | `0 10px 15px -3px rgba(37,99,235,0.3)` |
+| Element        | Shadow                                  |
+| -------------- | --------------------------------------- |
+| Card           | `0 4px 6px -1px rgba(0,0,0,0.05)`       |
+| Topbar         | `0 2px 10px rgba(0,0,0,0.05)`           |
+| Primary button | `0 10px 15px -3px rgba(37,99,235,0.3)`  |
 | Success button | `0 10px 15px -3px rgba(16,185,129,0.3)` |
 
 ### Button Variants
 
-| Variant | Style | Use |
-|---|---|---|
-| `primary` | Blue bg, white text, blue glow | Main CTAs |
-| `outline` | Transparent, blue border, blue text | Secondary actions |
-| `dashed` | Transparent, dashed blue border | Add items |
-| `success` | Green bg, white text, green glow | Positive actions (Mark Paid) |
-| `ghost` | No bg, no border, blue text | Links, cancel |
+| Variant   | Style                               | Use                          |
+| --------- | ----------------------------------- | ---------------------------- |
+| `primary` | Blue bg, white text, blue glow      | Main CTAs                    |
+| `outline` | Transparent, blue border, blue text | Secondary actions            |
+| `dashed`  | Transparent, dashed blue border     | Add items                    |
+| `success` | Green bg, white text, green glow    | Positive actions (Mark Paid) |
+| `ghost`   | No bg, no border, blue text         | Links, cancel                |
 
 ### Micro-Animations
 
-| Element | Effect |
-|---|---|
-| Button press | `active:scale-[0.98]` |
-| Card hover (desktop) | `translate-y-[-2px]` |
-| Page enter | Fade in + slide up 8px over 200ms |
-| Toast | Slide in from top, auto-dismiss 3s |
+| Element              | Effect                             |
+| -------------------- | ---------------------------------- |
+| Button press         | `active:scale-[0.98]`              |
+| Card hover (desktop) | `translate-y-[-2px]`               |
+| Page enter           | Fade in + slide up 8px over 200ms  |
+| Toast                | Slide in from top, auto-dismiss 3s |
 
 ---
 
@@ -82,51 +82,52 @@
 
 ### Layout Components
 
-| Component | Description |
-|---|---|
-| `<MobileContainer>` | Max-width 414px wrapper, centered on desktop with slate outer bg |
-| `<PageShell>` | Wraps topbar + scrollable content area + bottom nav |
-| `<Topbar>` | Sticky top bar: back button (or menu), title, optional right action icon |
-| `<BottomNav>` | Fixed 4-tab bottom navigation: Home, Vehicles, Staff, Settings |
+| Component           | Description                                                              |
+| ------------------- | ------------------------------------------------------------------------ |
+| `<MobileContainer>` | Max-width 414px wrapper, centered on desktop with slate outer bg         |
+| `<PageShell>`       | Wraps topbar + scrollable content area + bottom nav                      |
+| `<Topbar>`          | Sticky top bar: back button (or menu), title, optional right action icon |
+| `<BottomNav>`       | Fixed 4-tab bottom navigation: Home, Vehicles, Staff, Settings           |
 
 ### UI Components
 
-| Component | Description |
-|---|---|
-| `<Button>` | Variants: primary, outline, dashed, success, ghost. Full-width by default. |
-| `<Card>` | White rounded-2xl container with soft shadow |
-| `<Badge>` | Status pill: success (green), danger (red), warning (amber) |
-| `<Input>` | Label + input with rounded-xl, slate border, blue focus ring |
-| `<Textarea>` | Same as Input but multiline |
-| `<Select>` | Styled dropdown |
-| `<SearchBar>` | Input with magnifying glass icon |
-| `<PhotoUpload>` | Dashed border box with camera icon, tap to capture/upload |
-| `<StatCard>` | Metric card: icon + number + label |
-| `<ListItem>` | Clickable row card: icon/avatar + title + subtitle + right content |
-| `<PriceRow>` | Item name + ₹ price on a single row |
-| `<TotalRow>` | Bold divider + large total amount |
-| `<EmptyState>` | Illustration + message when list is empty |
-| `<Loading>` | Skeleton shimmer or spinner |
-| `<Modal>` | Bottom sheet modal (mobile-friendly) |
-| `<Toast>` | Success/error notification slide-in from top |
-| `<FilterChips>` | Horizontal scrollable chip buttons for filtering |
+| Component       | Description                                                                |
+| --------------- | -------------------------------------------------------------------------- |
+| `<Button>`      | Variants: primary, outline, dashed, success, ghost. Full-width by default. |
+| `<Card>`        | White rounded-2xl container with soft shadow                               |
+| `<Badge>`       | Status pill: success (green), danger (red), warning (amber)                |
+| `<Input>`       | Label + input with rounded-xl, slate border, blue focus ring               |
+| `<Textarea>`    | Same as Input but multiline                                                |
+| `<Select>`      | Styled dropdown                                                            |
+| `<SearchBar>`   | Input with magnifying glass icon                                           |
+| `<PhotoUpload>` | Dashed border box with camera icon, tap to capture/upload                  |
+| `<StatCard>`    | Metric card: icon + number + label                                         |
+| `<ListItem>`    | Clickable row card: icon/avatar + title + subtitle + right content         |
+| `<PriceRow>`    | Item name + ₹ price on a single row                                        |
+| `<TotalRow>`    | Bold divider + large total amount                                          |
+| `<EmptyState>`  | Illustration + message when list is empty                                  |
+| `<Loading>`     | Skeleton shimmer or spinner                                                |
+| `<Modal>`       | Bottom sheet modal (mobile-friendly)                                       |
+| `<Toast>`       | Success/error notification slide-in from top                               |
+| `<FilterChips>` | Horizontal scrollable chip buttons for filtering                           |
 
 ### Domain Components
 
-| Component | Description |
-|---|---|
-| `<VehicleSearch>` | Type registration number → autocomplete → tap to auto-fill all fields |
+| Component         | Description                                                                                   |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `<VehicleSearch>` | Type registration number → autocomplete → tap to auto-fill all fields                         |
 | `<ContactPicker>` | Tap icon → device contacts → select → auto-fill name + phone. Hidden on unsupported browsers. |
-| `<QRDisplay>` | Shows the garage's static QR code. "Staff scan this to check in" |
-| `<QRScanner>` | Camera-based QR scanner. Reads token, captures GPS, sends to API. |
-| `<EstimateItems>` | Add/remove/reorder estimate line items |
-| `<InvoiceItems>` | Same pattern for invoice items |
+| `<QRDisplay>`     | Shows the garage's static QR code. "Staff scan this to check in"                              |
+| `<QRScanner>`     | Camera-based QR scanner. Reads token, captures GPS, sends to API.                             |
+| `<EstimateItems>` | Add/remove/reorder estimate line items                                                        |
+| `<InvoiceItems>`  | Same pattern for invoice items                                                                |
 
 ---
 
 ## All Screens
 
 ### Screen 1: Login
+
 **Route:** `/login` — **Access:** Public
 
 - Centered layout, clean
@@ -137,6 +138,7 @@
 ---
 
 ### Screen 2: Onboarding
+
 **Route:** `/onboarding` — **Access:** Authenticated, no garage yet
 
 - Single scrollable form
@@ -152,6 +154,7 @@
 ---
 
 ### Screen 3: Dashboard
+
 **Route:** `/` — **Access:** Owner
 
 - **Topbar:** Menu icon + "Workshop" + profile icon (→ settings)
@@ -172,6 +175,7 @@
 ---
 
 ### Screen 4: Vehicle List
+
 **Route:** `/vehicles` — **Access:** Owner
 
 - **Topbar:** Back + "Vehicles"
@@ -185,6 +189,7 @@
 ---
 
 ### Screen 5: Add Vehicle
+
 **Route:** `/vehicles/add` — **Access:** Owner
 
 - **Topbar:** Back + "New Vehicle"
@@ -204,6 +209,7 @@
 ---
 
 ### Screen 6: Vehicle Details
+
 **Route:** `/vehicles/:id` — **Access:** Owner
 
 - **Topbar:** Back + registration number
@@ -222,6 +228,7 @@
 ---
 
 ### Screen 7: Estimate Editor
+
 **Route:** `/estimates/:id` or `/estimates/new?visit=X` — **Access:** Owner
 
 - **Topbar:** Back + "Estimate"
@@ -248,6 +255,7 @@
 ---
 
 ### Screen 8: Invoice Editor
+
 **Route:** `/invoices/:id` or `/invoices/new?visit=X` or `/invoices/new?from_estimate=X` — **Access:** Owner
 
 - Same layout as Estimate Editor, plus:
@@ -264,6 +272,7 @@
 ---
 
 ### Screen 9: Estimate List
+
 **Route:** `/estimates` — **Access:** Owner
 
 - **Topbar:** Back + "Estimates"
@@ -274,6 +283,7 @@
 ---
 
 ### Screen 10: Invoice List
+
 **Route:** `/invoices` — **Access:** Owner
 
 - **Topbar:** Back + "Invoices"
@@ -284,6 +294,7 @@
 ---
 
 ### Screen 11: Staff List
+
 **Route:** `/staff` — **Access:** Owner
 
 - **Topbar:** Back + "Staff" + QR icon (→ `/staff/attendance`)
@@ -295,6 +306,7 @@
 ---
 
 ### Screen 12: Add Staff / Invite
+
 **Route:** `/staff/add` — **Access:** Owner
 
 - **Topbar:** Back + "Add Staff"
@@ -310,6 +322,7 @@
 ---
 
 ### Screen 13: Staff Profile
+
 **Route:** `/staff/:id` — **Access:** Owner
 
 - **Topbar:** Back + staff name
@@ -327,6 +340,7 @@
 ---
 
 ### Screen 14: QR Attendance (Owner)
+
 **Route:** `/staff/attendance` — **Access:** Owner
 
 - **Topbar:** Back + "Staff Attendance"
@@ -341,6 +355,7 @@
 ---
 
 ### Screen 15: QR Check-In (Staff)
+
 **Route:** `/checkin` — **Access:** Staff only
 
 This is the MAIN screen staff sees after login. Staff has no other screens.
@@ -362,6 +377,7 @@ This is the MAIN screen staff sees after login. Staff has no other screens.
 ---
 
 ### Screen 16: Accept Invitation
+
 **Route:** `/invite/:token` — **Access:** Public (then auth)
 
 - "You've been invited to join [Garage Name]"
@@ -374,6 +390,7 @@ This is the MAIN screen staff sees after login. Staff has no other screens.
 ---
 
 ### Screen 17: Settings
+
 **Route:** `/settings` — **Access:** Owner
 
 - **Topbar:** "Settings"
@@ -479,6 +496,7 @@ Owner → Staff page → "+ Add Staff"
 ## Build Order (Phase by Phase)
 
 ### Phase 0: Project Setup (1-2 days)
+
 - Initialize monorepo (npm workspaces)
 - Setup Vite + React + TypeScript + Tailwind v4
 - Setup Hono Worker project + Drizzle
@@ -487,6 +505,7 @@ Owner → Staff page → "+ Add Staff"
 - ESLint + Prettier
 
 ### Phase 1: Auth + Onboarding (2-3 days)
+
 - Google OAuth flow (backend + frontend)
 - JWT generation + auth middleware
 - Login page
@@ -494,12 +513,14 @@ Owner → Staff page → "+ Add Staff"
 - Auth provider + protected routes
 
 ### Phase 2: Design System + Layout (1-2 days)
+
 - All UI components (Button, Card, Badge, Input, etc.)
 - Layout components (MobileContainer, PageShell, Topbar, BottomNav)
 - Design tokens in Tailwind config
 - Loading + empty states + toast
 
 ### Phase 3: Vehicle Management (3-4 days)
+
 - DB tables + API routes (vehicles, customers, visits)
 - Dashboard page with stats
 - Vehicle list (paginated, filterable with chips)
@@ -507,6 +528,7 @@ Owner → Staff page → "+ Add Staff"
 - Vehicle details page
 
 ### Phase 4: Estimates & Invoices (3-4 days)
+
 - DB tables + API routes (estimates, invoices + items)
 - Estimate editor (add/remove items, optional tax, discount)
 - Invoice editor + estimate import
@@ -515,6 +537,7 @@ Owner → Staff page → "+ Add Staff"
 - Mark as paid flow
 
 ### Phase 5: Staff Management (3-4 days)
+
 - DB tables + API routes (staff, invites)
 - Staff list + profile pages
 - Add staff + invite link generation
@@ -522,6 +545,7 @@ Owner → Staff page → "+ Add Staff"
 - Salary calculation from attendance
 
 ### Phase 6: Attendance System (2-3 days)
+
 - DB tables + API routes (QR, attendance)
 - QR display page (owner, static)
 - QR scanner (staff)
@@ -530,6 +554,7 @@ Owner → Staff page → "+ Add Staff"
 - Attendance reports
 
 ### Phase 7: PWA + Polish (2-3 days)
+
 - Service Worker + manifest
 - Offline banner
 - Page transitions + animations
@@ -538,6 +563,7 @@ Owner → Staff page → "+ Add Staff"
 - Mobile responsiveness audit
 
 ### Phase 8: Deploy (1-2 days)
+
 - Deploy to Cloudflare (Workers + Pages)
 - Custom domain setup
 - D1 production migration

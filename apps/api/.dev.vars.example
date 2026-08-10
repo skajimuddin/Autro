@@ -1,0 +1,6 @@
+# Local dev secrets for Wrangler — copy to .dev.vars and fill in values
+# .dev.vars is gitignored — NEVER commit it
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8787/auth/google/callback
+JWT_SECRET=

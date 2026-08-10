@@ -1,11 +1,12 @@
 # Workshop — Task Breakdown
 
 > **How to use this file:**
+>
 > 1. Give an AI agent ONE task at a time (copy-paste the task block)
 > 2. Wait for it to complete and verify the output
 > 3. Test it works before moving to the next task
 > 4. Check off completed tasks with `[x]`
-> 
+>
 > **Each task is self-contained.** It says exactly what to read, what to create, and what the done criteria is.
 
 ---
@@ -13,6 +14,7 @@
 ## Phase 0: Project Setup
 
 ### Task 0.1 — Initialize Monorepo
+
 ```
 GOAL: Create the monorepo root with npm workspaces
 
@@ -26,9 +28,11 @@ DO:
 
 DONE WHEN: `npm install` runs without errors at root level
 ```
+
 - [x] Completed
 
 ### Task 0.2 — Setup Shared Package
+
 ```
 GOAL: Create packages/shared with Zod schemas and constants
 
@@ -53,9 +57,11 @@ DO:
 
 DONE WHEN: `npx tsc --noEmit` passes in packages/shared
 ```
+
 - [x] Completed
 
 ### Task 0.3 — Setup Frontend (Vite + React)
+
 ```
 GOAL: Initialize the React frontend app
 
@@ -79,9 +85,11 @@ DO:
 
 DONE WHEN: `npm run dev --workspace=apps/web` shows a blank page without errors
 ```
+
 - [x] Completed
 
 ### Task 0.4 — Setup Backend (Hono + Cloudflare Workers)
+
 ```
 GOAL: Initialize the Hono API backend
 
@@ -99,9 +107,11 @@ DO:
 
 DONE WHEN: `npx wrangler dev` starts and GET /health returns { status: "ok" }
 ```
+
 - [ ] Completed
 
 ### Task 0.5 — ESLint + Prettier
+
 ```
 GOAL: Configure linting and formatting
 
@@ -113,6 +123,7 @@ DO:
 
 DONE WHEN: `npm run lint` and `npm run format` work without errors
 ```
+
 - [ ] Completed
 
 ---
@@ -120,6 +131,7 @@ DONE WHEN: `npm run lint` and `npm run format` work without errors
 ## Phase 1: Auth + Onboarding
 
 ### Task 1.1 — Database Schema (Drizzle)
+
 ```
 GOAL: Create the Drizzle schema for users, tenants, and tenant_members tables
 
@@ -134,9 +146,11 @@ DO:
 
 DONE WHEN: Migration runs, tables exist in D1
 ```
+
 - [ ] Completed
 
 ### Task 1.2 — Auth API (Google OAuth → JWT)
+
 ```
 GOAL: Implement Google OAuth login backend
 
@@ -154,9 +168,11 @@ DO:
 
 DONE WHEN: Full OAuth flow works — Google login → JWT returned
 ```
+
 - [ ] Completed
 
 ### Task 1.3 — Auth Middleware
+
 ```
 GOAL: Create JWT verification middleware
 
@@ -171,9 +187,11 @@ DO:
 
 DONE WHEN: Protected routes return 401 without token, 200 with valid token
 ```
+
 - [ ] Completed
 
 ### Task 1.4 — Tenant API (Create Garage)
+
 ```
 GOAL: Implement garage creation (onboarding)
 
@@ -190,9 +208,11 @@ DO:
 
 DONE WHEN: Can create garage, retrieve it, update it via API
 ```
+
 - [ ] Completed
 
 ### Task 1.5 — Login Page (Frontend)
+
 ```
 GOAL: Build the login screen
 
@@ -209,9 +229,11 @@ DO:
 
 DONE WHEN: Click "Sign in with Google" → OAuth flow → JWT stored → redirect
 ```
+
 - [ ] Completed
 
 ### Task 1.6 — Auth Provider + Protected Routes
+
 ```
 GOAL: Wrap app with auth context, protect routes
 
@@ -224,9 +246,11 @@ DO:
 
 DONE WHEN: Unauthenticated users go to /login, authenticated users with no garage go to /onboarding
 ```
+
 - [ ] Completed
 
 ### Task 1.7 — Onboarding Page
+
 ```
 GOAL: Build the garage setup screen
 
@@ -241,6 +265,7 @@ DO:
 
 DONE WHEN: Can fill form, set GPS location, create garage, redirect to dashboard
 ```
+
 - [ ] Completed
 
 ---
@@ -248,6 +273,7 @@ DONE WHEN: Can fill form, set GPS location, create garage, redirect to dashboard
 ## Phase 2: Design System + Layout
 
 ### Task 2.1 — Design Tokens + Tailwind Config
+
 ```
 GOAL: Configure Tailwind with the project's design system
 
@@ -260,9 +286,11 @@ DO:
 
 DONE WHEN: Tailwind classes like bg-primary, text-text-secondary, shadow-card work
 ```
+
 - [ ] Completed
 
 ### Task 2.2 — Layout Components
+
 ```
 GOAL: Build the 4 core layout components
 
@@ -276,9 +304,11 @@ DO:
 
 DONE WHEN: A test page wrapped in PageShell shows topbar, scrollable content, and bottom nav
 ```
+
 - [ ] Completed
 
 ### Task 2.3 — UI Components (Part 1: Basics)
+
 ```
 GOAL: Build the basic UI primitives
 
@@ -295,9 +325,11 @@ DO:
 
 DONE WHEN: All components render correctly with all variants
 ```
+
 - [ ] Completed
 
 ### Task 2.4 — UI Components (Part 2: Data Display)
+
 ```
 GOAL: Build data display components
 
@@ -317,6 +349,7 @@ DO:
 
 DONE WHEN: All components render correctly
 ```
+
 - [ ] Completed
 
 ---
@@ -324,6 +357,7 @@ DONE WHEN: All components render correctly
 ## Phase 3: Vehicle Management
 
 ### Task 3.1 — Database: Vehicle Tables
+
 ```
 GOAL: Add customers, vehicles, vehicle_images, service_visits tables to Drizzle schema
 
@@ -336,9 +370,11 @@ DO:
 
 DONE WHEN: New tables exist in D1
 ```
+
 - [ ] Completed
 
 ### Task 3.2 — Vehicle API Routes
+
 ```
 GOAL: Implement vehicle CRUD endpoints
 
@@ -357,9 +393,11 @@ DO:
 
 DONE WHEN: All vehicle endpoints work via curl/Postman
 ```
+
 - [ ] Completed
 
 ### Task 3.3 — Upload API (R2 Presigned URLs)
+
 ```
 GOAL: Implement image upload via R2 presigned URLs
 
@@ -372,9 +410,11 @@ DO:
 
 DONE WHEN: Can get presigned URL and upload a file to R2
 ```
+
 - [ ] Completed
 
 ### Task 3.4 — Dashboard API
+
 ```
 GOAL: Implement dashboard stats endpoint
 
@@ -386,9 +426,11 @@ DO:
 
 DONE WHEN: Returns correct stats JSON
 ```
+
 - [ ] Completed
 
 ### Task 3.5 — Dashboard Page (Frontend)
+
 ```
 GOAL: Build the main dashboard screen
 
@@ -402,9 +444,11 @@ DO:
 
 DONE WHEN: Dashboard shows live stats and quick action buttons navigate correctly
 ```
+
 - [ ] Completed
 
 ### Task 3.6 — Vehicle List Page
+
 ```
 GOAL: Build the vehicle list with filtering
 
@@ -420,9 +464,11 @@ DO:
 
 DONE WHEN: Vehicle list shows, filters work, pagination works
 ```
+
 - [ ] Completed
 
 ### Task 3.7 — Add Vehicle Page
+
 ```
 GOAL: Build the add vehicle form
 
@@ -439,9 +485,11 @@ DO:
 
 DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
+
 - [ ] Completed
 
 ### Task 3.8 — Vehicle Details Page
+
 ```
 GOAL: Build the single vehicle details screen
 
@@ -457,6 +505,7 @@ DO:
 
 DONE WHEN: Vehicle details show correctly, status can be changed
 ```
+
 - [ ] Completed
 
 ---
@@ -464,6 +513,7 @@ DONE WHEN: Vehicle details show correctly, status can be changed
 ## Phase 4: Estimates & Invoices
 
 ### Task 4.1 — Database: Estimate + Invoice Tables
+
 ```
 GOAL: Add estimates, estimate_items, invoices, invoice_items tables
 
@@ -476,9 +526,11 @@ DO:
 
 DONE WHEN: New tables exist
 ```
+
 - [ ] Completed
 
 ### Task 4.2 — Estimate API Routes
+
 ```
 GOAL: Implement estimate CRUD
 
@@ -494,9 +546,11 @@ DO:
 
 DONE WHEN: Can create, list, get by ID, update, add/remove items via API
 ```
+
 - [ ] Completed
 
 ### Task 4.3 — Invoice API Routes
+
 ```
 GOAL: Implement invoice CRUD + estimate import
 
@@ -510,9 +564,11 @@ DO:
 
 DONE WHEN: Can create invoice from estimate, mark as paid
 ```
+
 - [ ] Completed
 
 ### Task 4.4 — Estimate Editor Page
+
 ```
 GOAL: Build the estimate creation/editing screen
 
@@ -529,9 +585,11 @@ DO:
 
 DONE WHEN: Can create estimate with items, tax, discount. Total calculates correctly.
 ```
+
 - [ ] Completed
 
 ### Task 4.5 — Invoice Editor Page
+
 ```
 GOAL: Build the invoice editor with estimate import
 
@@ -547,9 +605,11 @@ DO:
 
 DONE WHEN: Invoice editor works, estimate import pre-fills items, payment flow works
 ```
+
 - [ ] Completed
 
 ### Task 4.6 — PDF Generation
+
 ```
 GOAL: Client-side PDF generation for invoices/estimates
 
@@ -564,9 +624,11 @@ DO:
 
 DONE WHEN: Clicking PDF downloads a properly formatted invoice PDF
 ```
+
 - [ ] Completed
 
 ### Task 4.7 — Estimate + Invoice List Pages
+
 ```
 GOAL: Build list pages for estimates and invoices
 
@@ -579,6 +641,7 @@ DO:
 
 DONE WHEN: Both lists show data, filters work, tap navigates to editor
 ```
+
 - [ ] Completed
 
 ---
@@ -586,6 +649,7 @@ DONE WHEN: Both lists show data, filters work, tap navigates to editor
 ## Phase 5: Staff Management
 
 ### Task 5.1 — Database: Staff Tables
+
 ```
 GOAL: Add staff_invites table (tenant_members already exists from Task 1.1)
 
@@ -597,9 +661,11 @@ DO:
 
 DONE WHEN: Table exists
 ```
+
 - [ ] Completed
 
 ### Task 5.2 — Staff API Routes
+
 ```
 GOAL: Implement staff invitation and management
 
@@ -611,9 +677,11 @@ DO:
 
 DONE WHEN: Full invite flow works via API (create invite → get invite → accept)
 ```
+
 - [ ] Completed
 
 ### Task 5.3 — Staff List + Add Pages
+
 ```
 GOAL: Build staff directory and invite screens
 
@@ -625,9 +693,11 @@ DO:
 
 DONE WHEN: Can see staff list, create invite, copy/share link
 ```
+
 - [ ] Completed
 
 ### Task 5.4 — Staff Profile Page
+
 ```
 GOAL: Build individual staff profile
 
@@ -639,9 +709,11 @@ DO:
 
 DONE WHEN: Staff profile shows attendance + salary data
 ```
+
 - [ ] Completed
 
 ### Task 5.5 — Invite Acceptance Page
+
 ```
 GOAL: Build the staff invite acceptance flow
 
@@ -656,6 +728,7 @@ DO:
 
 DONE WHEN: Staff can click invite link, sign in, accept, and land on check-in page
 ```
+
 - [ ] Completed
 
 ---
@@ -663,6 +736,7 @@ DONE WHEN: Staff can click invite link, sign in, accept, and land on check-in pa
 ## Phase 6: Attendance System
 
 ### Task 6.1 — Database: Attendance Tables
+
 ```
 GOAL: Add qr_codes and attendance_logs tables
 
@@ -674,9 +748,11 @@ DO:
 
 DONE WHEN: Tables exist
 ```
+
 - [ ] Completed
 
 ### Task 6.2 — Attendance API Routes
+
 ```
 GOAL: Implement QR + GPS attendance system
 
@@ -692,9 +768,11 @@ DO:
 
 DONE WHEN: Full check-in/out flow works via API
 ```
+
 - [ ] Completed
 
 ### Task 6.3 — QR Attendance Page (Owner)
+
 ```
 GOAL: Build the QR display screen for owners
 
@@ -710,9 +788,11 @@ DO:
 
 DONE WHEN: QR displays, regeneration works, today's list shows
 ```
+
 - [ ] Completed
 
 ### Task 6.4 — Staff Check-In Page
+
 ```
 GOAL: Build the QR scanner + check-in/out for staff
 
@@ -728,6 +808,7 @@ DO:
 
 DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-end
 ```
+
 - [ ] Completed
 
 ---
@@ -735,6 +816,7 @@ DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-en
 ## Phase 7: Settings + Polish
 
 ### Task 7.1 — Settings Page
+
 ```
 GOAL: Build the garage settings/profile screen
 
@@ -749,9 +831,11 @@ DO:
 
 DONE WHEN: Settings page loads, edits save, sign out works
 ```
+
 - [ ] Completed
 
 ### Task 7.2 — PWA Setup
+
 ```
 GOAL: Make the app installable as a PWA
 
@@ -763,9 +847,11 @@ DO:
 
 DONE WHEN: App shows "Install" prompt on mobile Chrome
 ```
+
 - [ ] Completed
 
 ### Task 7.3 — Polish: Animations + Transitions
+
 ```
 GOAL: Add micro-interactions and page transitions
 
@@ -780,9 +866,11 @@ DO:
 
 DONE WHEN: App feels fluid and responsive
 ```
+
 - [ ] Completed
 
 ### Task 7.4 — Polish: Error Handling + Edge Cases
+
 ```
 GOAL: Handle all error states and edge cases
 
@@ -796,6 +884,7 @@ DO:
 
 DONE WHEN: No blank screens, no unhandled errors, all edge cases covered
 ```
+
 - [ ] Completed
 
 ---
@@ -803,6 +892,7 @@ DONE WHEN: No blank screens, no unhandled errors, all edge cases covered
 ## Phase 8: Deploy
 
 ### Task 8.1 — GitHub Actions CI/CD
+
 ```
 GOAL: Auto-deploy on push to main
 
@@ -814,9 +904,11 @@ DO:
 
 DONE WHEN: Push to main auto-deploys both frontend and backend
 ```
+
 - [ ] Completed
 
 ### Task 8.2 — Production Setup
+
 ```
 GOAL: Configure production environment
 
@@ -830,9 +922,11 @@ DO:
 
 DONE WHEN: App is live at workshop.zeonweb.com
 ```
+
 - [ ] Completed
 
 ### Task 8.3 — Final Audit
+
 ```
 GOAL: Verify everything works in production
 
@@ -846,21 +940,22 @@ DO:
 
 DONE WHEN: All flows work, Lighthouse passes, no errors
 ```
+
 - [ ] Completed
 
 ---
 
 ## Summary
 
-| Phase | Tasks | Est. Days |
-|---|---|---|
-| Phase 0: Setup | 5 tasks | 1-2 days |
-| Phase 1: Auth | 7 tasks | 2-3 days |
-| Phase 2: Design System | 4 tasks | 1-2 days |
-| Phase 3: Vehicles | 8 tasks | 3-4 days |
-| Phase 4: Estimates/Invoices | 7 tasks | 3-4 days |
-| Phase 5: Staff | 5 tasks | 3-4 days |
-| Phase 6: Attendance | 4 tasks | 2-3 days |
-| Phase 7: Polish | 4 tasks | 2-3 days |
-| Phase 8: Deploy | 3 tasks | 1-2 days |
-| **Total** | **47 tasks** | **~18-25 days** |
+| Phase                       | Tasks        | Est. Days       |
+| --------------------------- | ------------ | --------------- |
+| Phase 0: Setup              | 5 tasks      | 1-2 days        |
+| Phase 1: Auth               | 7 tasks      | 2-3 days        |
+| Phase 2: Design System      | 4 tasks      | 1-2 days        |
+| Phase 3: Vehicles           | 8 tasks      | 3-4 days        |
+| Phase 4: Estimates/Invoices | 7 tasks      | 3-4 days        |
+| Phase 5: Staff              | 5 tasks      | 3-4 days        |
+| Phase 6: Attendance         | 4 tasks      | 2-3 days        |
+| Phase 7: Polish             | 4 tasks      | 2-3 days        |
+| Phase 8: Deploy             | 3 tasks      | 1-2 days        |
+| **Total**                   | **47 tasks** | **~18-25 days** |

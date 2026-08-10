@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Single estimate line item.
@@ -9,7 +9,7 @@ export const EstimateItemSchema = z.object({
   amount: z.number().min(0, 'Amount must be non-negative'),
   quantity: z.number().int().min(1).default(1),
   sort_order: z.number().int().min(0).default(0),
-});
+})
 
 /**
  * POST /estimates — create estimate with items.
@@ -23,7 +23,7 @@ export const CreateEstimateSchema = z.object({
   tax_enabled: z.boolean().default(false),
   tax_percent: z.number().min(0).max(100).default(0),
   notes: z.string().max(500).default(''),
-});
+})
 
 /**
  * PATCH /estimates/:id — update estimate metadata (discount, tax, notes).
@@ -37,12 +37,12 @@ export const UpdateEstimateSchema = z.object({
   tax_percent: z.number().min(0).max(100).optional(),
   notes: z.string().max(500).optional(),
   status: z.enum(['DRAFT', 'SENT', 'CONVERTED']).optional(),
-});
+})
 
 /**
  * POST /estimates/:id/items — add a single item to an estimate.
  */
-export const AddEstimateItemSchema = EstimateItemSchema;
+export const AddEstimateItemSchema = EstimateItemSchema
 
 /**
  * PATCH /estimates/:id/items/:itemId — update a single estimate item.
@@ -53,4 +53,4 @@ export const UpdateEstimateItemSchema = z.object({
   amount: z.number().min(0).optional(),
   quantity: z.number().int().min(1).optional(),
   sort_order: z.number().int().min(0).optional(),
-});
+})

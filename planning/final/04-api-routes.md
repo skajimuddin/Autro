@@ -9,11 +9,11 @@
 
 ## Auth Routes (Public)
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/auth/google` | Redirect to Google OAuth consent screen |
-| `GET` | `/auth/google/callback` | Handle OAuth callback → create/find user → return JWT |
-| `POST` | `/auth/refresh` | Refresh expired JWT |
+| Method | Route                   | Description                                           |
+| ------ | ----------------------- | ----------------------------------------------------- |
+| `GET`  | `/auth/google`          | Redirect to Google OAuth consent screen               |
+| `GET`  | `/auth/google/callback` | Handle OAuth callback → create/find user → return JWT |
+| `POST` | `/auth/refresh`         | Refresh expired JWT                                   |
 
 ### Auth Flow
 
@@ -38,11 +38,11 @@ sequenceDiagram
 
 ## Tenant Routes
 
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| `POST` | `/tenants` | JWT | Create new garage (onboarding) |
-| `GET` | `/tenants/mine` | JWT | Get the user's garage (redirect to onboarding if none) |
-| `PATCH` | `/tenants/:id` | JWT + Owner | Update garage details (settings page) |
+| Method  | Route           | Auth        | Description                                            |
+| ------- | --------------- | ----------- | ------------------------------------------------------ |
+| `POST`  | `/tenants`      | JWT         | Create new garage (onboarding)                         |
+| `GET`   | `/tenants/mine` | JWT         | Get the user's garage (redirect to onboarding if none) |
+| `PATCH` | `/tenants/:id`  | JWT + Owner | Update garage details (settings page)                  |
 
 ### POST `/tenants` Request Body
 
@@ -61,7 +61,7 @@ sequenceDiagram
 
 All fields optional — only send what changed:
 
-```json
+````json
 {
   "name": "Azim Auto Workshop",
   "phone": "9876543210",
@@ -106,7 +106,7 @@ This single endpoint handles the full "add vehicle" flow:
   "complaint": "Engine noise",
   "image_urls": ["r2://path/to/image1.webp"]
 }
-```
+````
 
 ### PATCH `/vehicles/:id` Request Body
 
@@ -142,25 +142,25 @@ Creates a new service visit for a vehicle that already exists (returning custome
 
 ## Service Visit Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/visits?vehicle_id=X` | List visits for a vehicle |
-| `PATCH` | `/visits/:id/status` | Update status (NEW → REPAIRING → READY → DELIVERED) |
+| Method  | Route                  | Description                                         |
+| ------- | ---------------------- | --------------------------------------------------- |
+| `GET`   | `/visits?vehicle_id=X` | List visits for a vehicle                           |
+| `PATCH` | `/visits/:id/status`   | Update status (NEW → REPAIRING → READY → DELIVERED) |
 
 ---
 
 ## Estimate Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/estimates?visit_id=X` | Get estimate for a visit |
-| `GET` | `/estimates?status=X&cursor=X` | List all estimates (paginated, filterable by status) |
-| `GET` | `/estimates/:id` | Get single estimate with items |
-| `POST` | `/estimates` | Create estimate with items |
-| `PATCH` | `/estimates/:id` | Update estimate (discount, tax, notes) |
-| `POST` | `/estimates/:id/items` | Add an item |
-| `PATCH` | `/estimates/:id/items/:itemId` | Update an item |
-| `DELETE` | `/estimates/:id/items/:itemId` | Remove an item |
+| Method   | Route                          | Description                                          |
+| -------- | ------------------------------ | ---------------------------------------------------- |
+| `GET`    | `/estimates?visit_id=X`        | Get estimate for a visit                             |
+| `GET`    | `/estimates?status=X&cursor=X` | List all estimates (paginated, filterable by status) |
+| `GET`    | `/estimates/:id`               | Get single estimate with items                       |
+| `POST`   | `/estimates`                   | Create estimate with items                           |
+| `PATCH`  | `/estimates/:id`               | Update estimate (discount, tax, notes)               |
+| `POST`   | `/estimates/:id/items`         | Add an item                                          |
+| `PATCH`  | `/estimates/:id/items/:itemId` | Update an item                                       |
+| `DELETE` | `/estimates/:id/items/:itemId` | Remove an item                                       |
 
 ### POST `/estimates` Request Body
 
@@ -183,14 +183,14 @@ Creates a new service visit for a vehicle that already exists (returning custome
 
 ## Invoice Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/invoices?status=X&cursor=X` | List invoices (paginated, filterable) |
-| `GET` | `/invoices/:id` | Get invoice with items |
-| `POST` | `/invoices` | Create invoice (fresh) |
-| `POST` | `/invoices/from-estimate/:estimateId` | Create invoice by importing estimate |
-| `PATCH` | `/invoices/:id` | Update invoice items/details |
-| `PATCH` | `/invoices/:id/pay` | Mark as paid (set payment_method, freeze total) |
+| Method  | Route                                 | Description                                     |
+| ------- | ------------------------------------- | ----------------------------------------------- |
+| `GET`   | `/invoices?status=X&cursor=X`         | List invoices (paginated, filterable)           |
+| `GET`   | `/invoices/:id`                       | Get invoice with items                          |
+| `POST`  | `/invoices`                           | Create invoice (fresh)                          |
+| `POST`  | `/invoices/from-estimate/:estimateId` | Create invoice by importing estimate            |
+| `PATCH` | `/invoices/:id`                       | Update invoice items/details                    |
+| `PATCH` | `/invoices/:id/pay`                   | Mark as paid (set payment_method, freeze total) |
 
 ### POST `/invoices` Request Body (Fresh Invoice)
 
@@ -248,16 +248,16 @@ The owner can then edit the invoice items before finalizing.
 
 ## Staff Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/staff` | List all staff (with today's attendance status) |
-| `POST` | `/staff/invite` | Create invite link |
-| `GET` | `/staff/invite/:token` | Get invite details (public — no auth) |
-| `POST` | `/staff/invite/:token/accept` | Accept invite (requires JWT) |
-| `GET` | `/staff/:id` | Staff profile + attendance summary |
-| `PATCH` | `/staff/:id` | Update staff salary |
-| `DELETE` | `/staff/:id` | Soft-remove staff |
-| `PATCH` | `/staff/invite/:id/revoke` | Revoke a pending invite |
+| Method   | Route                         | Description                                     |
+| -------- | ----------------------------- | ----------------------------------------------- |
+| `GET`    | `/staff`                      | List all staff (with today's attendance status) |
+| `POST`   | `/staff/invite`               | Create invite link                              |
+| `GET`    | `/staff/invite/:token`        | Get invite details (public — no auth)           |
+| `POST`   | `/staff/invite/:token/accept` | Accept invite (requires JWT)                    |
+| `GET`    | `/staff/:id`                  | Staff profile + attendance summary              |
+| `PATCH`  | `/staff/:id`                  | Update staff salary                             |
+| `DELETE` | `/staff/:id`                  | Soft-remove staff                               |
+| `PATCH`  | `/staff/invite/:id/revoke`    | Revoke a pending invite                         |
 
 ### Staff Invitation Flow
 
@@ -282,15 +282,15 @@ sequenceDiagram
 
 ## Attendance Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/attendance/qr` | Get current QR token (owner) |
-| `POST` | `/attendance/qr/regenerate` | Generate new QR token (owner) |
-| `POST` | `/attendance/checkin` | Staff check-in (QR token + GPS) |
-| `POST` | `/attendance/checkout` | Staff check-out (GPS) |
-| `GET` | `/attendance/today` | Today's attendance summary (owner) |
-| `GET` | `/attendance/my-today` | Staff's own attendance for today |
-| `GET` | `/attendance/monthly?member_id=X&month=YYYY-MM` | Monthly report |
+| Method | Route                                           | Description                        |
+| ------ | ----------------------------------------------- | ---------------------------------- |
+| `GET`  | `/attendance/qr`                                | Get current QR token (owner)       |
+| `POST` | `/attendance/qr/regenerate`                     | Generate new QR token (owner)      |
+| `POST` | `/attendance/checkin`                           | Staff check-in (QR token + GPS)    |
+| `POST` | `/attendance/checkout`                          | Staff check-out (GPS)              |
+| `GET`  | `/attendance/today`                             | Today's attendance summary (owner) |
+| `GET`  | `/attendance/my-today`                          | Staff's own attendance for today   |
+| `GET`  | `/attendance/monthly?member_id=X&month=YYYY-MM` | Monthly report                     |
 
 ### POST `/attendance/checkin` Request Body
 
@@ -326,8 +326,8 @@ sequenceDiagram
 
 ## Upload Routes
 
-| Method | Route | Description |
-|---|---|---|
+| Method | Route             | Description                 |
+| ------ | ----------------- | --------------------------- |
 | `POST` | `/upload/presign` | Get R2 presigned upload URL |
 
 ### Upload Flow
@@ -344,9 +344,9 @@ sequenceDiagram
 
 ## Dashboard Routes
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/dashboard/stats` | Today's dashboard stats |
+| Method | Route              | Description             |
+| ------ | ------------------ | ----------------------- |
+| `GET`  | `/dashboard/stats` | Today's dashboard stats |
 
 ### Response
 
@@ -376,6 +376,7 @@ All errors follow the same shape:
 ```
 
 HTTP status codes:
+
 - `400` — Validation error
 - `401` — Not authenticated
 - `403` — Not authorized (wrong tenant/role)
