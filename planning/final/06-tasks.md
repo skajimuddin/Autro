@@ -371,7 +371,7 @@ DO:
 DONE WHEN: New tables exist in D1
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.2 — Vehicle API Routes
 

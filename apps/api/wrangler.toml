@@ -10,6 +10,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "workshop-db"
 database_id = "placeholder-replace-in-production"
+migrations_dir = "drizzle"
 
 # ── Cloudflare R2 (Object storage) ───────────────────────────────────────────
 # In local dev: wrangler simulates R2 in .wrangler/state/v3/r2/

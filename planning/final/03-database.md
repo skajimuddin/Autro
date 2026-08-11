@@ -145,6 +145,7 @@ UNIQUE(tenant_id, registration_number) — one vehicle per plate per garage.
 | Column        | Type | Constraints                | Notes   |
 | ------------- | ---- | -------------------------- | ------- |
 | `id`          | TEXT | PK                         | UUID    |
+| `tenant_id`   | TEXT | FK → tenants.id, NOT NULL  |         |
 | `vehicle_id`  | TEXT | FK → vehicles.id, NOT NULL |         |
 | `image_url`   | TEXT | NOT NULL                   | R2 path |
 | `uploaded_at` | TEXT | NOT NULL                   |         |
@@ -278,12 +279,6 @@ UNIQUE(tenant_id, member_id, date) — one attendance record per staff per day.
 ## Indexes
 
 ```sql
--- Vehicle lookup by registration number (most common search)
-CREATE INDEX idx_vehicles_reg ON vehicles(tenant_id, registration_number);
-
--- Customer lookup by phone
-CREATE INDEX idx_customers_phone ON customers(tenant_id, phone);
-
 -- Service visits for a vehicle
 CREATE INDEX idx_visits_vehicle ON service_visits(tenant_id, vehicle_id);
 

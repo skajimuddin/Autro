@@ -7,7 +7,7 @@
 
 ## 🔴 Next Task
 
-**Task 3.1 — Database: Vehicle Tables**
+**Task 3.2 — Vehicle API Routes**
 → Full spec in [`planning/final/06-tasks.md`](planning/final/06-tasks.md)
 
 > ⚠️ **CHECKPOINT NOTE FOR NEW SESSION:**
@@ -40,6 +40,7 @@
 | 3.x — Vehicle Pages UI (Dashboard, List, Add, Details) | 2026-08-11 |
 | 4.x — Estimate & Invoice Pages UI (List, Editor) | 2026-08-11 |
 | 5.x/6.x — Staff & Attendance Pages UI (List, Profile, Add, Checkin, Settings) | 2026-08-11 |
+| 3.1 — Database: Vehicle Tables | 2026-08-11 |
 
 ---
 

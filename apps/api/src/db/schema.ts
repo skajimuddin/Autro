@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
+import { index, integer, real, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
 
 // ── 1. users ─────────────────────────────────────────────────────────────────
 // Global user table — not tenant-scoped.
@@ -52,5 +52,84 @@ export const tenant_members = sqliteTable(
   },
   (table) => ({
     unique_tenant_user: unique('unique_tenant_user').on(table.tenant_id, table.user_id),
+    idx_members_user: index('idx_members_user').on(table.user_id),
+  }),
+)
+
+// ── 5. customers ─────────────────────────────────────────────────────────────
+export const customers = sqliteTable(
+  'customers',
+  {
+    id: text('id').primaryKey(), // UUID
+    tenant_id: text('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    name: text('name').notNull(),
+    phone: text('phone').notNull(),
+    created_at: text('created_at').notNull(),
+    updated_at: text('updated_at').notNull(),
+    deleted_at: text('deleted_at'), // Soft delete
+  },
+  (table) => ({
+    unique_tenant_phone: unique('unique_tenant_phone').on(table.tenant_id, table.phone),
+  }),
+)
+
+// ── 6. vehicles ──────────────────────────────────────────────────────────────
+export const vehicles = sqliteTable(
+  'vehicles',
+  {
+    id: text('id').primaryKey(), // UUID
+    tenant_id: text('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    customer_id: text('customer_id')
+      .notNull()
+      .references(() => customers.id),
+    registration_number: text('registration_number').notNull(),
+    name: text('name'),
+    created_at: text('created_at').notNull(),
+    updated_at: text('updated_at').notNull(),
+    deleted_at: text('deleted_at'), // Soft delete
+  },
+  (table) => ({
+    unique_tenant_reg: unique('unique_tenant_reg').on(table.tenant_id, table.registration_number),
+  }),
+)
+
+// ── 7. vehicle_images ────────────────────────────────────────────────────────
+export const vehicle_images = sqliteTable('vehicle_images', {
+  id: text('id').primaryKey(), // UUID
+  tenant_id: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  vehicle_id: text('vehicle_id')
+    .notNull()
+    .references(() => vehicles.id),
+  image_url: text('image_url').notNull(), // R2 path
+  uploaded_at: text('uploaded_at').notNull(),
+})
+
+// ── 8. service_visits ────────────────────────────────────────────────────────
+export const service_visits = sqliteTable(
+  'service_visits',
+  {
+    id: text('id').primaryKey(), // UUID
+    tenant_id: text('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    vehicle_id: text('vehicle_id')
+      .notNull()
+      .references(() => vehicles.id),
+    complaint: text('complaint'),
+    status: text('status').notNull().default('NEW'), // 'NEW', 'REPAIRING', 'READY', 'DELIVERED'
+    created_at: text('created_at').notNull(),
+    updated_at: text('updated_at').notNull(),
+    delivered_at: text('delivered_at'),
+    deleted_at: text('deleted_at'), // Soft delete
+  },
+  (table) => ({
+    idx_visits_vehicle: index('idx_visits_vehicle').on(table.tenant_id, table.vehicle_id),
+    idx_visits_status: index('idx_visits_status').on(table.tenant_id, table.status),
   }),
 )
