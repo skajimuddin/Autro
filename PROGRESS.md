@@ -7,8 +7,8 @@
 
 ## 🔴 Next Task
 
-**Task 3.2 — Vehicle API Routes**
-→ Full spec in [`planning/final/06-tasks.md`](planning/final/06-tasks.md)
+**All Phase 6 Tasks Completed!**
+(Stopped here as per user request to not start Phase 7 yet)
 
 > ⚠️ **CHECKPOINT NOTE FOR NEW SESSION:**
 > The UI pages for Dashboard, Vehicles, Estimates, Invoices, Staff, Attendance, and Settings have been **IMPLEMENTED** using mock/pending TanStack Query hooks. They are verified with `tsc` and `vite build`.
@@ -41,6 +41,18 @@
 | 4.x — Estimate & Invoice Pages UI (List, Editor) | 2026-08-11 |
 | 5.x/6.x — Staff & Attendance Pages UI (List, Profile, Add, Checkin, Settings) | 2026-08-11 |
 | 3.1 — Database: Vehicle Tables | 2026-08-11 |
+| 3.2 — Vehicle API Routes | 2026-08-11 |
+| 3.3 — Upload API (R2 Presigned URLs) | 2026-08-11 |
+| 3.4 — Dashboard API | 2026-08-11 |
+| 4.1 — Database: Estimate + Invoice Tables | 2026-08-11 |
+| 4.2 — Estimate API Routes | 2026-08-11 |
+| 4.3 — Invoice API Routes | 2026-08-11 |
+| 5.1 — Database: Staff Tables | 2026-08-11 |
+| 5.2 — Staff API Routes | 2026-08-11 |
+| 6.1 — Database: Attendance Tables | 2026-08-11 |
+| 6.2 — Attendance API Routes | 2026-08-11 |
+| 6.3 — QR Attendance Page (Owner) | 2026-08-11 |
+| 6.4 — Staff Check-In Page | 2026-08-11 |
 
 ---
 
@@ -59,7 +71,5 @@
 Project uses `@tailwindcss/vite` plugin (v4). There is NO `tailwind.config.ts`. All tokens are defined via `@theme {}` CSS block in `src/index.css`. Custom classes use `bg-primary`, `text-text-secondary`, `shadow-[var(--shadow-card)]` etc.
 
 ### Next tasks in order
-1. **Task 3.1** — Database: Vehicle Tables (customers, vehicles, vehicle_images, service_visits)
-2. **Task 3.2** — Vehicle API Routes
-3. Skip Task 3.3 (Upload API) or do it if needed for APIs. Note that UI is already done!
-4. Continue through `planning/final/06-tasks.md` focusing strictly on APIs and Database backend wiring since frontend is ready.
+1. **Task 7.1** — Settings Page
+2. Continue through `planning/final/06-tasks.md` as requested.

@@ -18,6 +18,10 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string
   GOOGLE_REDIRECT_URI: string
   JWT_SECRET: string
+  R2_ACCOUNT_ID: string
+  R2_ACCESS_KEY_ID: string
+  R2_SECRET_ACCESS_KEY: string
+  R2_BUCKET_NAME: string
 }
 
 /**
@@ -43,6 +47,10 @@ export function validateEnv(env: Env): Env {
     'GOOGLE_CLIENT_SECRET',
     'GOOGLE_REDIRECT_URI',
     'JWT_SECRET',
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
   ]
 
   for (const key of required) {

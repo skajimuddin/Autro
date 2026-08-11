@@ -394,7 +394,7 @@ DO:
 DONE WHEN: All vehicle endpoints work via curl/Postman
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.3 — Upload API (R2 Presigned URLs)
 
@@ -411,7 +411,7 @@ DO:
 DONE WHEN: Can get presigned URL and upload a file to R2
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.4 — Dashboard API
 
@@ -427,7 +427,7 @@ DO:
 DONE WHEN: Returns correct stats JSON
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.5 — Dashboard Page (Frontend)
 
@@ -445,7 +445,7 @@ DO:
 DONE WHEN: Dashboard shows live stats and quick action buttons navigate correctly
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.6 — Vehicle List Page
 
@@ -465,7 +465,7 @@ DO:
 DONE WHEN: Vehicle list shows, filters work, pagination works
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.7 — Add Vehicle Page
 
@@ -486,7 +486,7 @@ DO:
 DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 3.8 — Vehicle Details Page
 
@@ -506,7 +506,7 @@ DO:
 DONE WHEN: Vehicle details show correctly, status can be changed
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -527,7 +527,7 @@ DO:
 DONE WHEN: New tables exist
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 4.2 — Estimate API Routes
 
@@ -662,7 +662,7 @@ DO:
 DONE WHEN: Table exists
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 5.2 — Staff API Routes
 
@@ -749,7 +749,7 @@ DO:
 DONE WHEN: Tables exist
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 6.2 — Attendance API Routes
 
@@ -769,7 +769,7 @@ DO:
 DONE WHEN: Full check-in/out flow works via API
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 6.3 — QR Attendance Page (Owner)
 
@@ -789,7 +789,7 @@ DO:
 DONE WHEN: QR displays, regeneration works, today's list shows
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 6.4 — Staff Check-In Page
 
@@ -809,7 +809,7 @@ DO:
 DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-end
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
