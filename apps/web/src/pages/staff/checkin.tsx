@@ -107,11 +107,19 @@ export default function StaffCheckinPage(): React.JSX.Element {
   const handleCheckin = useCallback(() => {
     setIsGettingLocation(true)
     navigator.geolocation.getCurrentPosition(
-      (_position) => {
+      (position) => {
         setIsGettingLocation(false)
         // In production, this token comes from scanning the QR code
-        // For now we show the scanner UI flow
-        showToast('error', 'Please scan the QR code at the workshop')
+        const token = window.prompt('Enter QR Token (Simulating scan):')
+        if (!token) {
+          showToast('error', 'Check-in cancelled')
+          return
+        }
+        checkinMutation.mutate({
+          qr_token: token,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        })
       },
       () => {
         setIsGettingLocation(false)
@@ -119,7 +127,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [showToast])
+  }, [showToast, checkinMutation])
 
   // Handle check-out
   const handleCheckout = useCallback(() => {

@@ -71,8 +71,30 @@ export default function AddVehiclePage(): React.JSX.Element {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: AddVehicleForm) =>
-      apiFetch<CreateVehicleResponse>('/vehicles', {
+    mutationFn: async (data: AddVehicleForm) => {
+      let imageUrls: string[] = []
+      
+      if (_photoFile) {
+        const presignRes = await apiFetch<{upload_url: string, file_key: string}>('/upload/presign', {
+          method: 'POST',
+          body: JSON.stringify({
+            filename: _photoFile.name || 'photo.jpg',
+            content_type: _photoFile.type || 'image/jpeg'
+          }),
+          tenantId: tenant?.id
+        })
+        
+        const uploadRes = await fetch(presignRes.upload_url, {
+          method: 'PUT',
+          headers: { 'Content-Type': _photoFile.type || 'image/jpeg' },
+          body: _photoFile
+        })
+        
+        if (!uploadRes.ok) throw new Error('Failed to upload image')
+        imageUrls.push(presignRes.file_key)
+      }
+
+      return apiFetch<CreateVehicleResponse>('/vehicles', {
         method: 'POST',
         body: JSON.stringify({
           registration_number: data.registration_number,
@@ -80,10 +102,11 @@ export default function AddVehiclePage(): React.JSX.Element {
           customer_name: data.customer_name,
           customer_phone: data.customer_phone,
           complaint: data.complaint || null,
-          image_urls: [],
+          image_urls: imageUrls,
         }),
         tenantId: tenant?.id,
-      }),
+      })
+    },
     onSuccess: (res) => {
       showToast('success', 'Vehicle added successfully')
       // Navigate to vehicle details after a brief delay to show toast

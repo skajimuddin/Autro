@@ -219,9 +219,13 @@ export default function SettingsPage(): React.JSX.Element {
                     Update
                   </Button>
                 </div>
-                <p className="text-[0.65rem] text-text-muted">
-                  Used for staff attendance GPS verification
-                </p>
+                <div className="text-[0.65rem] text-text-muted mt-1 leading-snug">
+                  <p className="font-semibold text-text">Important rules for accuracy:</p>
+                  <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                    <li>Use a <strong>mobile phone</strong> (PCs give wrong locations).</li>
+                    <li>Stand <strong>inside the workshop</strong> when updating.</li>
+                  </ul>
+                </div>
               </div>
 
               {/* Save */}

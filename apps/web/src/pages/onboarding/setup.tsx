@@ -214,6 +214,13 @@ export default function OnboardingPage(): React.JSX.Element {
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                 Workshop Location <span style={{ color: '#94a3b8', fontWeight: 400 }}>(for staff attendance)</span>
               </label>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>
+                <strong>Important rules for accurate GPS:</strong>
+                <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
+                  <li>Use a <strong>mobile phone</strong> (PCs often give wrong locations).</li>
+                  <li>Stand <strong>inside the workshop</strong> when tapping the button.</li>
+                </ul>
+              </div>
               <button type="button" id="set-location-btn" onClick={handleSetLocation} style={locationBtnStyle()}>
                 {locationStatus === 'loading' && <span>📍 Getting location…</span>}
                 {locationStatus === 'set' && <><CheckCircle size={16} /> Location set ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})</>}

@@ -26,11 +26,11 @@ export const CreateEstimateSchema = z.object({
 })
 
 /**
- * PATCH /estimates/:id — update estimate metadata (discount, tax, notes).
- * Items are managed via separate endpoints.
+ * PATCH /estimates/:id — update estimate metadata and items.
  * All fields optional.
  */
 export const UpdateEstimateSchema = z.object({
+  items: z.array(EstimateItemSchema).optional(),
   discount_type: z.enum(['FLAT', 'PERCENT']).nullable().optional(),
   discount_value: z.number().min(0).optional(),
   tax_enabled: z.boolean().optional(),

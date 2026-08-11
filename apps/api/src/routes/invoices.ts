@@ -1,15 +1,13 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { 
   CreateInvoiceSchema, 
   UpdateInvoiceSchema, 
   MarkInvoicePaidSchema,
-  AddInvoiceItemSchema,
-  UpdateInvoiceItemSchema
 } from '@workshop/shared'
 import type { Env, Variables } from '@/env'
-import { invoices, invoice_items, service_visits, vehicles, customers } from '@/db/schema'
+import { invoices, invoice_items, service_visits, vehicles, customers, estimates, estimate_items } from '@/db/schema'
 
 const invoicesRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -179,8 +177,6 @@ invoicesRouter.patch('/:id', async (c) => {
   const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
   if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
   
-  const items = await db.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
-  
   const dataToUpdate: any = { updated_at: now }
   if (parsed.data.discount_type !== undefined) dataToUpdate.discount_type = parsed.data.discount_type
   if (parsed.data.discount_value !== undefined) dataToUpdate.discount_value = parsed.data.discount_value
@@ -188,34 +184,54 @@ invoicesRouter.patch('/:id', async (c) => {
   if (parsed.data.tax_percent !== undefined) dataToUpdate.tax_percent = parsed.data.tax_percent
   if (parsed.data.notes !== undefined) dataToUpdate.notes = parsed.data.notes
   
-  // Recalculate frozen_total
-  let subtotal = 0
-  for (const item of items) {
-    subtotal += item.amount * item.quantity
-  }
-  const discountType = dataToUpdate.discount_type ?? currentInvoice.discount_type
-  const discountValue = dataToUpdate.discount_value ?? currentInvoice.discount_value
-  let discount = 0
-  if (discountType === 'FLAT' && discountValue) {
-    discount = discountValue
-  } else if (discountType === 'PERCENT' && discountValue) {
-    discount = subtotal * (discountValue / 100)
-  }
-  let afterDiscount = Math.max(0, subtotal - discount)
-  
-  const taxEnabled = dataToUpdate.tax_enabled ?? currentInvoice.tax_enabled
-  const taxPercent = dataToUpdate.tax_percent ?? currentInvoice.tax_percent
-  let tax = 0
-  if (taxEnabled && taxPercent) {
-    tax = afterDiscount * (taxPercent / 100)
-  }
-  dataToUpdate.frozen_total = afterDiscount + tax
-  
-  if (Object.keys(dataToUpdate).length > 1) { // more than just updated_at
-    await db.update(invoices).set(dataToUpdate).where(eq(invoices.id, invoiceId))
-  }
+  await db.transaction(async (tx) => {
+    let finalItems: any[] = []
+    if (parsed.data.items !== undefined) {
+      await tx.delete(invoice_items).where(eq(invoice_items.invoice_id, invoiceId))
+      if (parsed.data.items.length > 0) {
+        const itemsToInsert = parsed.data.items.map((item, index) => ({
+          id: crypto.randomUUID(),
+          invoice_id: invoiceId,
+          description: item.description,
+          amount: item.amount,
+          quantity: item.quantity,
+          sort_order: item.sort_order ?? index,
+        }))
+        await tx.insert(invoice_items).values(itemsToInsert)
+        finalItems = itemsToInsert
+      }
+    } else {
+      finalItems = await tx.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
+    }
+    
+    // Recalculate frozen_total
+    let subtotal = 0
+    for (const item of finalItems) {
+      subtotal += item.amount * item.quantity
+    }
+    const discountType = dataToUpdate.discount_type ?? currentInvoice.discount_type
+    const discountValue = dataToUpdate.discount_value ?? currentInvoice.discount_value
+    let discount = 0
+    if (discountType === 'FLAT' && discountValue) {
+      discount = discountValue
+    } else if (discountType === 'PERCENT' && discountValue) {
+      discount = subtotal * (discountValue / 100)
+    }
+    let afterDiscount = Math.max(0, subtotal - discount)
+    
+    const taxEnabled = dataToUpdate.tax_enabled ?? currentInvoice.tax_enabled
+    const taxPercent = dataToUpdate.tax_percent ?? currentInvoice.tax_percent
+    let tax = 0
+    if (taxEnabled && taxPercent) {
+      tax = afterDiscount * (taxPercent / 100)
+    }
+    dataToUpdate.frozen_total = afterDiscount + tax
+    
+    await tx.update(invoices).set(dataToUpdate).where(eq(invoices.id, invoiceId))
+  })
   
   const invoice = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).get()
+  const items = await db.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
   return c.json({ ...invoice, items })
 })
 
@@ -257,136 +273,79 @@ invoicesRouter.patch('/:id/pay', async (c) => {
   return c.json({ invoice })
 })
 
-// POST /invoices/:id/items
-invoicesRouter.post('/:id/items', async (c) => {
+// POST /invoices/from-estimate/:estimateId
+invoicesRouter.post('/from-estimate/:estimateId', async (c) => {
   const tenantId = c.get('tenantId')
-  const invoiceId = c.req.param('id')
-  const body = await c.req.json().catch(() => null)
-  const parsed = AddInvoiceItemSchema.safeParse(body)
-  
-  if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
-  }
+  const estimateId = c.req.param('estimateId')
   
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   
-  const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
-  if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
+  const estimate = await db.select().from(estimates).where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId))).get()
+  if (!estimate) return c.json({ error: { code: 'NOT_FOUND', message: 'Estimate not found' } }, 404)
   
-  const itemId = crypto.randomUUID()
-  const maxResult = await db.select({ max: sql<number>`max(${invoice_items.sort_order})` }).from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).get()
-  const nextOrder = (maxResult?.max ?? -1) + 1
+  const items = await db.select().from(estimate_items).where(eq(estimate_items.estimate_id, estimateId)).all()
+  
+  // Calculate total
+  let subtotal = 0
+  for (const item of items) {
+    subtotal += item.amount * item.quantity
+  }
+  
+  let discount = 0
+  if (estimate.discount_type === 'FLAT' && estimate.discount_value) {
+    discount = estimate.discount_value
+  } else if (estimate.discount_type === 'PERCENT' && estimate.discount_value) {
+    discount = subtotal * (estimate.discount_value / 100)
+  }
+  
+  let afterDiscount = Math.max(0, subtotal - discount)
+  let tax = 0
+  if (estimate.tax_enabled && estimate.tax_percent) {
+    tax = afterDiscount * (estimate.tax_percent / 100)
+  }
+  
+  const frozen_total = afterDiscount + tax
+  const invoiceId = crypto.randomUUID()
   
   await db.transaction(async (tx) => {
-    await tx.insert(invoice_items).values({
-      id: itemId,
-      invoice_id: invoiceId,
-      description: parsed.data.description,
-      amount: parsed.data.amount,
-      quantity: parsed.data.quantity,
-      sort_order: nextOrder,
+    // 1. Mark estimate as CONVERTED
+    await tx.update(estimates).set({ status: 'CONVERTED', updated_at: now }).where(eq(estimates.id, estimateId))
+    
+    // 2. Create invoice
+    await tx.insert(invoices).values({
+      id: invoiceId,
+      tenant_id: tenantId,
+      visit_id: estimate.visit_id,
+      estimate_id: estimateId,
+      discount_type: estimate.discount_type,
+      discount_value: estimate.discount_value,
+      tax_enabled: estimate.tax_enabled,
+      tax_percent: estimate.tax_percent,
+      frozen_total: frozen_total,
+      payment_method: null,
+      payment_status: 'UNPAID',
+      notes: estimate.notes,
+      created_at: now,
+      updated_at: now,
+      paid_at: null,
     })
     
-    // Recalculate total
-    const allItems = await tx.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
-    let subtotal = 0
-    for (const item of allItems) subtotal += item.amount * item.quantity
-    
-    const dt = currentInvoice.discount_type
-    const dv = currentInvoice.discount_value
-    let discount = 0
-    if (dt === 'FLAT' && dv) discount = dv
-    else if (dt === 'PERCENT' && dv) discount = subtotal * (dv / 100)
-    
-    let afterDiscount = Math.max(0, subtotal - discount)
-    let tax = 0
-    if (currentInvoice.tax_enabled && currentInvoice.tax_percent) tax = afterDiscount * (currentInvoice.tax_percent / 100)
-    
-    await tx.update(invoices).set({ frozen_total: afterDiscount + tax, updated_at: now }).where(eq(invoices.id, invoiceId))
+    // 3. Create invoice items
+    if (items.length > 0) {
+      const invItems = items.map(item => ({
+        id: crypto.randomUUID(),
+        invoice_id: invoiceId,
+        description: item.description,
+        amount: item.amount,
+        quantity: item.quantity,
+        sort_order: item.sort_order,
+      }))
+      await tx.insert(invoice_items).values(invItems)
+    }
   })
   
-  const item = await db.select().from(invoice_items).where(eq(invoice_items.id, itemId)).get()
-  return c.json({ item }, 201)
-})
-
-// PATCH /invoices/:id/items/:itemId
-invoicesRouter.patch('/:id/items/:itemId', async (c) => {
-  const tenantId = c.get('tenantId')
-  const invoiceId = c.req.param('id')
-  const itemId = c.req.param('itemId')
-  const body = await c.req.json().catch(() => null)
-  const parsed = UpdateInvoiceItemSchema.safeParse(body)
-  
-  if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
-  }
-  
-  const db = drizzle(c.env.DB)
-  const now = new Date().toISOString()
-  
-  const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
-  if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
-  
-  if (Object.keys(parsed.data).length > 0) {
-    await db.transaction(async (tx) => {
-      await tx.update(invoice_items).set(parsed.data).where(and(eq(invoice_items.invoice_id, invoiceId), eq(invoice_items.id, itemId)))
-      
-      const allItems = await tx.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
-      let subtotal = 0
-      for (const item of allItems) subtotal += item.amount * item.quantity
-      
-      const dt = currentInvoice.discount_type
-      const dv = currentInvoice.discount_value
-      let discount = 0
-      if (dt === 'FLAT' && dv) discount = dv
-      else if (dt === 'PERCENT' && dv) discount = subtotal * (dv / 100)
-      
-      let afterDiscount = Math.max(0, subtotal - discount)
-      let tax = 0
-      if (currentInvoice.tax_enabled && currentInvoice.tax_percent) tax = afterDiscount * (currentInvoice.tax_percent / 100)
-      
-      await tx.update(invoices).set({ frozen_total: afterDiscount + tax, updated_at: now }).where(eq(invoices.id, invoiceId))
-    })
-  }
-  
-  const item = await db.select().from(invoice_items).where(eq(invoice_items.id, itemId)).get()
-  return c.json({ item })
-})
-
-// DELETE /invoices/:id/items/:itemId
-invoicesRouter.delete('/:id/items/:itemId', async (c) => {
-  const tenantId = c.get('tenantId')
-  const invoiceId = c.req.param('id')
-  const itemId = c.req.param('itemId')
-  
-  const db = drizzle(c.env.DB)
-  const now = new Date().toISOString()
-  
-  const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
-  if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
-  
-  await db.transaction(async (tx) => {
-    await tx.delete(invoice_items).where(and(eq(invoice_items.invoice_id, invoiceId), eq(invoice_items.id, itemId)))
-    
-    const allItems = await tx.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
-    let subtotal = 0
-    for (const item of allItems) subtotal += item.amount * item.quantity
-    
-    const dt = currentInvoice.discount_type
-    const dv = currentInvoice.discount_value
-    let discount = 0
-    if (dt === 'FLAT' && dv) discount = dv
-    else if (dt === 'PERCENT' && dv) discount = subtotal * (dv / 100)
-    
-    let afterDiscount = Math.max(0, subtotal - discount)
-    let tax = 0
-    if (currentInvoice.tax_enabled && currentInvoice.tax_percent) tax = afterDiscount * (currentInvoice.tax_percent / 100)
-    
-    await tx.update(invoices).set({ frozen_total: afterDiscount + tax, updated_at: now }).where(eq(invoices.id, invoiceId))
-  })
-    
-  return c.json({ success: true })
+  return c.json({ invoice_id: invoiceId }, 201)
 })
 
 export default invoicesRouter

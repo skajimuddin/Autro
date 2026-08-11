@@ -41,6 +41,7 @@ vehiclesRouter.get('/search', async (c) => {
 vehiclesRouter.get('/', async (c) => {
   const tenantId = c.get('tenantId')
   const status = c.req.query('status')
+  const plate = c.req.query('plate')
   const cursor = parseInt(c.req.query('cursor') || '0', 10)
   const limit = 20
   
@@ -53,8 +54,12 @@ vehiclesRouter.get('/', async (c) => {
     isNull(vehicles.deleted_at)
   ];
   
-  if (status && status !== 'All') {
+  if (status && status !== 'All' && status !== 'ALL') {
     conditions.push(eq(service_visits.status, status))
+  }
+
+  if (plate) {
+    conditions.push(like(vehicles.registration_number, `%${plate.toUpperCase()}%`))
   }
   
   const results = await db

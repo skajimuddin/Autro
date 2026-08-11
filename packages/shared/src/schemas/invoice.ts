@@ -31,6 +31,7 @@ export const CreateInvoiceSchema = z.object({
  * All fields optional.
  */
 export const UpdateInvoiceSchema = z.object({
+  items: z.array(InvoiceItemSchema).optional(),
   discount_type: z.enum(['FLAT', 'PERCENT']).nullable().optional(),
   discount_value: z.number().min(0).optional(),
   tax_enabled: z.boolean().optional(),
