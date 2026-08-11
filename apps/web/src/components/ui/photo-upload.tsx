@@ -14,9 +14,18 @@ interface PhotoUploadProps {
 export function PhotoUpload({ value, onChange, onRemove, label, id }: PhotoUploadProps): React.JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) onChange(file)
+    if (file) {
+      try {
+        const { compressImage } = await import('@/lib/image')
+        const compressed = await compressImage(file)
+        onChange(compressed)
+      } catch (err) {
+        console.error('Image compression failed', err)
+        onChange(file) // fallback to original
+      }
+    }
     // reset so re-selecting the same file triggers onChange
     e.target.value = ''
   }

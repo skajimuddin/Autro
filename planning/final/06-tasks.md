@@ -832,7 +832,7 @@ DO:
 DONE WHEN: Settings page loads, edits save, sign out works
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 7.2 — PWA Setup
 
@@ -848,7 +848,7 @@ DO:
 DONE WHEN: App shows "Install" prompt on mobile Chrome
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 7.3 — Polish: Animations + Transitions
 
@@ -867,7 +867,7 @@ DO:
 DONE WHEN: App feels fluid and responsive
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 7.4 — Polish: Error Handling + Edge Cases
 
@@ -883,6 +883,28 @@ DO:
 6. Loading states on all data-fetching pages
 
 DONE WHEN: No blank screens, no unhandled errors, all edge cases covered
+```
+
+- [x] Completed
+
+---
+
+## Phase 7.5: Manual Local Testing
+
+### Task 7.5.1 — Local End-to-End Testing
+
+```
+GOAL: Manually test all app flows locally before production deployment.
+
+DO:
+1. Start local dev server
+2. Test Onboarding and Garage creation
+3. Test adding a Vehicle and changing its status
+4. Test creating an Estimate and converting it to an Invoice
+5. Test Invoice payment flow and WhatsApp sharing
+6. Test Staff invite generation and QR Check-in
+
+DONE WHEN: The user has manually verified every flow works perfectly on their local machine.
 ```
 
 - [ ] Completed
@@ -957,5 +979,6 @@ DONE WHEN: All flows work, Lighthouse passes, no errors
 | Phase 5: Staff              | 5 tasks      | 3-4 days        |
 | Phase 6: Attendance         | 4 tasks      | 2-3 days        |
 | Phase 7: Polish             | 4 tasks      | 2-3 days        |
+| Phase 7.5: Local Testing    | 1 task       | Manual          |
 | Phase 8: Deploy             | 3 tasks      | 1-2 days        |
 | **Total**                   | **47 tasks** | **~18-25 days** |

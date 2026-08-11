@@ -93,10 +93,29 @@ export default function StaffAddPage(): React.JSX.Element {
     }
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!inviteUrl) return
-    const text = `Join ${tenant?.name ?? 'our workshop'} as staff: ${inviteUrl}`
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
+    const text = `Join ${tenant?.name ?? 'our workshop'} as staff:`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join Workshop Staff',
+          text,
+          url: inviteUrl,
+        })
+        return
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Native share failed', err)
+        } else {
+          return // User cancelled
+        }
+      }
+    }
+
+    const whatsappText = `${text} ${inviteUrl}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`
     window.open(whatsappUrl, '_blank', 'noopener')
   }
 

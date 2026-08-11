@@ -7,13 +7,12 @@
 
 ## 🔴 Next Task
 
-**All Phase 6 Tasks Completed!**
-(Stopped here as per user request to not start Phase 7 yet)
+**All Phase 7 Tasks Completed!**
+(Stopped here as per user request to not start Phase 8 yet)
 
 > ⚠️ **CHECKPOINT NOTE FOR NEW SESSION:**
-> The UI pages for Dashboard, Vehicles, Estimates, Invoices, Staff, Attendance, and Settings have been **IMPLEMENTED** using mock/pending TanStack Query hooks. They are verified with `tsc` and `vite build`.
-> We are now returning to the backend API implementation starting with the Database tables for Vehicles.
-> **Before starting Task 3.1**, please review `planning/final/03-database.md` for exact table schemas.
+> The UI pages, API integration, styling, and PWA setup are all done.
+> The frontend and backend are in sync, and typechecking, linting, and building pass successfully.
 
 ---
 
@@ -53,6 +52,10 @@
 | 6.2 — Attendance API Routes | 2026-08-11 |
 | 6.3 — QR Attendance Page (Owner) | 2026-08-11 |
 | 6.4 — Staff Check-In Page | 2026-08-11 |
+| 7.1 — Settings Page | 2026-08-11 |
+| 7.2 — PWA Setup | 2026-08-11 |
+| 7.3 — Polish: Animations + Transitions | 2026-08-11 |
+| 7.4 — Polish: Error Handling + Edge Cases | 2026-08-11 |
 
 ---
 
@@ -71,5 +74,5 @@
 Project uses `@tailwindcss/vite` plugin (v4). There is NO `tailwind.config.ts`. All tokens are defined via `@theme {}` CSS block in `src/index.css`. Custom classes use `bg-primary`, `text-text-secondary`, `shadow-[var(--shadow-card)]` etc.
 
 ### Next tasks in order
-1. **Task 7.1** — Settings Page
+1. **Task 7.5.1** — Manual Local End-to-End Testing
 2. Continue through `planning/final/06-tasks.md` as requested.

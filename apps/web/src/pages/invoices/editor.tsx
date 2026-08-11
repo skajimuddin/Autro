@@ -236,8 +236,25 @@ export default function InvoiceEditorPage(): React.JSX.Element {
   })
 
   // WhatsApp share
-  const handleWhatsAppShare = useCallback(() => {
+  const handleWhatsAppShare = useCallback(async () => {
     const text = `Invoice from ${tenant?.name ?? 'Workshop'}:\nTotal: ₹${grandTotal.toLocaleString('en-IN')}\n\nThank you for your business!`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Invoice from ${tenant?.name ?? 'Workshop'}`,
+          text,
+        })
+        return
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Native share failed', err)
+        } else {
+          return // User cancelled
+        }
+      }
+    }
+
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`
     window.open(url, '_blank', 'noopener')
   }, [tenant?.name, grandTotal])

@@ -1,4 +1,5 @@
 // Dashboard — main landing page for garage owners
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -94,6 +95,22 @@ export default function DashboardPage(): React.JSX.Element {
     // Refresh every 30 seconds for live feel
     refetchInterval: 30_000,
   })
+
+  // App Badging API integration
+  useEffect(() => {
+    if (stats) {
+      const pendingCount = stats.repairing + stats.unpaid_invoices
+      if ('setAppBadge' in navigator) {
+        if (pendingCount > 0) {
+          // @ts-ignore - TS might not know setAppBadge yet
+          navigator.setAppBadge(pendingCount).catch(console.error)
+        } else {
+          // @ts-ignore
+          navigator.clearAppBadge().catch(console.error)
+        }
+      }
+    }
+  }, [stats])
 
   // Derive greeting based on time of day
   const greeting = getGreeting()
