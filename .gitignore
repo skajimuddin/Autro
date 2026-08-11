@@ -44,3 +44,5 @@ coverage/
 
 # ── PWA / generated assets ───────────────────────────────────
 public/sw.js.map
+
+temp/

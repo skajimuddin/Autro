@@ -1,26 +1,138 @@
-@import "tailwindcss";
-
-/* Inter font from Google Fonts */
+/* Inter font from Google Fonts — must be first @import */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* ── Global base ─────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Workshop Design System — Tailwind v4 CSS Theme
+   All tokens from planning/final/05-ui-screens.md
+───────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Colors ───────────────────────────────────────────────────────────── */
+  --color-primary:          #2563eb;
+  --color-primary-hover:    #1d4ed8;
+  --color-primary-light:    #dbeafe;
+
+  --color-bg:               #f1f5f9;
+  --color-card:             #ffffff;
+  --color-border:           #cbd5e1;
+  --color-divider:          #e2e8f0;
+
+  --color-text:             #0f172a;
+  --color-text-secondary:   #64748b;
+  --color-text-muted:       #94a3b8;
+
+  --color-success:          #10b981;
+  --color-success-light:    #d1fae5;
+  --color-warning:          #f59e0b;
+  --color-warning-light:    #fef3c7;
+  --color-danger:           #ef4444;
+  --color-danger-light:     #fee2e2;
+
+  /* ── Typography ────────────────────────────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* ── Border radius ─────────────────────────────────────────────────────── */
+  --radius-card:   16px;
+  --radius-button: 16px;
+  --radius-input:  12px;
+
+  /* ── Box shadows ────────────────────────────────────────────────────────── */
+  --shadow-card:    0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-topbar:  0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-primary: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  --shadow-success: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+
+  /* ── Animations ──────────────────────────────────────────────────────────── */
+  --animate-spin: spin 0.8s linear infinite;
+  --animate-page-enter: page-enter 0.2s ease-out;
+  --animate-slide-in-top: slide-in-top 0.25s ease-out;
+  --animate-fade-in: fade-in 0.15s ease-out;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Global base ────────────────────────────────────────────────────────────── */
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 m-0 p-0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
     overscroll-behavior: none;
   }
 
   #root {
     min-height: 100dvh;
+  }
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Page enter animation — apply to page root divs */
+  .animate-page-enter {
+    animation: var(--animate-page-enter);
+  }
+
+  /* Toast slide-in from top */
+  .animate-slide-in-top {
+    animation: var(--animate-slide-in-top);
+  }
+
+  /* Button press micro-animation */
+  .active\:scale-press:active {
+    transform: scale(0.98);
+  }
+
+  /* Card hover lift (desktop) */
+  .hover\:lift:hover {
+    transform: translateY(-2px);
+    transition: transform 0.15s ease;
+  }
+
+  /* Spinner */
+  .animate-spin-fast {
+    animation: var(--animate-spin);
   }
 }

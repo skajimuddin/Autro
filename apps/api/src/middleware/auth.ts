@@ -1,12 +1,16 @@
 import type { Context, Next } from 'hono'
-import * as jose from 'jose'
+import { jwtVerify } from 'jose'
 import type { Env, Variables } from '@/env'
 
 /**
  * Auth middleware — validates the Bearer JWT in Authorization header.
- * Injects `userId` and `tenantId` into context variables.
  *
- * Returns 401 if token is missing or invalid.
+ * JWT payload: { sub: user_id }
+ * Injects `userId` into context variables for downstream handlers.
+ *
+ * Returns 401 if token is missing, malformed, or expired.
+ *
+ * Usage: apply BEFORE tenant middleware on all protected routes.
  */
 export async function authMiddleware(
   c: Context<{ Bindings: Env; Variables: Variables }>,
@@ -25,14 +29,14 @@ export async function authMiddleware(
 
   try {
     const secret = new TextEncoder().encode(c.env.JWT_SECRET)
-    const { payload } = await jose.jwtVerify(token, secret)
+    const { payload } = await jwtVerify(token, secret)
 
-    if (typeof payload.sub !== 'string' || typeof payload.tenantId !== 'string') {
+    if (typeof payload.sub !== 'string') {
       return c.json({ error: { code: 'UNAUTHORIZED', message: 'Invalid token payload' } }, 401)
     }
 
+    // Inject user_id into context for all downstream handlers
     c.set('userId', payload.sub)
-    c.set('tenantId', payload.tenantId as string)
   } catch {
     return c.json({ error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' } }, 401)
   }

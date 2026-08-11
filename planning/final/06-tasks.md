@@ -147,7 +147,7 @@ DO:
 DONE WHEN: Migration runs, tables exist in D1
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.2 — Auth API (Google OAuth → JWT)
 
@@ -169,7 +169,7 @@ DO:
 DONE WHEN: Full OAuth flow works — Google login → JWT returned
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.3 — Auth Middleware
 
@@ -188,7 +188,7 @@ DO:
 DONE WHEN: Protected routes return 401 without token, 200 with valid token
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.4 — Tenant API (Create Garage)
 
@@ -209,7 +209,7 @@ DO:
 DONE WHEN: Can create garage, retrieve it, update it via API
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.5 — Login Page (Frontend)
 
@@ -230,7 +230,7 @@ DO:
 DONE WHEN: Click "Sign in with Google" → OAuth flow → JWT stored → redirect
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.6 — Auth Provider + Protected Routes
 
@@ -247,7 +247,7 @@ DO:
 DONE WHEN: Unauthenticated users go to /login, authenticated users with no garage go to /onboarding
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 1.7 — Onboarding Page
 
@@ -266,7 +266,7 @@ DO:
 DONE WHEN: Can fill form, set GPS location, create garage, redirect to dashboard
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -287,7 +287,7 @@ DO:
 DONE WHEN: Tailwind classes like bg-primary, text-text-secondary, shadow-card work
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 2.2 — Layout Components
 
@@ -305,7 +305,7 @@ DO:
 DONE WHEN: A test page wrapped in PageShell shows topbar, scrollable content, and bottom nav
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 2.3 — UI Components (Part 1: Basics)
 
@@ -326,7 +326,7 @@ DO:
 DONE WHEN: All components render correctly with all variants
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 2.4 — UI Components (Part 2: Data Display)
 
@@ -350,7 +350,7 @@ DO:
 DONE WHEN: All components render correctly
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
