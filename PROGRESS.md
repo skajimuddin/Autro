@@ -12,9 +12,9 @@
 
 ## 🔴 Next Task
 
-**Task 7.5.1 — Local End-to-End Testing**
+**Task 8.3 — Final Audit**
 
-The owner needs to manually verify every app flow on their local machine, as well as do the visual and device pass.
+The owner needs to verify everything works in production at the deployed URL, including Lighthouse audits and real device tests.
 
 | # | Task | State |
 | - | ---- | ----- |
@@ -29,7 +29,7 @@ The owner needs to manually verify every app flow on their local machine, as wel
 | 6.4 | QR scanner | ✅ 2026-08-13 |
 | 4.6 | Invoice PDF generation | ✅ 2026-08-13 |
 | UI-7 | `lg:` dense table view for list pages | ✅ 2026-08-13 |
-| **7.5.1** | **Manual browser + device pass** | **← next (owner)** |
+| **8.3** | **Final Production Audit** | **← next (owner)** |
 | 3.7 | Contact picker (`contact-picker.tsx` + `lib/contacts.ts`) | pending |
 
 ### ⚠️ Nothing here has been confirmed in a browser
@@ -366,6 +366,8 @@ Owner reviewed the production UI against `planning/demo-ui` and approved:
 | 7.4 — Polish: Error Handling + Edge Cases | 2026-08-11 |
 | Audit — 13 bug fixes across API + shared (see Audit section below) | 2026-08-12 |
 | Tracker correction — verified all 47 tasks against code, fixed 12 checkboxes | 2026-08-13 |
+| 8.1 — GitHub Actions CI/CD (Frontend + Backend) | 2026-08-13 |
+| 8.2 — Production Setup (Cloudflare D1, R2, Pages, Secrets) | 2026-08-13 |
 
 ### Not complete (previously misreported)
 

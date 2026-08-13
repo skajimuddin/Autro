@@ -37,7 +37,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --name api
+          command: deploy --name autro-api
           workingDirectory: apps/api
 
       - name: Deploy Web (Cloudflare Pages)
@@ -45,5 +45,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name workshop-web
+          command: pages deploy dist --project-name autro-web
           workingDirectory: apps/web

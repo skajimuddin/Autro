@@ -978,7 +978,7 @@ DO:
 DONE WHEN: Push to main auto-deploys both frontend and backend
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 8.2 — Production Setup
 
@@ -996,7 +996,7 @@ DO:
 DONE WHEN: App is live at autro.zeonweb.com
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 8.3 — Final Audit
 

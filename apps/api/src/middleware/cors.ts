@@ -16,6 +16,7 @@ export const corsMiddleware = cors({
     'http://localhost:5173', // Vite default
     'http://localhost:4173', // Vite preview
     'https://autro.zeonweb.com',
+    'https://autro-web.pages.dev' // Cloudflare Pages domain
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
