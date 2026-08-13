@@ -15,24 +15,31 @@ publicStaffRouter.get('/invite/:token', async (c) => {
   const token = c.req.param('token')
   const db = drizzle(c.env.DB)
   
-  const invite = await db.select({
+  const inviteData = await db.select({
     id: staff_invites.id,
     name: staff_invites.name,
     role: staff_invites.role,
     monthly_salary: staff_invites.monthly_salary,
     status: staff_invites.status,
     garage_name: tenants.name,
+    invited_by: users.name,
   })
   .from(staff_invites)
   .innerJoin(tenants, eq(staff_invites.tenant_id, tenants.id))
+  .innerJoin(users, eq(staff_invites.invited_by, users.id))
   .where(eq(staff_invites.token, token))
   .get()
   
-  if (!invite) {
+  if (!inviteData) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invite not found' } }, 404)
   }
   
-  return c.json({ invite })
+  return c.json({
+    garage_name: inviteData.garage_name,
+    role: inviteData.role,
+    invited_by: inviteData.invited_by,
+    status: inviteData.status
+  })
 })
 
 
