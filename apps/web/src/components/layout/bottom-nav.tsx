@@ -39,7 +39,7 @@ export function BottomNav(): React.JSX.Element {
       {/* Brand header — sidebar only */}
       <div className="hidden md:flex items-center gap-2.5 h-14 px-5 border-b border-divider flex-shrink-0">
         <Wrench size={20} strokeWidth={2.5} className="text-primary" />
-        <span className="font-bold text-text">Workshop</span>
+        <span className="font-bold text-text">Autro</span>
       </div>
 
       <div className="flex items-stretch h-16 md:h-auto md:flex-col md:gap-1 md:p-3">

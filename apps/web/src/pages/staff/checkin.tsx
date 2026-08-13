@@ -198,7 +198,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
             Hi, {firstName}
           </h2>
           <p className="text-sm text-text-muted mt-0.5">
-            Welcome to your workshop
+            Welcome to your autro
           </p>
         </div>
 
@@ -212,7 +212,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
               <div>
                 <p className="text-base font-bold text-text">Ready to check in?</p>
                 <p className="text-xs text-text-muted mt-1">
-                  Scan the QR code at your workshop
+                  Scan the QR code at your autro
                 </p>
               </div>
               <Button

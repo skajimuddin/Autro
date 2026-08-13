@@ -1,8 +1,8 @@
 {
-  "name": "@workshop/api",
+  "name": "@autro/api",
   "version": "1.0.0",
   "private": true,
-  "description": "Workshop — Hono Backend (Cloudflare Workers)",
+  "description": "Autro — Hono Backend (Cloudflare Workers)",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
@@ -11,7 +11,7 @@
     "lint": "oxlint src"
   },
   "dependencies": {
-    "@workshop/shared": "*",
+    "@autro/shared": "*",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.38.3",
     "hono": "^4.6.14",

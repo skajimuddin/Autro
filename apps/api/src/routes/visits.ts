@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull } from 'drizzle-orm'
-import { UpdateVisitStatusSchema } from '@workshop/shared'
+import { UpdateVisitStatusSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { service_visits } from '@/db/schema'
 

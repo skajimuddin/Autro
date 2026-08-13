@@ -2,7 +2,7 @@ import { config } from '@/lib/config'
 
 // ── JWT Storage ───────────────────────────────────────────────────────────────
 // Tokens stored in localStorage under this key.
-const TOKEN_KEY = 'workshop_jwt'
+const TOKEN_KEY = 'autro_jwt'
 
 /**
  * Save JWT to localStorage.

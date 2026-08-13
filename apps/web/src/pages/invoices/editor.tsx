@@ -303,12 +303,12 @@ export default function InvoiceEditorPage(): React.JSX.Element {
 
   // WhatsApp share
   const handleWhatsAppShare = useCallback(async () => {
-    const text = `Invoice from ${tenant?.name ?? 'Workshop'}:\nTotal: ₹${grandTotal.toLocaleString('en-IN')}\n\nThank you for your business!`
+    const text = `Invoice from ${tenant?.name ?? 'Autro'}:\nTotal: ₹${grandTotal.toLocaleString('en-IN')}\n\nThank you for your business!`
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Invoice from ${tenant?.name ?? 'Workshop'}`,
+          title: `Invoice from ${tenant?.name ?? 'Autro'}`,
           text,
         })
         return

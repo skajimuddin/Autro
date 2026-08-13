@@ -1,16 +1,16 @@
-# Workshop — Product Overview
+# Autro — Product Overview
 
-> **App Name:** Workshop  
-> **Domain:** workshop.zeonweb.com  
-> **Type:** Multi-tenant SaaS — Garage/Workshop Management  
-> **Target Users:** Small local automobile workshops replacing paper notebooks  
+> **App Name:** Autro  
+> **Domain:** autro.zeonweb.com  
+> **Type:** Multi-tenant SaaS — Garage/Autro Management  
+> **Target Users:** Small local automobile autros replacing paper notebooks  
 > **MVP Philosophy:** "Will this save time for a small garage owner?" — If no, don't build it.
 
 ---
 
 ## What This App Does
 
-A simple, mobile-first web app for small garage/workshop owners to:
+A simple, mobile-first web app for small garage/autro owners to:
 
 - Register vehicles (any type — car, bike, truck, auto)
 - Track customers and their vehicle history

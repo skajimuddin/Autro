@@ -1,4 +1,4 @@
-# Workshop — Progress Tracker
+# Autro — Progress Tracker
 
 > **AI Agent:** Read this first. Then read the task spec from `planning/final/06-tasks.md`.
 > After each task: mark `[x]` in `06-tasks.md` and update the two sections below.

@@ -1,5 +1,5 @@
 {
-  "name": "@workshop/web",
+  "name": "@autro/web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^5.7.1",
     "@react-pdf/renderer": "^4.6.0",
     "@tanstack/react-query": "^5.62.0",
-    "@workshop/shared": "*",
+    "@autro/shared": "*",
     "html5-qrcode": "^2.3.8",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.8",

@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { SignJWT, jwtVerify } from 'jose'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
-import { RefreshTokenSchema } from '@workshop/shared'
+import { RefreshTokenSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { users } from '@/db/schema'
 

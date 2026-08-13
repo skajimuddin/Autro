@@ -162,7 +162,7 @@ export default function OnboardingPage(): React.JSX.Element {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Azim Auto Workshop"
+                placeholder="e.g. Azim Auto Autro"
                 leftIcon={<Building2 size={16} />}
                 error={errors.name}
               />
@@ -190,10 +190,10 @@ export default function OnboardingPage(): React.JSX.Element {
                 error={errors.address}
               />
 
-              {/* ── Workshop location ──────────────────────────── */}
+              {/* ── Autro location ──────────────────────────── */}
               <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-semibold text-text">
-                  Workshop Location{' '}
+                  Autro Location{' '}
                   <span className="font-normal text-text-muted">
                     (for staff attendance)
                   </span>
@@ -210,7 +210,7 @@ export default function OnboardingPage(): React.JSX.Element {
                     </li>
                     <li>
                       Stand{' '}
-                      <strong className="font-semibold">inside the workshop</strong>{' '}
+                      <strong className="font-semibold">inside the autro</strong>{' '}
                       when tapping the button.
                     </li>
                   </ul>
@@ -248,7 +248,7 @@ export default function OnboardingPage(): React.JSX.Element {
                   )}
                   {locationStatus === 'idle' && (
                     <>
-                      <MapPinned size={16} /> Set Workshop Location
+                      <MapPinned size={16} /> Set Autro Location
                     </>
                   )}
                 </button>
@@ -266,11 +266,11 @@ export default function OnboardingPage(): React.JSX.Element {
 
           <Button
             type="submit"
-            id="create-workshop-btn"
+            id="create-autro-btn"
             size="lg"
             isLoading={isSubmitting}
           >
-            Create Workshop
+            Create Autro
           </Button>
         </form>
       </div>

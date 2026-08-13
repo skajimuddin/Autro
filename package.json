@@ -1,8 +1,8 @@
 {
-  "name": "workshop",
+  "name": "autro",
   "version": "1.0.0",
   "private": true,
-  "description": "Workshop — Multi-tenant Garage/Workshop Management SaaS",
+  "description": "Autro — Multi-tenant Garage/Autro Management SaaS",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "prettier": "^3.3.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "wrangler": "^4.122.0"
   },
   "engines": {
     "node": ">=20.0.0",

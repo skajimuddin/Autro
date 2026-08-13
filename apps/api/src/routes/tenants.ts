@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, eq, isNull } from 'drizzle-orm'
-import { CreateTenantSchema, UpdateTenantSchema } from '@workshop/shared'
+import { CreateTenantSchema, UpdateTenantSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { tenants, tenant_members } from '@/db/schema'
 

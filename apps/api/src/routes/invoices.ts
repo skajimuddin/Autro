@@ -5,7 +5,7 @@ import {
   CreateInvoiceSchema,
   UpdateInvoiceSchema,
   MarkInvoicePaidSchema,
-} from '@workshop/shared'
+} from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'

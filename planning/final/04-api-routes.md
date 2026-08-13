@@ -1,7 +1,7 @@
-# Workshop — API Routes
+# Autro — API Routes
 
 > **Framework:** Hono  
-> **Base URL:** `https://api.workshop.zeonweb.com` (or `workshop.zeonweb.com/api`)  
+> **Base URL:** `https://api.autro.zeonweb.com` (or `autro.zeonweb.com/api`)  
 > **Auth:** JWT in Authorization header (Bearer token)  
 > **Tenant:** `X-Tenant-ID` header on all tenant-scoped routes
 
@@ -48,7 +48,7 @@ sequenceDiagram
 
 ```json
 {
-  "name": "Azim Auto Workshop",
+  "name": "Azim Auto Autro",
   "phone": "9876543210",
   "address": "123, Main Road, Bhubaneswar",
   "logo_url": "r2://logos/abc123.webp",
@@ -63,7 +63,7 @@ All fields optional — only send what changed:
 
 ````json
 {
-  "name": "Azim Auto Workshop",
+  "name": "Azim Auto Autro",
   "phone": "9876543210",
   "address": "456, New Road",
   "logo_url": "r2://logos/new-logo.webp",
@@ -318,7 +318,7 @@ sequenceDiagram
 2. API verifies qr_token matches garage's active QR
 3. API calculates distance between staff GPS and garage GPS
 4. If distance <= garage.gps_radius_meters → CHECK-IN SUCCESS
-5. If distance > radius → REJECTED ("You are not at the workshop")
+5. If distance > radius → REJECTED ("You are not at the autro")
 6. Create attendance_log with check_in_at + GPS coords
 ```
 

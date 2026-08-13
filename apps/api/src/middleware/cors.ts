@@ -1,7 +1,7 @@
 import { cors } from 'hono/cors'
 
 /**
- * CORS middleware for the Workshop API.
+ * CORS middleware for the Autro API.
  *
  * Allows requests from the frontend origin (VITE_APP_URL env var) as well as
  * localhost for local development. Falls back to the Hono built-in cors helper
@@ -15,7 +15,7 @@ export const corsMiddleware = cors({
   origin: [
     'http://localhost:5173', // Vite default
     'http://localhost:4173', // Vite preview
-    'https://workshop.zeonweb.com',
+    'https://autro.zeonweb.com',
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID'],

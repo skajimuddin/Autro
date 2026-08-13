@@ -1,4 +1,4 @@
-# Workshop — AI Agent Rules
+# Autro — AI Agent Rules
 
 > This file is automatically read by AI coding agents (Antigravity, Cursor, Claude Code, Copilot, etc.)
 > It is the single source of truth for how agents should behave in this project.
@@ -177,7 +177,7 @@ import type { AuthResponseSchema } from '@/schemas/auth'
 **Import group order** (enforced, one blank line between groups):
 
 1. External libraries (`react`, `hono`, `zod`, etc.)
-2. Shared package (`@workshop/shared`)
+2. Shared package (`@autro/shared`)
 3. Internal project files (`@/...`)
 
 ```ts
@@ -185,7 +185,7 @@ import type { AuthResponseSchema } from '@/schemas/auth'
 import { useState } from 'react'
 import { z } from 'zod'
 
-import type { CreateVehicle } from '@workshop/shared'
+import type { CreateVehicle } from '@autro/shared'
 
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'

@@ -1,9 +1,9 @@
-# Workshop — Folder Structure
+# Autro — Folder Structure
 
 ---
 
 ```
-workshop/
+autro/
 ├── .env.example                  # Required env vars (NO defaults, app crashes without them)
 ├── .github/
 │   └── workflows/

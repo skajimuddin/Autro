@@ -1,4 +1,4 @@
-# Workshop — Task Breakdown
+# Autro — Task Breakdown
 
 > **How to use this file:**
 >
@@ -990,10 +990,10 @@ DO:
 2. Run migrations on production D1
 3. Create R2 bucket
 4. Set secrets in Cloudflare (GOOGLE_CLIENT_ID, etc.)
-5. Configure custom domain (workshop.zeonweb.com)
+5. Configure custom domain (autro.zeonweb.com)
 6. Set up Google OAuth credentials for production domain
 
-DONE WHEN: App is live at workshop.zeonweb.com
+DONE WHEN: App is live at autro.zeonweb.com
 ```
 
 - [ ] Completed

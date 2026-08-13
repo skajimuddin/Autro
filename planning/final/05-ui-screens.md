@@ -1,4 +1,4 @@
-# Workshop — UI Screens & Design System
+# Autro — UI Screens & Design System
 
 ---
 
@@ -171,7 +171,7 @@ Rules:
 **Route:** `/login` — **Access:** Public
 
 - Centered layout, clean
-- App name "Workshop" + subtitle "Garage Management Made Simple"
+- App name "Autro" + subtitle "Garage Management Made Simple"
 - Single "Sign in with Google" button
 - Nothing else — dead simple
 
@@ -187,9 +187,9 @@ Rules:
   - Phone Number (required)
   - Address (optional)
   - Logo Upload (optional)
-  - "Set Workshop Location" button → captures GPS
+  - "Set Autro Location" button → captures GPS
 - Small note: "We need these details for your invoices and staff attendance"
-- Primary "Create Workshop" button
+- Primary "Create Autro" button
 
 ---
 
@@ -197,7 +197,7 @@ Rules:
 
 **Route:** `/` — **Access:** Owner
 
-- **Topbar:** Menu icon + "Workshop" + profile icon (→ settings)
+- **Topbar:** Menu icon + "Autro" + profile icon (→ settings)
 - **Stats:**
   - Hero card: Vehicles Today (big number)
   - 2-column grid:
@@ -387,7 +387,7 @@ Rules:
 - **QR card:**
   - Large static QR code
   - "Staff can scan this QR to check in"
-  - Note: "Works only when staff is at the workshop location"
+  - Note: "Works only when staff is at the autro location"
 - **Today's stats (2-column):** Present X, Absent X
 - Outline "Regenerate QR" button
 - **Today's attendance list:** each staff with check-in/out time + badge
@@ -405,7 +405,7 @@ This is the MAIN screen staff sees after login. Staff has no other screens.
   - Large "Check In" button → opens camera QR scanner
   - Scan QR → sends token + GPS to API
   - Success → "✅ Checked in at 9:08 AM"
-  - Fail → "❌ You are not at the workshop"
+  - Fail → "❌ You are not at the autro"
 - **If checked in:**
   - Show check-in time
   - "Check Out" button → captures GPS → sends to API
@@ -514,7 +514,7 @@ Vehicle Details → Tap "Create Estimate"
 ```
 Staff opens app → Check-In page
 → Tap "Check In" → Camera opens
-→ Scan QR code at workshop
+→ Scan QR code at autro
 → GPS captured automatically
 → API verifies: QR token valid + GPS within radius
 → ✅ "Checked in at 9:08 AM"

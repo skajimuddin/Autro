@@ -2,7 +2,7 @@ import { config } from '@/lib/config'
 import { getToken } from '@/lib/auth'
 
 /**
- * Typed API error shape returned by the Workshop backend.
+ * Typed API error shape returned by the Autro backend.
  */
 interface ApiError {
   error: {
@@ -26,7 +26,7 @@ export class ApiRequestError extends Error {
 }
 
 /**
- * Core fetch wrapper for the Workshop API.
+ * Core fetch wrapper for the Autro API.
  *
  * - Automatically prefixes `config.apiBaseUrl`
  * - Attaches the JWT Bearer token from localStorage (if present)

@@ -109,7 +109,7 @@ export default function StaffListPage(): React.JSX.Element {
             description={
               search
                 ? 'Try a different name'
-                : 'Invite staff to join your workshop'
+                : 'Invite staff to join your autro'
             }
           />
         ) : (

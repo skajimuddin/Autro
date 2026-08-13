@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull, like, sql } from 'drizzle-orm'
-import { CreateVehicleSchema, UpdateVehicleSchema, CreateVisitSchema, AddVehicleImageSchema } from '@workshop/shared'
+import { CreateVehicleSchema, UpdateVehicleSchema, CreateVisitSchema, AddVehicleImageSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'

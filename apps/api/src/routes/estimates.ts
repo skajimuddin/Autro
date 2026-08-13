@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull } from 'drizzle-orm'
-import { CreateEstimateSchema, UpdateEstimateSchema } from '@workshop/shared'
+import { CreateEstimateSchema, UpdateEstimateSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workshop-cache-v1';
+const CACHE_NAME = 'autro-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',

@@ -14,7 +14,7 @@ export const users = sqliteTable('users', {
 })
 
 // ── 2. tenants ───────────────────────────────────────────────────────────────
-// Each tenant = one garage/workshop.
+// Each tenant = one garage/autro.
 export const tenants = sqliteTable('tenants', {
   id: text('id').primaryKey(), // UUID
   name: text('name').notNull(),
@@ -24,8 +24,8 @@ export const tenants = sqliteTable('tenants', {
   phone: text('phone').notNull(),
   address: text('address'),
   logo_url: text('logo_url'), // R2 path
-  latitude: real('latitude'), // Workshop GPS for attendance
-  longitude: real('longitude'), // Workshop GPS for attendance
+  latitude: real('latitude'), // Autro GPS for attendance
+  longitude: real('longitude'), // Autro GPS for attendance
   gps_radius_meters: integer('gps_radius_meters').default(100), // Allowed check-in radius
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),

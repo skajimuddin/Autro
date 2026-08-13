@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, eq, isNull, like, desc } from 'drizzle-orm'
-import { CheckInSchema, CheckOutSchema, MonthlyAttendanceQuerySchema } from '@workshop/shared'
+import { CheckInSchema, CheckOutSchema, MonthlyAttendanceQuerySchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { qr_codes, attendance_logs, tenants, tenant_members, users } from '@/db/schema'
 
@@ -118,7 +118,7 @@ attendanceRouter.post('/checkin', async (c) => {
   if (tenant && tenant.latitude && tenant.longitude && tenant.gps_radius_meters) {
     const dist = getDistanceFromLatLonInM(parsed.data.latitude, parsed.data.longitude, tenant.latitude, tenant.longitude)
     if (dist > tenant.gps_radius_meters) {
-      return c.json({ error: { code: 'FORBIDDEN', message: 'You are not at the workshop' } }, 403)
+      return c.json({ error: { code: 'FORBIDDEN', message: 'You are not at the autro' } }, 403)
     }
   }
   

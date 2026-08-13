@@ -114,7 +114,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
                 Staff can scan this QR to check in
               </p>
               <p className="text-xs text-text-muted mt-1">
-                Works only when staff is at the workshop location
+                Works only when staff is at the autro location
               </p>
             </div>
           </div>

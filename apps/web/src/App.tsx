@@ -33,7 +33,7 @@ function RequireAuth(): React.JSX.Element {
   const { token, isLoading } = useAuth()
   const location = useLocation()
 
-  if (isLoading) return <FullPageSpinner label="Loading Workshop…" />
+  if (isLoading) return <FullPageSpinner label="Loading Autro…" />
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -47,7 +47,7 @@ function RequireTenant(): React.JSX.Element {
   const { isLoading: tenantLoading, tenant } = useTenant()
   const location = useLocation()
 
-  if (tenantLoading) return <FullPageSpinner label="Loading Workshop…" />
+  if (tenantLoading) return <FullPageSpinner label="Loading Autro…" />
 
   if (!tenant) {
     return <Navigate to="/onboarding" state={{ from: location }} replace />

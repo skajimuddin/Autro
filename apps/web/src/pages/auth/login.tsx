@@ -46,7 +46,7 @@ export default function LoginPage(): React.JSX.Element {
         </div>
 
         <h1 className="text-[2rem] font-bold text-text tracking-tight">
-          Workshop
+          Autro
         </h1>
 
         <p className="text-base text-text-secondary text-center leading-normal mt-2 mb-10">

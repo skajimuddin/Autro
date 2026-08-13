@@ -163,7 +163,7 @@ export default function SettingsPage(): React.JSX.Element {
             <form onSubmit={onSubmit} className="flex flex-col gap-4">
               <Input
                 label="Garage Name"
-                placeholder="Your workshop name"
+                placeholder="Your autro name"
                 leftIcon={<Building2 size={16} />}
                 error={errors.name?.message}
                 required
@@ -182,7 +182,7 @@ export default function SettingsPage(): React.JSX.Element {
 
               <Textarea
                 label="Address"
-                placeholder="Workshop address"
+                placeholder="Autro address"
                 rows={2}
                 error={errors.address?.message}
                 {...register('address')}
@@ -191,7 +191,7 @@ export default function SettingsPage(): React.JSX.Element {
               {/* Location */}
               <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-semibold text-text">
-                  Workshop Location
+                  Autro Location
                 </span>
                 <div className="flex items-center gap-2">
                   {tenant?.latitude && tenant?.longitude ? (
@@ -223,7 +223,7 @@ export default function SettingsPage(): React.JSX.Element {
                   <p className="font-semibold text-text">Important rules for accuracy:</p>
                   <ul className="list-disc pl-4 mt-1 space-y-0.5">
                     <li>Use a <strong>mobile phone</strong> (PCs give wrong locations).</li>
-                    <li>Stand <strong>inside the workshop</strong> when updating.</li>
+                    <li>Stand <strong>inside the autro</strong> when updating.</li>
                   </ul>
                 </div>
               </div>

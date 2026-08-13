@@ -98,12 +98,12 @@ export default function StaffAddPage(): React.JSX.Element {
 
   const handleShare = async () => {
     if (!inviteUrl) return
-    const text = `Join ${tenant?.name ?? 'our workshop'} as staff:`
+    const text = `Join ${tenant?.name ?? 'our autro'} as staff:`
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Join Workshop Staff',
+          title: 'Join Autro Staff',
           text,
           url: inviteUrl,
         })

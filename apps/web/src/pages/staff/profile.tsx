@@ -306,7 +306,7 @@ export default function StaffProfilePage(): React.JSX.Element {
           <p className="text-sm text-text-secondary">
             Are you sure you want to remove{' '}
             <strong className="text-text">{profile.name}</strong> from your
-            workshop? They will no longer be able to check in.
+            autro? They will no longer be able to check in.
           </p>
           <div className="flex gap-3">
             <Button

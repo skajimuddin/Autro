@@ -107,7 +107,7 @@ export function QRScanner({
       <p className="text-white text-sm font-medium text-center">
         {isStarting
           ? 'Starting camera…'
-          : 'Point your camera at the workshop QR code'}
+          : 'Point your camera at the autro QR code'}
       </p>
 
       <Button

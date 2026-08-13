@@ -1,4 +1,4 @@
-# Workshop — Database Schema
+# Autro — Database Schema
 
 > **Database:** Cloudflare D1 (SQLite)  
 > **ORM:** Drizzle ORM  
@@ -50,7 +50,7 @@ Global user table — not tenant-scoped.
 
 ### 2. `tenants`
 
-Each tenant = one garage/workshop.
+Each tenant = one garage/autro.
 
 | Column              | Type    | Constraints             | Notes                       |
 | ------------------- | ------- | ----------------------- | --------------------------- |
@@ -60,8 +60,8 @@ Each tenant = one garage/workshop.
 | `phone`             | TEXT    | NOT NULL                |                             |
 | `address`           | TEXT    |                         |                             |
 | `logo_url`          | TEXT    |                         | R2 path                     |
-| `latitude`          | REAL    |                         | Workshop GPS for attendance |
-| `longitude`         | REAL    |                         | Workshop GPS for attendance |
+| `latitude`          | REAL    |                         | Autro GPS for attendance |
+| `longitude`         | REAL    |                         | Autro GPS for attendance |
 | `gps_radius_meters` | INTEGER | DEFAULT 100             | Allowed check-in radius     |
 | `created_at`        | TEXT    | NOT NULL                |                             |
 | `updated_at`        | TEXT    | NOT NULL                |                             |
@@ -154,7 +154,7 @@ UNIQUE(tenant_id, registration_number) — one vehicle per plate per garage.
 
 ### 8. `service_visits`
 
-Each time a vehicle comes to the workshop = 1 visit.
+Each time a vehicle comes to the autro = 1 visit.
 
 | Column         | Type | Constraints                | Notes                                    |
 | -------------- | ---- | -------------------------- | ---------------------------------------- |

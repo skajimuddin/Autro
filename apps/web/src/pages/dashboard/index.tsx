@@ -90,7 +90,7 @@ export default function DashboardPage(): React.JSX.Element {
 
   return (
     <PageShell
-      title="Workshop"
+      title="Autro"
       rightAction={
         <button
           id="dashboard-settings-btn"

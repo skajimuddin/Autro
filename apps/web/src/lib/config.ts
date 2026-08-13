@@ -11,7 +11,7 @@ function requireEnv(key: string): string {
   const value = import.meta.env[key] as string | undefined
   if (!value) {
     throw new Error(
-      `[Workshop] Missing required environment variable: ${key}\n` +
+      `[Autro] Missing required environment variable: ${key}\n` +
         `Please check your .env file and ensure ${key} is set.`,
     )
   }
