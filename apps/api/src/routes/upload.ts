@@ -44,7 +44,7 @@ uploadRouter.post('/presign', async (c) => {
   
   return c.json({
     upload_url: signedRequest.url,
-    file_key: `r2://${fileKey}`
+    file_key: `https://pub-3f013ceda72a4355bda7a9dde43b4a84.r2.dev/${fileKey}`
   })
 })
 

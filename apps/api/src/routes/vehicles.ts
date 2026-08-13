@@ -212,7 +212,15 @@ vehiclesRouter.get('/:id', async (c) => {
   }
   
   const customer = await db.select().from(customers).where(eq(customers.id, vehicle.customer_id)).get()
-  const images = await db.select().from(vehicle_images).where(eq(vehicle_images.vehicle_id, vehicle.id)).all()
+  let images = await db.select().from(vehicle_images).where(eq(vehicle_images.vehicle_id, vehicle.id)).all()
+  
+  // Transform legacy r2:// URLs to public HTTP URLs
+  images = images.map(img => ({
+    ...img,
+    image_url: img.image_url.startsWith('r2://')
+      ? img.image_url.replace('r2://', 'https://pub-3f013ceda72a4355bda7a9dde43b4a84.r2.dev/')
+      : img.image_url
+  }))
   
   const latest_visit = await db.select().from(service_visits)
     .where(and(eq(service_visits.vehicle_id, vehicle.id), isNull(service_visits.deleted_at)))
@@ -400,6 +408,11 @@ vehiclesRouter.post('/:id/images', async (c) => {
   })
   
   const image = await db.select().from(vehicle_images).where(eq(vehicle_images.id, imageId)).get()
+  
+  if (image && image.image_url.startsWith('r2://')) {
+    image.image_url = image.image_url.replace('r2://', 'https://pub-3f013ceda72a4355bda7a9dde43b4a84.r2.dev/')
+  }
+  
   return c.json({ image }, 201)
 })
 
