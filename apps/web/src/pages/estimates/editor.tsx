@@ -12,7 +12,7 @@ import {
   IndianRupee,
   ToggleLeft,
   ToggleRight,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -195,10 +195,10 @@ export default function EstimateEditorPage(): React.JSX.Element {
     <PageShell title="Estimate" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Items Section ────────────────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
             <FileText size={13} />
             Items
           </h3>

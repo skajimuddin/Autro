@@ -1,7 +1,7 @@
 // PhotoUpload — dashed border box with camera icon, tap to capture/upload
 import { useRef } from 'react'
 import type React from 'react'
-import { Camera, X } from 'lucide-react'
+import { Camera, X } from '@/components/ui/icons'
 
 interface PhotoUploadProps {
   value?: string | null   // preview URL (blob or remote)

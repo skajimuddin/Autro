@@ -1,7 +1,7 @@
 // Toast — slide in from top, auto-dismiss
 import { useEffect, useState } from 'react'
 import type React from 'react'
-import { CheckCircle, XCircle, X } from 'lucide-react'
+import { CheckCircle, XCircle, X } from '@/components/ui/icons'
 
 type ToastVariant = 'success' | 'error'
 

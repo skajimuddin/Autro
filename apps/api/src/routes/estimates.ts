@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { CreateEstimateSchema, UpdateEstimateSchema } from '@workshop/shared'
 import type { Env, Variables } from '@/env'
+import type { D1Write } from '@/db/batch'
+import { runBatch } from '@/db/batch'
 import { estimates, estimate_items, service_visits, vehicles, customers } from '@/db/schema'
 
 const estimatesRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -99,35 +101,60 @@ estimatesRouter.post('/', async (c) => {
   const now = new Date().toISOString()
   const estimateId = crypto.randomUUID()
   const data = parsed.data
-  
-  await db.transaction(async (tx) => {
-    await tx.insert(estimates).values({
-      id: estimateId,
-      tenant_id: tenantId,
-      visit_id: data.visit_id,
-      discount_type: data.discount_type,
-      discount_value: data.discount_value,
-      tax_enabled: data.tax_enabled ? 1 : 0,
-      tax_percent: data.tax_percent,
-      notes: data.notes,
-      status: 'DRAFT',
-      created_at: now,
-      updated_at: now,
-    })
-    
-    if (data.items.length > 0) {
-      const itemsToInsert = data.items.map((item, index) => ({
-        id: crypto.randomUUID(),
-        estimate_id: estimateId,
-        description: item.description,
-        amount: item.amount,
-        quantity: item.quantity,
-        sort_order: index,
-      }))
-      await tx.insert(estimate_items).values(itemsToInsert)
-    }
+
+  // Verify the visit belongs to this tenant — visit_id comes straight from the
+  // request body, so without this an estimate can be attached to another
+  // garage's visit.
+  const visit = await db
+    .select({ id: service_visits.id })
+    .from(service_visits)
+    .where(
+      and(
+        eq(service_visits.tenant_id, tenantId),
+        eq(service_visits.id, data.visit_id),
+        isNull(service_visits.deleted_at),
+      ),
+    )
+    .get()
+
+  if (!visit) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Service visit not found' } }, 404)
+  }
+
+  const insertEstimate = db.insert(estimates).values({
+    id: estimateId,
+    tenant_id: tenantId,
+    visit_id: data.visit_id,
+    discount_type: data.discount_type,
+    discount_value: data.discount_value,
+    tax_enabled: data.tax_enabled ? 1 : 0,
+    tax_percent: data.tax_percent,
+    notes: data.notes,
+    status: 'DRAFT',
+    created_at: now,
+    updated_at: now,
   })
-  
+
+  // D1 has no SQL transactions; db.batch() is the atomic primitive.
+  const writes: D1Write[] = [insertEstimate]
+
+  if (data.items.length > 0) {
+    writes.push(
+      db.insert(estimate_items).values(
+        data.items.map((item, index) => ({
+          id: crypto.randomUUID(),
+          estimate_id: estimateId,
+          description: item.description,
+          amount: item.amount,
+          quantity: item.quantity,
+          sort_order: index,
+        })),
+      ),
+    )
+  }
+
+  await runBatch(db, writes)
+
   return c.json({ id: estimateId }, 201)
 })
 
@@ -183,36 +210,54 @@ estimatesRouter.patch('/:id', async (c) => {
   
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
-  
-  const dataToUpdate: any = { updated_at: now }
+
+  // Confirm the estimate is this tenant's BEFORE touching its items. The item
+  // writes below key off estimate_id alone (estimate_items has no tenant_id),
+  // so skipping this check lets one garage rewrite another's line items.
+  const existing = await db
+    .select({ id: estimates.id })
+    .from(estimates)
+    .where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId)))
+    .get()
+
+  if (!existing) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Estimate not found' } }, 404)
+  }
+
+  const dataToUpdate: Partial<typeof estimates.$inferInsert> = { updated_at: now }
   if (parsed.data.discount_type !== undefined) dataToUpdate.discount_type = parsed.data.discount_type
-  if (parsed.data.discount_value !== undefined) dataToUpdate.discount_value = parsed.data.discount_value
-  if (parsed.data.tax_enabled !== undefined) dataToUpdate.tax_enabled = parsed.data.tax_enabled ? 1 : 0
+  if (parsed.data.discount_value !== undefined)
+    dataToUpdate.discount_value = parsed.data.discount_value
+  if (parsed.data.tax_enabled !== undefined)
+    dataToUpdate.tax_enabled = parsed.data.tax_enabled ? 1 : 0
   if (parsed.data.tax_percent !== undefined) dataToUpdate.tax_percent = parsed.data.tax_percent
   if (parsed.data.notes !== undefined) dataToUpdate.notes = parsed.data.notes
   if (parsed.data.status !== undefined) dataToUpdate.status = parsed.data.status
-  
-  await db.transaction(async (tx) => {
-    if (Object.keys(dataToUpdate).length > 1) {
-      await tx.update(estimates).set(dataToUpdate)
-        .where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId)))
+
+  // D1 has no SQL transactions; db.batch() is the atomic primitive.
+  const writes: D1Write[] = [
+    db
+      .update(estimates)
+      .set(dataToUpdate)
+      .where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId))),
+  ]
+
+  if (parsed.data.items !== undefined) {
+    writes.push(db.delete(estimate_items).where(eq(estimate_items.estimate_id, estimateId)))
+    if (parsed.data.items.length > 0) {
+      const itemsToInsert = parsed.data.items.map((item, index) => ({
+        id: crypto.randomUUID(),
+        estimate_id: estimateId,
+        description: item.description,
+        amount: item.amount,
+        quantity: item.quantity,
+        sort_order: item.sort_order ?? index,
+      }))
+      writes.push(db.insert(estimate_items).values(itemsToInsert))
     }
-    
-    if (parsed.data.items !== undefined) {
-      await tx.delete(estimate_items).where(eq(estimate_items.estimate_id, estimateId))
-      if (parsed.data.items.length > 0) {
-        const itemsToInsert = parsed.data.items.map((item, index) => ({
-          id: crypto.randomUUID(),
-          estimate_id: estimateId,
-          description: item.description,
-          amount: item.amount,
-          quantity: item.quantity,
-          sort_order: item.sort_order ?? index,
-        }))
-        await tx.insert(estimate_items).values(itemsToInsert)
-      }
-    }
-  })
+  }
+
+  await runBatch(db, writes)
   
   const estimate = await db.select().from(estimates).where(eq(estimates.id, estimateId)).get()
   const items = await db.select().from(estimate_items).where(eq(estimate_items.estimate_id, estimateId)).all()

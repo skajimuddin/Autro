@@ -7,11 +7,12 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
+import { QRDisplay } from '@/components/domain/qr-display'
 import {
   Card,
   Button,
@@ -26,7 +27,12 @@ import { StatCardSkeleton } from '@/components/ui/loading'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface QRData {
-  token: string
+  // Must match the API exactly: GET /attendance/qr returns { qr_token }, and
+  // `qr_token` is also the field name in the POST /attendance/checkin contract
+  // (04-api-routes.md). This was declared as `token` — apiFetch<T> only asserts
+  // the type and does no runtime validation, so the mismatch was silent and the
+  // QR card always fell through to its empty-state icon.
+  qr_token: string
 }
 
 interface AttendanceEntry {
@@ -89,14 +95,14 @@ export default function StaffAttendancePage(): React.JSX.Element {
     <PageShell title="Staff Attendance" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-5">
+      <div className="p-4 md:p-6 flex flex-col gap-5">
         {/* ── QR Code Card ─────────────────────────────────────── */}
         <Card id="attendance-qr-card" className="!p-6">
           <div className="flex flex-col items-center gap-4 text-center">
             {qrLoading ? (
               <div className="w-48 h-48 rounded-2xl bg-divider animate-pulse" />
-            ) : qr?.token ? (
-              <QRCodeDisplay token={qr.token} />
+            ) : qr?.qr_token ? (
+              <QRDisplay id="attendance-qr" token={qr.qr_token} />
             ) : (
               <div className="w-48 h-48 rounded-2xl bg-bg flex items-center justify-center">
                 <QrCode size={48} className="text-text-muted" />
@@ -127,7 +133,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
         {/* ── Today's Stats ────────────────────────────────────── */}
         <div>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Today
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -141,14 +147,14 @@ export default function StaffAttendancePage(): React.JSX.Element {
                 <StatCard
                   id="attendance-present"
                   icon={<CheckCircle2 size={18} className="text-success" />}
-                  iconBg="bg-success-light"
+                  tone="success"
                   value={today?.present ?? 0}
                   label="Present"
                 />
                 <StatCard
                   id="attendance-absent"
                   icon={<XCircle size={18} className="text-danger" />}
-                  iconBg="bg-danger-light"
+                  tone="danger"
                   value={today?.absent ?? 0}
                   label="Absent"
                 />
@@ -159,7 +165,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
         {/* ── Today's Attendance List ──────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Attendance Log
           </h3>
           {todayLoading ? (
@@ -192,20 +198,6 @@ export default function StaffAttendancePage(): React.JSX.Element {
         </section>
       </div>
     </PageShell>
-  )
-}
-
-// ── QR Code Display ───────────────────────────────────────────────────────────
-// Renders a visual QR placeholder (actual QR rendering requires qrcode.react lib)
-
-function QRCodeDisplay({ token }: { token: string }): React.JSX.Element {
-  return (
-    <div className="w-48 h-48 rounded-2xl bg-card border-2 border-border flex flex-col items-center justify-center gap-2 p-4">
-      <QrCode size={64} className="text-text" />
-      <p className="text-[0.55rem] text-text-muted font-mono break-all text-center leading-tight">
-        {token.slice(0, 12)}…
-      </p>
-    </div>
   )
 }
 

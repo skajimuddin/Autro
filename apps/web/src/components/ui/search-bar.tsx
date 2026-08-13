@@ -1,6 +1,6 @@
 // SearchBar — input with magnifying glass icon
 import type React from 'react'
-import { Search } from 'lucide-react'
+import { Search } from '@/components/ui/icons'
 
 interface SearchBarProps {
   value: string

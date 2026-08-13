@@ -7,7 +7,7 @@ import {
   User,
   Shield,
   LogIn,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'

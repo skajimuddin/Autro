@@ -297,10 +297,13 @@ GOAL: Build the 4 core layout components
 READ: planning/final/05-ui-screens.md (Layout Components table)
 
 DO:
-1. Create components/layout/mobile-container.tsx (max-w-[414px], centered)
+1. Create components/layout/mobile-container.tsx (responsive app shell — full-width
+   on phones, constrained + centered at md:+. See "Responsive Layout" in
+   05-ui-screens.md. Amended 2026-08-13; was max-w-[414px] on all widths.)
 2. Create components/layout/topbar.tsx (sticky, back button, title, right action)
-3. Create components/layout/bottom-nav.tsx (4 tabs: Home, Vehicles, Staff, Settings)
-4. Create components/layout/page-shell.tsx (wraps topbar + content + bottom-nav)
+3. Create components/layout/bottom-nav.tsx (4 tabs: Home, Vehicles, Staff, Settings —
+   fixed bottom on mobile, left sidebar at md:+)
+4. Create components/layout/page-shell.tsx (wraps topbar + content + nav)
 
 DONE WHEN: A test page wrapped in PageShell shows topbar, scrollable content, and bottom nav
 ```
@@ -486,7 +489,10 @@ DO:
 DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
 
-- [x] Completed
+- [ ] Completed — ⚠️ PARTIAL (verified 2026-08-13): the page works, but steps 3–4
+  were never built. `components/domain/contact-picker.tsx` and `lib/contacts.ts`
+  are empty 2-line stubs, so "customer auto-fill from device contacts" does not
+  exist. Everything else in this task is done.
 
 ### Task 3.8 — Vehicle Details Page
 
@@ -547,7 +553,7 @@ DO:
 DONE WHEN: Can create, list, get by ID, update, add/remove items via API
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 4.3 — Invoice API Routes
 
@@ -565,7 +571,7 @@ DO:
 DONE WHEN: Can create invoice from estimate, mark as paid
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 4.4 — Estimate Editor Page
 
@@ -586,7 +592,9 @@ DO:
 DONE WHEN: Can create estimate with items, tax, discount. Total calculates correctly.
 ```
 
-- [ ] Completed
+- [x] Completed — item add/remove logic is inlined in `estimates/editor.tsx`
+  (`addItem`/`removeItem`), so the `domain/estimate-items.tsx` stub is redundant,
+  not missing work.
 
 ### Task 4.5 — Invoice Editor Page
 
@@ -606,7 +614,8 @@ DO:
 DONE WHEN: Invoice editor works, estimate import pre-fills items, payment flow works
 ```
 
-- [ ] Completed
+- [x] Completed — the PDF/Print buttons are placeholders *by design* here (step 5
+  says so); real PDF generation is Task 4.6 below, which is not done.
 
 ### Task 4.6 — PDF Generation
 
@@ -625,7 +634,25 @@ DO:
 DONE WHEN: Clicking PDF downloads a properly formatted invoice PDF
 ```
 
-- [ ] Completed
+- [x] Completed — built 2026-08-13. `lib/pdf.ts` exports `downloadInvoicePdf()`;
+  the PDF button in `invoices/editor.tsx` was an error toast reading
+  "PDF generation coming soon". Template: garage name/phone/address, INVOICE +
+  reference + date + PAID/UNPAID, billed-to block with vehicle reg, items table
+  (description / qty / rate / amount), subtotal + optional tax + optional
+  discount + grand total, notes, fixed footer.
+  Three notes:
+  - `@react-pdf/renderer` is ~1.3 MB, so it sits behind a dynamic `import()`
+    inside `lib/pdf.ts`. Vite emits it as its own chunk; the initial bundle grew
+    only ~5 KB. The build's "chunk larger than 500 kB" warning refers to that
+    lazy chunk and is expected.
+  - Amounts print as **"Rs."**, not "₹". @react-pdf's built-in Helvetica has no
+    U+20B9 glyph, so a literal ₹ renders as a blank box. Fixing it properly needs
+    a `Font.register()`-ed .ttf covering the rupee sign (Inter ships as woff2,
+    which @react-pdf cannot read). The UI still uses ₹ everywhere.
+  - Kept as `.ts` (not `.tsx`) because 02-folder-structure.md:53 names `pdf.ts`,
+    so the template is built with `createElement` instead of JSX.
+  Output PDF not yet opened and eyeballed — owner is doing the manual pass
+  (Task 7.5.1). Verified: exports match @react-pdf 4.6.0, typecheck, lint, build.
 
 ### Task 4.7 — Estimate + Invoice List Pages
 
@@ -642,7 +669,7 @@ DO:
 DONE WHEN: Both lists show data, filters work, tap navigates to editor
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -678,7 +705,7 @@ DO:
 DONE WHEN: Full invite flow works via API (create invite → get invite → accept)
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 5.3 — Staff List + Add Pages
 
@@ -694,7 +721,7 @@ DO:
 DONE WHEN: Can see staff list, create invite, copy/share link
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 5.4 — Staff Profile Page
 
@@ -710,7 +737,7 @@ DO:
 DONE WHEN: Staff profile shows attendance + salary data
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ### Task 5.5 — Invite Acceptance Page
 
@@ -729,7 +756,7 @@ DO:
 DONE WHEN: Staff can click invite link, sign in, accept, and land on check-in page
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -789,7 +816,16 @@ DO:
 DONE WHEN: QR displays, regeneration works, today's list shows
 ```
 
-- [x] Completed
+- [x] Completed — rebuilt 2026-08-13. `domain/qr-display.tsx` now renders a real
+  scannable code via `QRCodeSVG` from `qrcode.react`, encoding the **raw token**
+  (strict-equality match against `attendance.ts:89`; no deep link, because
+  `/checkin` is behind `RequireAuth`). Two bugs fixed:
+  1. the previous version drew a decorative Lucide `<QrCode>` icon, not a code;
+  2. `QRData` declared `{ token }` but `GET /attendance/qr` returns `{ qr_token }`
+     — `apiFetch<T>` only asserts types, so the mismatch was silent and the card
+     always fell through to its empty state. Every other GET endpoint was swept
+     for the same class of mismatch; this was the only one.
+  Not yet confirmed in a browser — owner is doing the visual pass (Task 7.5.1).
 
 ### Task 6.4 — Staff Check-In Page
 
@@ -809,7 +845,22 @@ DO:
 DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-end
 ```
 
-- [x] Completed
+- [x] Completed — rebuilt 2026-08-13. `domain/qr-scanner.tsx` is a real camera
+  scanner built on `html5-qrcode`, replacing
+  `window.prompt('Enter QR Token (Simulating scan):')` (staff had to type a
+  32-char token by hand). Notes:
+  - html5-qrcode is ~369 KB, so it is loaded with a dynamic `import()` and Vite
+    emits it as a **separate chunk** — the initial bundle grew only ~1.5 KB.
+  - Flow follows step 5's order: scan → GPS → POST. Scanning first means we never
+    prompt for location if staff cancel.
+  - Effect guards against React's double-invoked dev effects and against a decode
+    landing after unmount; the camera is stopped before control returns.
+  - Step 3 (`lib/location.ts`) intentionally left unbuilt — `getCurrentPosition`
+    is already inlined and working in three pages. Extracting it is a DRY
+    cleanup, tracked in PROGRESS.md, not a missing feature.
+  Camera flow not yet confirmed on a device — owner is doing the visual/device
+  pass (Task 7.5.1). Camera needs a secure context: localhost is fine, but LAN
+  testing from a phone needs HTTPS.
 
 ---
 

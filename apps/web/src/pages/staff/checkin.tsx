@@ -8,12 +8,13 @@ import {
   XCircle,
   LogOut,
   CalendarDays,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { MobileContainer } from '@/components/layout/mobile-container'
 import { Topbar } from '@/components/layout/topbar'
+import { QRScanner } from '@/components/domain/qr-scanner'
 import {
   Card,
   Button,
@@ -44,6 +45,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { toasts, showToast, dismissToast } = useToast()
   const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
 
   // Fetch today's attendance status
   const { data: myToday } = useQuery<MyTodayAttendance>({
@@ -103,31 +105,43 @@ export default function StaffCheckinPage(): React.JSX.Element {
     },
   })
 
-  // Handle check-in (simplified — real implementation would open QR scanner)
+  // Check-in: scan the QR first, then read GPS, then post — the order specified
+  // in 06-tasks.md Task 6.4 step 5. Scanning first also means we never ask for
+  // location if the staff member backs out of the scanner.
   const handleCheckin = useCallback(() => {
-    setIsGettingLocation(true)
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setIsGettingLocation(false)
-        // In production, this token comes from scanning the QR code
-        const token = window.prompt('Enter QR Token (Simulating scan):')
-        if (!token) {
-          showToast('error', 'Check-in cancelled')
-          return
-        }
-        checkinMutation.mutate({
-          qr_token: token,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        })
-      },
-      () => {
-        setIsGettingLocation(false)
-        showToast('error', 'Could not get your location. Please enable GPS.')
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
-  }, [showToast, checkinMutation])
+    setShowScanner(true)
+  }, [])
+
+  const handleScanned = useCallback(
+    (token: string) => {
+      setShowScanner(false)
+      setIsGettingLocation(true)
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setIsGettingLocation(false)
+          checkinMutation.mutate({
+            qr_token: token,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          })
+        },
+        () => {
+          setIsGettingLocation(false)
+          showToast('error', 'Could not get your location. Please enable GPS.')
+        },
+        { enableHighAccuracy: true, timeout: 10000 },
+      )
+    },
+    [showToast, checkinMutation],
+  )
+
+  const handleScanError = useCallback(
+    (message: string) => {
+      setShowScanner(false)
+      showToast('error', message)
+    },
+    [showToast],
+  )
 
   // Handle check-out
   const handleCheckout = useCallback(() => {
@@ -169,7 +183,15 @@ export default function StaffCheckinPage(): React.JSX.Element {
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <main className="animate-page-enter p-4 flex flex-col gap-5" style={{ minHeight: 'calc(100dvh - 56px)' }}>
+      {showScanner && (
+        <QRScanner
+          onScan={handleScanned}
+          onError={handleScanError}
+          onCancel={() => setShowScanner(false)}
+        />
+      )}
+
+      <main className="animate-page-enter p-4 md:p-6 flex flex-col gap-5 min-h-[calc(100dvh-3.5rem)]">
         {/* ── Greeting ──────────────────────────────────────────── */}
         <div id="checkin-greeting">
           <h2 className="text-xl font-bold text-text">
@@ -266,7 +288,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
 
         {/* ── Monthly Summary ──────────────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
             <CalendarDays size={13} />
             This Month
           </h3>
@@ -274,14 +296,14 @@ export default function StaffCheckinPage(): React.JSX.Element {
             <StatCard
               id="checkin-present-days"
               icon={<CheckCircle2 size={18} className="text-success" />}
-              iconBg="bg-success-light"
+              tone="success"
               value={monthly?.present ?? 0}
               label="Present"
             />
             <StatCard
               id="checkin-absent-days"
               icon={<XCircle size={18} className="text-danger" />}
-              iconBg="bg-danger-light"
+              tone="danger"
               value={monthly?.absent ?? 0}
               label="Absent"
             />

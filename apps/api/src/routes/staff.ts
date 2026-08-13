@@ -4,6 +4,8 @@ import { and, eq, isNull, like } from 'drizzle-orm'
 import { attendance_logs } from '@/db/schema'
 import { CreateStaffInviteSchema, UpdateStaffSchema } from '@workshop/shared'
 import type { Env, Variables } from '@/env'
+import type { D1Write } from '@/db/batch'
+import { runBatch } from '@/db/batch'
 import { staff_invites, tenant_members, users, tenants } from '@/db/schema'
 
 export const publicStaffRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -302,34 +304,47 @@ acceptInviteRouter.post('/invite/:token/accept', async (c) => {
   )).get()
   
   const now = new Date().toISOString()
-  
-  await db.transaction(async (tx) => {
-    if (existing) {
-      if (existing.removed_at) {
-        // Re-join
-        await tx.update(tenant_members).set({
-          removed_at: null,
-          role: invite.role,
-          monthly_salary: invite.monthly_salary,
-        }).where(eq(tenant_members.id, existing.id))
-      }
-    } else {
-      // Create new member
-      await tx.insert(tenant_members).values({
+
+  // D1 rejects SQL BEGIN/SAVEPOINT, so drizzle's db.transaction() fails at
+  // runtime. runBatch() uses db.batch(), D1's atomic primitive — which means
+  // every read the writes depend on has to happen before the batch, as above.
+  const writes: D1Write[] = []
+
+  if (!existing) {
+    writes.push(
+      db.insert(tenant_members).values({
         id: crypto.randomUUID(),
         tenant_id: invite.tenant_id,
         user_id: userId,
         role: invite.role,
         monthly_salary: invite.monthly_salary,
         joined_at: now,
-      })
-    }
-    
-    await tx.update(staff_invites).set({
-      status: 'ACCEPTED',
-      updated_at: now
-    }).where(eq(staff_invites.id, invite.id))
-  })
-  
+      }),
+    )
+  } else if (existing.removed_at) {
+    // Previously removed → re-join on the terms in this invite
+    writes.push(
+      db
+        .update(tenant_members)
+        .set({
+          removed_at: null,
+          role: invite.role,
+          monthly_salary: invite.monthly_salary,
+        })
+        .where(eq(tenant_members.id, existing.id)),
+    )
+  }
+  // else: already an active member — consume the invite but leave their
+  // role/salary alone (re-applying invite terms could demote an OWNER).
+
+  writes.push(
+    db
+      .update(staff_invites)
+      .set({ status: 'ACCEPTED', updated_at: now })
+      .where(eq(staff_invites.id, invite.id)),
+  )
+
+  await runBatch(db, writes)
+
   return c.json({ success: true, tenant_id: invite.tenant_id })
 })

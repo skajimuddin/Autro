@@ -19,7 +19,9 @@ export function Card({ children, className = '', onClick, id }: CardProps): Reac
       onClick={onClick}
       onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.() } : undefined}
       className={[
-        'bg-card rounded-card p-4',
+        // p-5 (20px), matching planning/demo-ui .stat-card / .qr-box padding.
+        // Was p-4 (16px), which made every card read tighter than the demo.
+        'bg-card rounded-card p-5',
         'shadow-[var(--shadow-card)]',
         clickable ? 'cursor-pointer active:scale-[0.99] transition-transform hover:shadow-md' : '',
         className,

@@ -21,10 +21,13 @@ const variantStyles: Record<ButtonVariant, string> = {
   ghost: 'bg-transparent text-text-secondary hover:bg-bg active:scale-press',
 }
 
+// Sizes calibrated to planning/demo-ui .btn: 18px padding + 1.1rem/600 text,
+// i.e. roughly a 56px tall control. The first build used h-12 with 1rem text,
+// which read smaller and less tappable than the approved demo.
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-sm',
-  md: 'h-12 px-5 text-base',
-  lg: 'h-14 px-6 text-base',
+  sm: 'h-10 px-4 text-sm',
+  md: 'h-14 px-5 text-row-title',
+  lg: 'h-[58px] px-6 text-row-title',
 }
 
 export function Button({

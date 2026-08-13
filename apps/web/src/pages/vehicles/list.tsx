@@ -6,7 +6,7 @@ import {
   Plus,
   Car,
   Search,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -92,6 +92,7 @@ export default function VehicleListPage(): React.JSX.Element {
     <PageShell
       title="Vehicles"
       showBack
+      wide
       rightAction={
         <button
           id="vehicles-add-btn"
@@ -104,7 +105,7 @@ export default function VehicleListPage(): React.JSX.Element {
         </button>
       }
     >
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Filters ──────────────────────────────────────────── */}
         <FilterChips
           id="vehicle-status-filter"
@@ -150,13 +151,49 @@ export default function VehicleListPage(): React.JSX.Element {
           />
         ) : (
           <div className="flex flex-col gap-3">
-            {vehicles.map((vehicle) => (
-              <VehicleCard
-                key={vehicle.id}
-                vehicle={vehicle}
-                onTap={handleVehicleTap}
-              />
-            ))}
+            {/* Mobile / Tablet grid (hidden on lg and up) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
+              {vehicles.map((vehicle) => (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  onTap={handleVehicleTap}
+                />
+              ))}
+            </div>
+
+            {/* Desktop table (visible on lg and up) */}
+            <div className="hidden lg:block bg-card rounded-card shadow-[var(--shadow-card)] overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-bg/50 border-b border-border">
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Reg No</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Vehicle</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Customer</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehicles.map((vehicle) => {
+                    const badge = STATUS_BADGE_MAP[vehicle.status]
+                    return (
+                      <tr
+                        key={vehicle.id}
+                        onClick={() => handleVehicleTap(vehicle.id)}
+                        className="hover:bg-bg/50 cursor-pointer transition-colors border-b border-border last:border-0"
+                      >
+                        <td className="py-4 px-5 text-row-title font-bold text-text">{vehicle.registration_number}</td>
+                        <td className="py-4 px-5 text-row-sub text-text-secondary">{vehicle.name || '—'}</td>
+                        <td className="py-4 px-5 text-row-sub text-text-secondary">{vehicle.customer_name}</td>
+                        <td className="py-4 px-5">
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* Load More */}
             {data?.cursor && (
@@ -203,7 +240,7 @@ function VehicleCard({ vehicle, onTap }: VehicleCardProps): React.JSX.Element {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-text truncate">
+            <p className="text-row-title font-bold text-text truncate">
               {vehicle.registration_number}
             </p>
             <Badge variant={badge.variant}>{badge.label}</Badge>

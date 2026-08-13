@@ -41,11 +41,16 @@ export function StatCardSkeleton(): React.JSX.Element {
   )
 }
 
-/** Simple full-page spinner (fallback) */
-export function FullPageSpinner(): React.JSX.Element {
+/** Simple full-page spinner (fallback). Optional label sits under the spinner. */
+export function FullPageSpinner({
+  label,
+}: {
+  label?: string
+}): React.JSX.Element {
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-bg">
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-3 bg-bg">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin-fast" />
+      {label && <p className="text-sm text-text-secondary">{label}</p>}
     </div>
   )
 }

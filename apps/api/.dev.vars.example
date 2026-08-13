@@ -1,6 +1,26 @@
 # Local dev secrets for Wrangler — copy to .dev.vars and fill in values
 # .dev.vars is gitignored — NEVER commit it
+#
+# The four below are validated on every request (except /health). Missing any
+# one returns 500 "Missing required env binding: X" — there are no fallback
+# defaults by design (see CLAUDE.md rule 4).
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://localhost:8787/auth/google/callback
+GOOGLE_REDIRECT_URI=http://localhost:5173/auth/callback
 JWT_SECRET=
+
+# ── R2 (photo uploads via presigned PUT URLs) ────────────────────────────────
+# Validated only inside POST /upload/presign, so you can run the rest of the
+# API locally without them — photo upload is the only thing that will fail.
+#
+# The BUCKET binding in wrangler.toml is only for local simulation; the presign
+# route signs against the real S3-compatible R2 endpoint, so it needs real
+# credentials even in local dev.
+#   R2_ACCOUNT_ID        Cloudflare account id (dashboard → right sidebar)
+#   R2_ACCESS_KEY_ID     R2 → Manage API tokens → Create API token
+#   R2_SECRET_ACCESS_KEY same token's secret
+#   R2_BUCKET_NAME       must match bucket_name in wrangler.toml
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=workshop-uploads

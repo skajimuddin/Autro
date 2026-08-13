@@ -19,9 +19,10 @@ export function Textarea({
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
+      {/* Matches Input: demo label is 0.95rem/600 secondary */}
       {label && (
-        <label htmlFor={inputId} className="text-sm font-semibold text-text">
+        <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
           {label}
           {rest.required && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -31,8 +32,9 @@ export function Textarea({
         id={inputId}
         rows={rows}
         className={[
-          'w-full rounded-input border bg-card text-text text-base font-normal px-3 py-3',
-          'placeholder:text-text-muted resize-none',
+          // Demo .input-group textarea: 16px padding, radius 12px, 1rem text
+          'w-full rounded-input border bg-card text-text text-base font-normal px-4 py-4',
+          'placeholder:text-text-muted resize-none leading-normal',
           'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
           error ? 'border-danger' : 'border-border',
           className,

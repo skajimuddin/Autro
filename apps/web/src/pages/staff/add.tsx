@@ -11,7 +11,7 @@ import {
   Copy,
   Share2,
   Check,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -34,8 +34,8 @@ const inviteSchema = z.object({
 type InviteForm = z.infer<typeof inviteSchema>
 
 interface InviteResponse {
+  /** Site-relative path, e.g. "/invite/<token>" */
   invite_url: string
-  token: string
 }
 
 // ── Staff Add Page ────────────────────────────────────────────────────────────
@@ -69,7 +69,10 @@ export default function StaffAddPage(): React.JSX.Element {
         tenantId: tenant?.id,
       }),
     onSuccess: (res) => {
-      setInviteUrl(res.invite_url)
+      // The API returns a site-relative path. Copy/share need an absolute URL —
+      // a bare "/invite/abc" pasted into WhatsApp is not something a staff
+      // member can open.
+      setInviteUrl(new URL(res.invite_url, window.location.origin).toString())
       showToast('success', 'Invite link generated')
     },
     onError: (err: Error) => {
@@ -123,7 +126,7 @@ export default function StaffAddPage(): React.JSX.Element {
     <PageShell title="Add Staff" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-5">
+      <div className="p-4 md:p-6 flex flex-col gap-5">
         {!inviteUrl ? (
           /* ── Invite Form ─────────────────────────────────────── */
           <Card id="staff-invite-form-card">

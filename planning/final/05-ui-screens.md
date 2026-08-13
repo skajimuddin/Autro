@@ -37,6 +37,27 @@
 | Section header         | 0.95rem        | 700 Bold, UPPERCASE, 1px letter-spacing |
 | Badge / Nav label      | 0.75rem (12px) | 700 Bold                                |
 
+#### Implementation tokens (added 2026-08-13)
+
+⚠️ **This table was already correct — the first build ignored it** and used
+Tailwind's default scale (`text-sm`, `text-xs`), which rendered every screen
+20–38% smaller and lighter than intended. That was the main reason production
+looked worse than `planning/demo-ui`. To stop it drifting again, each row above now
+has a named token in `apps/web/src/index.css`; use the token, not a raw
+Tailwind size:
+
+| Spec row | Token | Tailwind class |
+| -------- | ----- | -------------- |
+| Hero stat / Total | `--text-value-xl` | `text-value-xl` |
+| Stat tile value / greeting | `--text-value` | `text-value` |
+| Card title / List name | `--text-row-title` | `text-row-title` |
+| Detail row | `--text-detail` | `text-detail` |
+| Section header / form label | `--text-label` | `text-label` |
+| Row subtitle / tile label | `--text-row-sub` | `text-row-sub` |
+
+Also: do **not** set `-webkit-font-smoothing: antialiased`. It thins every glyph.
+The demo never set it and reads sturdier without it.
+
 ### Spacing & Radius
 
 | Element                    | Value                         |
@@ -46,7 +67,26 @@
 | Input radius               | `12px` (rounded-xl)           |
 | Page padding               | `16px`                        |
 | Bottom padding             | `100px` (to clear bottom nav) |
-| Mobile container max-width | `414px`                       |
+| Content max-width          | see Responsive Layout below   |
+
+### Responsive Layout (amended 2026-08-13 — supersedes the 414px cap)
+
+The original spec fixed the app at `max-width: 414px` on all screens. Owner
+approved full responsive support on 2026-08-13; that cap is removed.
+
+| Breakpoint | Width | Nav | Content | Modal |
+| ---------- | ----- | --- | ------- | ----- |
+| base | `< 640px` | Fixed bottom nav, 4 tabs, icon + label | Single column, full-bleed cards, `16px` page padding | Bottom sheet |
+| `md:` | `≥ 768px` | Left sidebar, icon + label always visible | 2-column grid, content `max-w-3xl` | Centered dialog |
+| `lg:` | `≥ 1024px` | Left sidebar | Sidebar + content + optional detail pane. **Lists become tables** (reg no. / vehicle / customer / status / amount) instead of stacked cards | Centered dialog |
+
+Rules:
+
+- Minimum supported width is **360px** (small Android). No horizontal scroll.
+- Bottom nav must use `env(safe-area-inset-bottom)` for notched phones.
+- The mobile bottom-sheet modal and the desktop centered dialog are the **same
+  component** at different breakpoints, not two components.
+- Verify each screen at 360 / 414 / 768 / 1024 / 1440.
 
 ### Shadows
 
@@ -84,10 +124,10 @@
 
 | Component           | Description                                                              |
 | ------------------- | ------------------------------------------------------------------------ |
-| `<MobileContainer>` | Max-width 414px wrapper, centered on desktop with slate outer bg         |
-| `<PageShell>`       | Wraps topbar + scrollable content area + bottom nav                      |
+| `<MobileContainer>` | Responsive app shell. Full-width on phones; constrained + centered with slate outer bg at `md:`+. (Name is historical — it is no longer mobile-only. See Responsive Layout above.) |
+| `<PageShell>`       | Wraps topbar + scrollable content area + nav (bottom nav on mobile, sidebar at `md:`+) |
 | `<Topbar>`          | Sticky top bar: back button (or menu), title, optional right action icon |
-| `<BottomNav>`       | Fixed 4-tab bottom navigation: Home, Vehicles, Staff, Settings           |
+| `<BottomNav>`       | 4-tab navigation: Home, Vehicles, Staff, Settings. Fixed bottom on mobile, left sidebar at `md:`+ |
 
 ### UI Components
 

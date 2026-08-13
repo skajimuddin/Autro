@@ -33,6 +33,18 @@
   /* ── Typography ────────────────────────────────────────────────────────── */
   --font-sans: 'Inter', system-ui, sans-serif;
 
+  /* Type scale calibrated against planning/demo-ui/styles.css (2026-08-13).
+     The first build used Tailwind's default scale, which rendered every screen
+     20–38% smaller and lighter than the approved demo — the single biggest
+     reason production looked weaker than planning/demo-ui. Names are semantic so
+     call sites read as intent, not magic numbers. */
+  --text-value-xl:   2rem;      /* .stat-value, attendance counters */
+  --text-value:      1.5rem;    /* stat-box value, .greeting */
+  --text-row-title:  1.1rem;    /* .list-item-title, .stat-label, .btn */
+  --text-detail:     1.05rem;   /* .detail-row */
+  --text-label:      0.95rem;   /* .input-group label, .section-title */
+  --text-row-sub:    0.9rem;    /* .list-item-sub, stat-box label */
+
   /* ── Border radius ─────────────────────────────────────────────────────── */
   --radius-card:   16px;
   --radius-button: 16px;
@@ -91,8 +103,10 @@
 
   html {
     font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    /* No -webkit-font-smoothing: antialiased here on purpose. The first build set
+       it, which thins every glyph and was part of why production read as weaker
+       than planning/demo-ui — the demo never set it, so it renders with the
+       browser's default (subpixel) smoothing and looks appreciably sturdier. */
   }
 
   body {

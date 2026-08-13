@@ -11,7 +11,7 @@ import {
   Edit3,
   Trash2,
   ChevronRight,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -135,7 +135,7 @@ export default function StaffProfilePage(): React.JSX.Element {
     <PageShell title={profile.name} showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Profile Header ───────────────────────────────────── */}
         <Card id="staff-profile-header">
           <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ export default function StaffProfilePage(): React.JSX.Element {
 
         {/* ── Today's Attendance ────────────────────────────────── */}
         <Card id="staff-today-attendance">
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Today
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -184,21 +184,21 @@ export default function StaffProfilePage(): React.JSX.Element {
 
         {/* ── Monthly Stats ────────────────────────────────────── */}
         <div>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             This Month
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <StatCard
               id="staff-present-days"
               icon={<CheckCircle2 size={18} className="text-success" />}
-              iconBg="bg-success-light"
+              tone="success"
               value={profile.present_days}
               label="Present"
             />
             <StatCard
               id="staff-absent-days"
               icon={<XCircle size={18} className="text-danger" />}
-              iconBg="bg-danger-light"
+              tone="danger"
               value={profile.absent_days}
               label="Absent"
             />
@@ -208,7 +208,7 @@ export default function StaffProfilePage(): React.JSX.Element {
         {/* ── Estimated Salary ─────────────────────────────────── */}
         {profile.monthly_salary != null && (
           <Card id="staff-salary-card">
-            <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
+            <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-2">
               Estimated Salary
             </h3>
             <div className="flex items-center gap-3">

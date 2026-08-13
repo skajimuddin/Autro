@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Truck,
   Clock,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -141,7 +141,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
     <PageShell title={vehicle.registration_number} showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Photo Gallery ────────────────────────────────────── */}
         <PhotoGallery images={vehicle.images} />
 
@@ -173,7 +173,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
 
         {/* ── Customer Card ────────────────────────────────────── */}
         <Card id="vehicle-customer-card">
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Customer
           </h3>
           <div className="flex flex-col gap-2.5">
@@ -211,7 +211,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
                 <AlertTriangle size={16} className="text-warning" />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1">
+                <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-1">
                   Complaint
                 </h3>
                 <p className="text-sm text-text leading-relaxed">
@@ -224,7 +224,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
 
         {/* ── Financial Summary ─────────────────────────────────── */}
         <Card id="vehicle-financial-card">
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Financial Summary
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -286,8 +286,7 @@ function PhotoGallery({ images }: { images: VehicleImage[] }): React.JSX.Element
 
   return (
     <div
-      className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4"
-      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
       {images.map((img) => (
         <div

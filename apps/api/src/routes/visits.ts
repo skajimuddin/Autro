@@ -42,25 +42,46 @@ visitsRouter.patch('/:id/status', async (c) => {
   
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
-  
-  const updateData: any = {
-    status: parsed.data.status,
-    updated_at: now
+
+  // Check ownership first. Previously the UPDATE was tenant-scoped but the
+  // follow-up SELECT was not, so a visit id from another garage updated nothing
+  // and then got returned to the caller — a cross-tenant read.
+  const existing = await db
+    .select({ id: service_visits.id })
+    .from(service_visits)
+    .where(
+      and(
+        eq(service_visits.tenant_id, tenantId),
+        eq(service_visits.id, visitId),
+        isNull(service_visits.deleted_at),
+      ),
+    )
+    .get()
+
+  if (!existing) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Visit not found' } }, 404)
   }
-  
+
+  const updateData: Partial<typeof service_visits.$inferInsert> = {
+    status: parsed.data.status,
+    updated_at: now,
+  }
+
   if (parsed.data.status === 'DELIVERED') {
     updateData.delivered_at = now
   }
-  
-  await db.update(service_visits).set(updateData)
+
+  await db
+    .update(service_visits)
+    .set(updateData)
     .where(and(eq(service_visits.tenant_id, tenantId), eq(service_visits.id, visitId)))
-    
-  const visit = await db.select().from(service_visits).where(eq(service_visits.id, visitId)).get()
-  
-  if (!visit) {
-    return c.json({ error: { code: 'NOT_FOUND', message: 'Visit not found' } }, 404)
-  }
-  
+
+  const visit = await db
+    .select()
+    .from(service_visits)
+    .where(and(eq(service_visits.tenant_id, tenantId), eq(service_visits.id, visitId)))
+    .get()
+
   return c.json({ visit })
 })
 

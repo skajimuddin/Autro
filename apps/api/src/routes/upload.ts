@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { AwsClient } from 'aws4fetch'
 import { z } from 'zod'
 import type { Env, Variables } from '@/env'
+import { validateR2Env } from '@/env'
 
 const uploadRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -11,6 +12,10 @@ const PresignRequestSchema = z.object({
 })
 
 uploadRouter.post('/presign', async (c) => {
+  // Without this, absent R2 credentials produce a URL signed with `undefined`
+  // that fails opaquely at PUT time on the client. Fail here instead.
+  validateR2Env(c.env)
+
   const tenantId = c.get('tenantId')
   const body = await c.req.json().catch(() => null)
   const parsed = PresignRequestSchema.safeParse(body)

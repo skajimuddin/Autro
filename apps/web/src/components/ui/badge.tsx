@@ -20,7 +20,10 @@ export function Badge({ variant = 'default', children, className = '' }: BadgePr
   return (
     <span
       className={[
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
+        // planning/demo-ui .badge: radius 8px, 0.75rem/700, UPPERCASE.
+        // Was rounded-full / weight 600 / no caps, which read as a soft pill
+        // rather than the demo's crisp status tag.
+        'inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wide',
         variantStyles[variant],
         className,
       ].join(' ')}

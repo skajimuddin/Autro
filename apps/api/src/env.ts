@@ -34,30 +34,54 @@ export interface Variables {
 }
 
 /**
- * Validates all required env vars/bindings at request time.
- * Call this at the start of each handler to get a typed, validated env.
+ * Env keys every request needs regardless of which route it hits.
+ */
+const CORE_KEYS: (keyof Env)[] = [
+  'DB',
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET',
+  'GOOGLE_REDIRECT_URI',
+  'JWT_SECRET',
+]
+
+/**
+ * Env keys only the R2 presign route needs. Kept separate so a deployment
+ * without upload credentials still serves the rest of the API instead of
+ * failing every request — while the upload route itself still fails loudly.
+ */
+const R2_KEYS: (keyof Env)[] = [
+  'BUCKET',
+  'R2_ACCOUNT_ID',
+  'R2_ACCESS_KEY_ID',
+  'R2_SECRET_ACCESS_KEY',
+  'R2_BUCKET_NAME',
+]
+
+function assertKeys(env: Env, keys: (keyof Env)[]): void {
+  const missing = keys.filter((key) => !env[key])
+  if (missing.length > 0) {
+    throw new Error(`Missing required env binding: ${missing.join(', ')}`)
+  }
+}
+
+/**
+ * Validates the env vars/bindings every route depends on.
+ * Applied as global middleware in index.ts.
  *
- * Throws a 500 error with a clear message if any required value is missing.
+ * Throws (→ 500 via app.onError) if any required value is missing. There are
+ * deliberately no fallback defaults: a silent misconfiguration is worse than a
+ * crash.
  */
 export function validateEnv(env: Env): Env {
-  const required: (keyof Env)[] = [
-    'DB',
-    'BUCKET',
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'GOOGLE_REDIRECT_URI',
-    'JWT_SECRET',
-    'R2_ACCOUNT_ID',
-    'R2_ACCESS_KEY_ID',
-    'R2_SECRET_ACCESS_KEY',
-    'R2_BUCKET_NAME',
-  ]
+  assertKeys(env, CORE_KEYS)
+  return env
+}
 
-  for (const key of required) {
-    if (!env[key]) {
-      throw new Error(`Missing required env binding: ${key}`)
-    }
-  }
-
+/**
+ * Validates the R2 credentials used to sign upload URLs.
+ * Call this at the top of any handler that signs R2 requests.
+ */
+export function validateR2Env(env: Env): Env {
+  assertKeys(env, R2_KEYS)
   return env
 }

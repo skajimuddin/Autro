@@ -17,8 +17,7 @@ export function FilterChips({ chips, selected, onChange, id }: FilterChipsProps)
   return (
     <div
       id={id}
-      className="flex gap-2 overflow-x-auto pb-1 scrollbar-none"
-      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
       {chips.map((chip) => {
         const isActive = chip.value === selected

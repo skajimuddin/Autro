@@ -1,10 +1,37 @@
 // Task 1.7 — Onboarding Page (Create Garage)
+//
+// Converted off inline styles 2026-08-13 (UI-6). This page was the worst offender
+// in the codebase: 31 inline `style={{ }}` props, 13 hardcoded hex colours and
+// zero uses of `className`, i.e. it did not touch the design system at all — while
+// being the first screen a new owner ever sees.
+//
+// Changes beyond the mechanical conversion:
+//   - hand-rolled <input>/<textarea> markup (absolute-positioned icons, a shared
+//     `inputStyle()` factory, manual error paragraphs) replaced with the existing
+//     <Input>/<Textarea> components, which already do labels, left icons, the
+//     required asterisk and error text
+//   - two `linear-gradient`s removed (logo tile, submit button). The design system
+//     has no gradients; 05-ui-screens.md prescribes solid primary + shadow
+//   - label colour was `#374151` (Tailwind gray-700), which is not a project token
+//     at all — now `text-text`
+//   - submit button replaced with <Button isLoading>
+//   - the address field loses its inline MapPin icon: <Textarea> has no leftIcon
+//     prop, and adding one just for this page would fork the component
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { z } from 'zod'
-import { MapPin, Building2, Phone, MapPinned, CheckCircle, AlertCircle } from 'lucide-react'
+import {
+  Building2,
+  Phone,
+  MapPinned,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from '@/components/ui/icons'
+
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/hooks/use-tenant'
+import { Card, Button, Input, Textarea } from '@/components/ui'
 
 // ── Validation schema ─────────────────────────────────────────────────────────
 const onboardingSchema = z.object({
@@ -21,6 +48,16 @@ const onboardingSchema = z.object({
 
 type FormErrors = Partial<Record<keyof z.infer<typeof onboardingSchema>, string>>
 
+type LocationStatus = 'idle' | 'loading' | 'set' | 'error'
+
+// Colour here is semantic (success = captured, danger = failed), not decorative.
+const LOCATION_BUTTON_STYLES: Record<LocationStatus, string> = {
+  idle: 'border-dashed border-primary text-primary hover:bg-primary-light',
+  loading: 'border-dashed border-primary text-primary cursor-wait',
+  set: 'border-solid border-success bg-success-light text-success',
+  error: 'border-solid border-danger bg-danger-light text-danger',
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function OnboardingPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -31,7 +68,7 @@ export default function OnboardingPage(): React.JSX.Element {
   const [address, setAddress] = useState('')
   const [latitude, setLatitude] = useState<number | undefined>()
   const [longitude, setLongitude] = useState<number | undefined>()
-  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'set' | 'error'>('idle')
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle')
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -88,170 +125,153 @@ export default function OnboardingPage(): React.JSX.Element {
       refetch()
       navigate('/', { replace: true })
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to create garage. Please try again.')
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create garage. Please try again.',
+      )
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // ── Inline styles ──────────────────────────────────────────────────────────
-  const inputStyle = (hasError: boolean): React.CSSProperties => ({
-    width: '100%',
-    padding: '12px 12px 12px 40px',
-    borderRadius: '12px',
-    border: `1.5px solid ${hasError ? '#ef4444' : '#cbd5e1'}`,
-    fontSize: '1rem',
-    color: '#0f172a',
-    fontFamily: 'inherit',
-    outline: 'none',
-    boxSizing: 'border-box',
-    background: '#fff',
-  })
-
-  const locationBtnStyle = (): React.CSSProperties => ({
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '12px',
-    borderRadius: '12px',
-    border: `1.5px ${locationStatus === 'set' ? 'solid' : 'dashed'} ${
-      locationStatus === 'set' ? '#10b981' : locationStatus === 'error' ? '#ef4444' : '#2563eb'
-    }`,
-    background: locationStatus === 'set' ? '#d1fae5' : locationStatus === 'error' ? '#fee2e2' : 'transparent',
-    color: locationStatus === 'set' ? '#059669' : locationStatus === 'error' ? '#ef4444' : '#2563eb',
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    cursor: locationStatus === 'loading' ? 'wait' : 'pointer',
-    fontFamily: 'inherit',
-  })
-
   return (
-    <div style={{ minHeight: '100dvh', background: '#f1f5f9', padding: '24px 16px 40px', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <div style={{ maxWidth: '414px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            width: '56px', height: '56px',
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-            borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px', boxShadow: '0 10px 20px -4px rgba(37,99,235,0.3)',
-          }}>
-            <Building2 size={28} color="white" />
+    <div className="min-h-dvh bg-bg px-4 pt-6 pb-10">
+      <div className="w-full max-w-md md:max-w-lg mx-auto">
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div className="text-center mb-7">
+          <div className="w-14 h-14 rounded-card bg-primary flex items-center justify-center mx-auto mb-4 shadow-[var(--shadow-primary)]">
+            <Building2 size={28} strokeWidth={2.5} className="text-white" />
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>
+          <h1 className="text-2xl font-bold text-text mb-2">
             Set Up Your Garage
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
+          <p className="text-sm text-text-secondary leading-normal">
             We need these details for your invoices and staff attendance.
           </p>
         </div>
 
-        {/* Form */}
+        {/* ── Form ───────────────────────────────────────────────── */}
         <form onSubmit={handleSubmit} noValidate>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: '16px' }}>
+          <Card className="!p-6 mb-4">
+            <div className="flex flex-col gap-4">
+              <Input
+                id="garage-name"
+                label="Garage Name"
+                required
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Azim Auto Workshop"
+                leftIcon={<Building2 size={16} />}
+                error={errors.name}
+              />
 
-            {/* Garage Name */}
-            <div style={{ marginBottom: '16px' }}>
-              <label htmlFor="garage-name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Garage Name <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Building2 size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                <input
-                  id="garage-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Azim Auto Workshop"
-                  style={inputStyle(Boolean(errors.name))}
-                />
+              <Input
+                id="garage-phone"
+                label="Phone Number"
+                required
+                type="tel"
+                inputMode="numeric"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="9876543210"
+                leftIcon={<Phone size={16} />}
+                error={errors.phone}
+              />
+
+              <Textarea
+                id="garage-address"
+                label="Address (optional)"
+                rows={2}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="123, Main Road, Bhubaneswar"
+                error={errors.address}
+              />
+
+              {/* ── Workshop location ──────────────────────────── */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-semibold text-text">
+                  Workshop Location{' '}
+                  <span className="font-normal text-text-muted">
+                    (for staff attendance)
+                  </span>
+                </span>
+
+                <div className="text-xs text-text-secondary leading-snug mb-1.5">
+                  <strong className="font-semibold">
+                    Important rules for accurate GPS:
+                  </strong>
+                  <ul className="list-disc ml-4 mt-1">
+                    <li>
+                      Use a <strong className="font-semibold">mobile phone</strong>{' '}
+                      (PCs often give wrong locations).
+                    </li>
+                    <li>
+                      Stand{' '}
+                      <strong className="font-semibold">inside the workshop</strong>{' '}
+                      when tapping the button.
+                    </li>
+                  </ul>
+                </div>
+
+                <button
+                  type="button"
+                  id="set-location-btn"
+                  onClick={handleSetLocation}
+                  disabled={locationStatus === 'loading'}
+                  className={[
+                    'w-full flex items-center justify-center gap-2',
+                    'rounded-input border-[1.5px] p-3',
+                    'text-sm font-semibold transition-colors cursor-pointer',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    LOCATION_BUTTON_STYLES[locationStatus],
+                  ].join(' ')}
+                >
+                  {locationStatus === 'loading' && (
+                    <>
+                      <Loader2 size={16} className="animate-spin-fast" /> Getting
+                      location…
+                    </>
+                  )}
+                  {locationStatus === 'set' && (
+                    <>
+                      <CheckCircle size={16} /> Location set (
+                      {latitude?.toFixed(4)}, {longitude?.toFixed(4)})
+                    </>
+                  )}
+                  {locationStatus === 'error' && (
+                    <>
+                      <AlertCircle size={16} /> Failed — tap to retry
+                    </>
+                  )}
+                  {locationStatus === 'idle' && (
+                    <>
+                      <MapPinned size={16} /> Set Workshop Location
+                    </>
+                  )}
+                </button>
               </div>
-              {errors.name && <p style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>{errors.name}</p>}
             </div>
+          </Card>
 
-            {/* Phone */}
-            <div style={{ marginBottom: '16px' }}>
-              <label htmlFor="garage-phone" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Phone Number <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                <input
-                  id="garage-phone"
-                  type="tel"
-                  inputMode="numeric"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="9876543210"
-                  style={inputStyle(Boolean(errors.phone))}
-                />
-              </div>
-              {errors.phone && <p style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>{errors.phone}</p>}
-            </div>
-
-            {/* Address */}
-            <div style={{ marginBottom: '16px' }}>
-              <label htmlFor="garage-address" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Address <span style={{ color: '#94a3b8', fontWeight: 400 }}>(optional)</span>
-              </label>
-              <div style={{ position: 'relative' }}>
-                <MapPin size={16} style={{ position: 'absolute', left: '12px', top: '14px', color: '#94a3b8' }} />
-                <textarea
-                  id="garage-address"
-                  rows={2}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123, Main Road, Bhubaneswar"
-                  style={{ ...inputStyle(false), paddingTop: '12px', resize: 'none', lineHeight: '1.5' }}
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Workshop Location <span style={{ color: '#94a3b8', fontWeight: 400 }}>(for staff attendance)</span>
-              </label>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '12px', lineHeight: '1.4' }}>
-                <strong>Important rules for accurate GPS:</strong>
-                <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
-                  <li>Use a <strong>mobile phone</strong> (PCs often give wrong locations).</li>
-                  <li>Stand <strong>inside the workshop</strong> when tapping the button.</li>
-                </ul>
-              </div>
-              <button type="button" id="set-location-btn" onClick={handleSetLocation} style={locationBtnStyle()}>
-                {locationStatus === 'loading' && <span>📍 Getting location…</span>}
-                {locationStatus === 'set' && <><CheckCircle size={16} /> Location set ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})</>}
-                {locationStatus === 'error' && <><AlertCircle size={16} /> Failed — tap to retry</>}
-                {locationStatus === 'idle' && <><MapPinned size={16} /> Set Workshop Location</>}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit error */}
+          {/* ── Submit error ─────────────────────────────────────── */}
           {submitError && (
-            <div style={{ background: '#fee2e2', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.875rem', color: '#ef4444', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <AlertCircle size={16} />{submitError}
+            <div className="flex items-center gap-2 rounded-input bg-danger-light text-danger text-sm px-4 py-3 mb-4">
+              <AlertCircle size={16} className="flex-shrink-0" />
+              {submitError}
             </div>
           )}
 
-          {/* Submit button */}
-          <button
+          <Button
             type="submit"
             id="create-workshop-btn"
-            disabled={isSubmitting}
-            style={{
-              width: '100%', padding: '16px', borderRadius: '16px', border: 'none',
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff',
-              fontSize: '1rem', fontWeight: 700, cursor: isSubmitting ? 'wait' : 'pointer',
-              fontFamily: 'inherit', boxShadow: '0 10px 15px -3px rgba(37,99,235,0.3)',
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
+            size="lg"
+            isLoading={isSubmitting}
           >
-            {isSubmitting ? 'Creating Workshop…' : '🚀 Create Workshop'}
-          </button>
+            Create Workshop
+          </Button>
         </form>
       </div>
     </div>

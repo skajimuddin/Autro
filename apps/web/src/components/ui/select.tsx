@@ -1,6 +1,6 @@
 // Select — styled dropdown matching Input design
 import type React from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from '@/components/ui/icons'
 
 interface SelectOption {
   value: string

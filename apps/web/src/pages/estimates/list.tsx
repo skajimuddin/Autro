@@ -1,7 +1,7 @@
 // Estimate List — all estimates with status filtering
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { FileText, ChevronRight } from 'lucide-react'
+import { FileText, ChevronRight } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -57,8 +57,8 @@ export default function EstimateListPage(): React.JSX.Element {
   const estimates = data?.estimates ?? []
 
   return (
-    <PageShell title="Estimates" showBack>
-      <div className="p-4 flex flex-col gap-4">
+    <PageShell title="Estimates" showBack wide>
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {isLoading ? (
           <Loading rows={4} />
         ) : estimates.length === 0 ? (
@@ -69,13 +69,49 @@ export default function EstimateListPage(): React.JSX.Element {
           />
         ) : (
           <div className="flex flex-col gap-3">
-            {estimates.map((est) => (
-              <EstimateCard
-                key={est.id}
-                estimate={est}
-                onTap={() => navigate(`/estimates/${est.id}`)}
-              />
-            ))}
+            {/* Mobile / Tablet grid (hidden on lg and up) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
+              {estimates.map((est) => (
+                <EstimateCard
+                  key={est.id}
+                  estimate={est}
+                  onTap={() => navigate(`/estimates/${est.id}`)}
+                />
+              ))}
+            </div>
+
+            {/* Desktop table (visible on lg and up) */}
+            <div className="hidden lg:block bg-card rounded-card shadow-[var(--shadow-card)] overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-bg/50 border-b border-border">
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Reg No</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Customer</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Amount</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {estimates.map((est) => {
+                    const badge = STATUS_BADGE[est.status]
+                    return (
+                      <tr
+                        key={est.id}
+                        onClick={() => navigate(`/estimates/${est.id}`)}
+                        className="hover:bg-bg/50 cursor-pointer transition-colors border-b border-border last:border-0"
+                      >
+                        <td className="py-4 px-5 text-row-title font-bold text-text">{est.registration_number}</td>
+                        <td className="py-4 px-5 text-row-sub text-text-secondary">{est.customer_name}</td>
+                        <td className="py-4 px-5 text-row-title font-bold text-text">₹{est.total.toLocaleString('en-IN')}</td>
+                        <td className="py-4 px-5">
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {data?.cursor && (
               <div className="flex justify-center pt-2">
@@ -114,17 +150,17 @@ function EstimateCard({ estimate, onTap }: EstimateCardProps): React.JSX.Element
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-text truncate">
+            <p className="text-row-title font-bold text-text truncate">
               {estimate.registration_number}
             </p>
             <Badge variant={badge.variant}>{badge.label}</Badge>
           </div>
-          <p className="text-xs text-text-muted mt-0.5 truncate">
+          <p className="text-row-sub text-text-secondary mt-0.5 truncate">
             {estimate.customer_name}
           </p>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <span className="text-sm font-bold text-text">
+          <span className="text-row-title font-bold text-text">
             ₹{estimate.total.toLocaleString('en-IN')}
           </span>
           <ChevronRight size={14} className="text-text-muted" />

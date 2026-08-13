@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, eq, like, desc } from 'drizzle-orm'
+import { and, eq, isNull, like, desc } from 'drizzle-orm'
 import { CheckInSchema, CheckOutSchema, MonthlyAttendanceQuerySchema } from '@workshop/shared'
 import type { Env, Variables } from '@/env'
 import { qr_codes, attendance_logs, tenants, tenant_members, users } from '@/db/schema'
@@ -93,7 +93,8 @@ attendanceRouter.post('/checkin', async (c) => {
   // Verify tenant member
   const member = await db.select().from(tenant_members).where(and(
     eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.user_id, userId)
+    eq(tenant_members.user_id, userId),
+    isNull(tenant_members.removed_at)
   )).get()
   
   if (!member) {
@@ -152,7 +153,8 @@ attendanceRouter.post('/checkout', async (c) => {
   // Verify tenant member
   const member = await db.select().from(tenant_members).where(and(
     eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.user_id, userId)
+    eq(tenant_members.user_id, userId),
+    isNull(tenant_members.removed_at)
   )).get()
   
   if (!member) {
@@ -231,7 +233,8 @@ attendanceRouter.get('/my-today', async (c) => {
   
   const member = await db.select().from(tenant_members).where(and(
     eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.user_id, userId)
+    eq(tenant_members.user_id, userId),
+    isNull(tenant_members.removed_at)
   )).get()
   
   if (!member) {
@@ -278,7 +281,8 @@ attendanceRouter.get('/monthly', async (c) => {
   if (!targetMemberId) {
     const member = await db.select().from(tenant_members).where(and(
       eq(tenant_members.tenant_id, tenantId),
-      eq(tenant_members.user_id, userId)
+      eq(tenant_members.user_id, userId),
+      isNull(tenant_members.removed_at)
     )).get()
     if (!member) return c.json({ error: { code: 'FORBIDDEN', message: 'Not a member' } }, 403)
     targetMemberId = member.id

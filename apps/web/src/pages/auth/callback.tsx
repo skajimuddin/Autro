@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { handleOAuthCallback, saveToken } from '@/lib/auth'
+import { AlertCircle } from '@/components/ui/icons'
+
+import { handleOAuthCallback } from '@/lib/auth'
+import { useAuth } from '@/providers/auth-provider'
+import { Button } from '@/components/ui/button'
 
 /**
  * OAuth callback page.
@@ -13,9 +17,16 @@ import { handleOAuthCallback, saveToken } from '@/lib/auth'
  *   2. Call handleOAuthCallback(code) → backend exchanges code for JWT
  *   3. Save the JWT
  *   4. Redirect to dashboard (or let auth provider handle routing)
+ *
+ * Converted off inline styles 2026-08-13 (UI-6). It previously hardcoded seven hex
+ * colours, hand-rolled an SVG that duplicates Lucide's AlertCircle, redefined
+ * `@keyframes spin` in an inline <style> tag (index.css already ships it as
+ * `animate-spin-fast`), and painted the page `#f8fafc` where the design token is
+ * `#f1f5f9`.
  */
 export default function AuthCallbackPage(): React.JSX.Element {
   const navigate = useNavigate()
+  const { onLoginSuccess } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -28,116 +39,46 @@ export default function AuthCallbackPage(): React.JSX.Element {
     }
 
     handleOAuthCallback(code)
-      .then(({ token }) => {
-        saveToken(token)
+      .then(({ token, user }) => {
+        onLoginSuccess(token, user)
         // Navigate to root — the auth provider will check for garage and redirect
         navigate('/', { replace: true })
       })
       .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
+        const message =
+          err instanceof Error ? err.message : 'Login failed. Please try again.'
         setError(message)
       })
-  }, [navigate])
+  }, [navigate, onLoginSuccess])
 
   if (error) {
     return (
-      <div
-        style={{
-          minHeight: '100dvh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px',
-          fontFamily: "'Inter', system-ui, sans-serif",
-          background: '#f8fafc',
-        }}
-      >
-        <div style={{ textAlign: 'center', maxWidth: '320px' }}>
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              background: '#fee2e2',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ef4444"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
+      <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
+        <div className="text-center max-w-[320px]">
+          <div className="w-14 h-14 rounded-card bg-danger-light flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={24} strokeWidth={2.5} className="text-danger" />
           </div>
-          <h2
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              color: '#0f172a',
-              margin: '0 0 8px',
-            }}
-          >
+          <h2 className="text-[1.1rem] font-semibold text-text mb-2">
             Login Failed
           </h2>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 24px' }}>{error}</p>
-          <button
+          <p className="text-sm text-text-secondary mb-6">{error}</p>
+          <Button
+            id="callback-back-to-login"
+            fullWidth={false}
             onClick={() => navigate('/login', { replace: true })}
-            style={{
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '12px 24px',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
           >
             Back to Login
-          </button>
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: "'Inter', system-ui, sans-serif",
-        background: '#f8fafc',
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>
-        {/* Spinning loader */}
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            border: '3px solid #e2e8f0',
-            borderTop: '3px solid #2563eb',
-            borderRadius: '50%',
-            margin: '0 auto 16px',
-            animation: 'spin 0.8s linear infinite',
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ color: '#64748b', fontSize: '0.875rem', margin: 0 }}>Signing you in…</p>
+    <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
+      <div className="text-center">
+        <div className="w-10 h-10 rounded-full border-[3px] border-divider border-t-primary animate-spin-fast mx-auto mb-4" />
+        <p className="text-sm text-text-secondary">Signing you in…</p>
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Camera, User, Phone, Hash } from 'lucide-react'
+import { Camera, User, Phone, Hash } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -139,7 +139,7 @@ export default function AddVehiclePage(): React.JSX.Element {
     <PageShell title="New Vehicle" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <form onSubmit={onSubmit} className="p-4 flex flex-col gap-5">
+      <form onSubmit={onSubmit} className="p-4 md:p-6 flex flex-col gap-5">
         {/* ── Photo Upload ───────────────────────────────────── */}
         <PhotoUpload
           id="vehicle-photo-upload"

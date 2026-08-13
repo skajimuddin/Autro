@@ -7,7 +7,7 @@ import {
   QrCode,
   User,
   Clock,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -77,6 +77,7 @@ export default function StaffListPage(): React.JSX.Element {
     <PageShell
       title="Staff"
       showBack
+      wide
       rightAction={
         <button
           id="staff-qr-btn"
@@ -89,7 +90,7 @@ export default function StaffListPage(): React.JSX.Element {
         </button>
       }
     >
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Search ───────────────────────────────────────────── */}
         <SearchBar
           id="staff-search"
@@ -112,11 +113,60 @@ export default function StaffListPage(): React.JSX.Element {
             }
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            {filtered.map((member) => (
-              <StaffCard key={member.id} member={member} />
-            ))}
-          </div>
+          <>
+            {/* Mobile / Tablet grid (hidden on lg and up) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
+              {filtered.map((member) => (
+                <StaffCard key={member.id} member={member} />
+              ))}
+            </div>
+
+            {/* Desktop table (visible on lg and up) */}
+            <div className="hidden lg:block bg-card rounded-card shadow-[var(--shadow-card)] overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-bg/50 border-b border-border">
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Name</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Role</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Status</th>
+                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Check In</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((member) => {
+                    const badge = ATTENDANCE_BADGE[member.attendance_status]
+                    return (
+                      <tr
+                        key={member.id}
+                        onClick={() => navigate(`/staff/${member.id}`)}
+                        className="hover:bg-bg/50 cursor-pointer transition-colors border-b border-border last:border-0"
+                      >
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-3">
+                            {member.avatar_url ? (
+                              <img src={member.avatar_url} alt={member.name} className="w-8 h-8 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center">
+                                <User size={14} className="text-primary" />
+                              </div>
+                            )}
+                            <span className="text-row-title font-bold text-text">{member.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-5 text-row-sub text-text-secondary capitalize">{member.role.toLowerCase()}</td>
+                        <td className="py-4 px-5">
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </td>
+                        <td className="py-4 px-5 text-row-sub text-text-secondary">
+                          {member.check_in_at ? formatTime(member.check_in_at) : '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* ── Add Staff FAB ────────────────────────────────────── */}
@@ -163,7 +213,7 @@ function StaffCard({ member }: { member: StaffMember }): React.JSX.Element {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-text truncate">
+            <p className="text-row-title font-bold text-text truncate">
               {member.name}
             </p>
             <Badge variant={badge.variant}>{badge.label}</Badge>

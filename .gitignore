@@ -16,6 +16,12 @@ build/
 .env.local
 .env.*.local
 
+# ── Credentials ──────────────────────────────────────────────
+# Google OAuth client secret downloaded from Cloud Console. One of these was
+# sitting untracked-but-committable in the repo root; never commit it.
+client_secret*.json
+*.credentials.json
+
 # ── TypeScript ───────────────────────────────────────────────
 *.tsbuildinfo
 

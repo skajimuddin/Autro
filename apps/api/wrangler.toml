@@ -25,7 +25,14 @@ bucket_name = "workshop-uploads"
 # For production: `wrangler secret put VARIABLE_NAME`
 #
 # Required vars:
-#   GOOGLE_CLIENT_ID
-#   GOOGLE_CLIENT_SECRET
-#   GOOGLE_REDIRECT_URI
-#   JWT_SECRET
+#   GOOGLE_CLIENT_ID        ┐
+#   GOOGLE_CLIENT_SECRET    │ core — validateEnv() checks these on every
+#   GOOGLE_REDIRECT_URI     │ request (except /health); missing → 500
+#   JWT_SECRET              ┘
+#   R2_ACCOUNT_ID           ┐
+#   R2_ACCESS_KEY_ID        │ upload only — validateR2Env() checks these in
+#   R2_SECRET_ACCESS_KEY    │ POST /upload/presign, so the rest of the API
+#   R2_BUCKET_NAME          ┘ still serves without them
+#
+# No fallback defaults anywhere by design (CLAUDE.md rule 4).
+# See .dev.vars.example for what each one is and where to get it.

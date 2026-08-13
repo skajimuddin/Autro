@@ -101,7 +101,7 @@ All decisions have been made. Do NOT deviate from these:
 | Server State | TanStack Query v5                     |
 | Forms        | React Hook Form + Zod                 |
 | PDF          | @react-pdf/renderer                   |
-| Icons        | Lucide React                          |
+| Icons        | Any icon library (e.g., FontAwesome, Lucide) |
 | Backend      | Hono on Cloudflare Workers            |
 | Database     | Cloudflare D1 + Drizzle ORM           |
 | Storage      | Cloudflare R2                         |
@@ -109,13 +109,7 @@ All decisions have been made. Do NOT deviate from these:
 | Validation   | Zod (shared between frontend/backend) |
 | Monorepo     | npm workspaces                        |
 
-### Do NOT:
 
-- Suggest or install alternative libraries (e.g. don't suggest Prisma instead of Drizzle)
-- Add new dependencies without being explicitly asked
-- Switch from Tailwind to styled-components or CSS modules
-- Use Material UI, Chakra UI, Ant Design, or any component library
-- Use axios (use native fetch)
 
 ---
 
@@ -227,15 +221,87 @@ import { useAuth } from '@/hooks/use-auth'
 
 ## 🖥️ UI RULES
 
-- Mobile-first. Max-width 414px container centered on desktop.
-- Every page uses `<PageShell>` wrapper (topbar + content + bottom nav)
-- Bottom nav: 4 tabs — Home, Vehicles, Staff, Settings
+### Responsive (amended 2026-08-13 — supersedes the old mobile-only 414px rule)
+
+Mobile-first, but the app must work at every width. Build the mobile layout first,
+then add breakpoints upward. **Never ship a screen with zero breakpoints.**
+
+| Width | Nav | Content | Modal |
+| ----- | --- | ------- | ----- |
+| `< 640px` (base) | Fixed bottom nav, 4 tabs | 1 column, full-bleed cards | Bottom sheet |
+| `≥ 768px` (`md:`) | Left sidebar, labels visible | 2-column grid, max-width constrained | Centered dialog |
+| `≥ 1024px` (`lg:`) | Left sidebar | Sidebar + content + detail pane; **lists render as tables**, not stacked cards | Centered dialog |
+
+- The old `max-w-[414px]` hard cap is **removed**. Do not reintroduce it.
+- Use `env(safe-area-inset-bottom)` on the bottom nav for notched phones.
+- Support down to **360px** (small Android) with no horizontal scroll.
+- Check every screen at 360 / 414 / 768 / 1024 / 1440 before marking a task done.
+
+### Color — semantic only (this rule exists because it was broken)
+
+**Color carries meaning. It is never decoration.**
+
+- `success` / `warning` / `danger` are reserved for **real status** — paid vs unpaid,
+  present vs absent, repairing vs ready.
+- Every non-status icon is `text-primary`. Full stop.
+- ❌ Never assign different colors to sibling items for visual variety. Four quick
+  actions get four identical blue icons, not blue/amber/green. This was the single
+  biggest "AI-generated" tell in the first build (`dashboard/index.tsx`
+  `QUICK_ACTIONS` gave every action its own color for no reason).
+
+### Icons
+
+- **The project uses FontAwesome 6 solid**, via `react-icons/fa6` (decided
+  2026-08-13). The demo's filled glyphs read with far more mass than outline
+  icons; a first build using Lucide's 2px strokes was rejected as too thin.
+- **Import icons from `@/components/ui/icons` — never from `react-icons` directly.**
+  That module re-exports each glyph under a stable semantic name, so the whole app
+  can be re-skinned from one file. Importing the library directly defeats this.
+- Need an icon that isn't exported yet? Add it to `icons.tsx` with a comment, then
+  import it from there.
+- `strokeWidth` has no effect on a filled glyph. Don't add it, and don't churn
+  files to remove existing ones — they are harmless.
+- Check `planning/demo-ui/*.html` for intended icon choice; where the demo used a
+  specific glyph, that glyph wins.
+
+### Typography — use the semantic scale, not Tailwind's defaults
+
+The type tokens in `index.css` are calibrated to `planning/demo-ui/styles.css`.
+The first build used Tailwind's default scale and rendered every screen 20–38%
+smaller and lighter than the approved demo — the single biggest reason production
+looked worse. Prefer these over raw `text-sm`/`text-xs`:
+
+| Token | Size | Use |
+| ----- | ---- | --- |
+| `text-value-xl` | `2rem` | hero stat numbers |
+| `text-value` | `1.5rem` | stat tile values, page greeting |
+| `text-row-title` | `1.1rem` | list row titles, stat labels, button text |
+| `text-detail` | `1.05rem` | detail rows |
+| `text-label` | `0.95rem` | form labels, uppercase section headers |
+| `text-row-sub` | `0.9rem` | row subtitles, stat tile labels |
+
+- Row titles and stat values are **bold (700)**, not semibold. The demo is heavy.
+- Do **not** add `-webkit-font-smoothing: antialiased`. It thins every glyph; the
+  demo never set it and reads sturdier without it.
+
+### No emoji in UI
+
+- ❌ No emoji in any rendered string — not in labels, buttons, headings, toasts,
+  or empty states. Use an icon instead.
+- This includes the friendly ones (`👋`, `🚀`, `📍`). The demo HTML containing an
+  emoji is not licence to ship one.
+
+### General
+
+- Every page uses `<PageShell>` wrapper (topbar + content + nav)
+- Nav tabs: 4 — Home, Vehicles, Staff, Settings
 - Light mode only. No dark mode.
 - English only. Currency hardcoded ₹ (INR).
-- Use Lucide icons, not FontAwesome
 - Toast for success/error feedback
 - Empty states for all lists (not blank screens)
 - Loading skeletons (not spinners) for data fetching
+- `planning/demo-ui/` is the **visual authority**. If production diverges from it,
+  production is wrong unless a plan file says otherwise.
 
 ---
 
@@ -266,8 +332,8 @@ npm run build
 ## 🚫 THINGS TO NEVER DO
 
 1. Never build multiple features in one go
-2. Never modify plan files
-3. Never add dependencies without asking
+2. Never modify plan files **without explicit owner approval, logged in `PROGRESS.md`**
+   (amended 2026-08-13: the responsive scope change was approved this way)
 4. Never use `any` type
 5. Never hardcode fallback values for config/env
 6. Never create files outside the folder structure in `planning/final/02-folder-structure.md`
@@ -277,3 +343,13 @@ npm run build
 10. Never load all records without pagination
 11. Never write SQL directly — use Drizzle ORM
 12. Never create duplicate components — search existing ones first
+13. **Never mark a task `[x]` you have not run and watched work.** Three tasks were
+    falsely marked complete in the first build — their deliverable was a decorative
+    placeholder (an icon standing in for a scannable QR code, a
+    `window.prompt` standing in for a camera scanner, an error toast standing in for
+    PDF export). A false `[x]` silently deletes the work from the plan. If part of a
+    task is stubbed, leave it `[ ]` and write down which step is missing.
+14. **Never create an empty placeholder file** for work you are not doing in this
+    task. The first build left 12 two-line stub files, and a later audit
+    recommended deleting them as dead scaffolding — which would have erased four
+    genuinely unbuilt features. Either build the file or leave it absent.

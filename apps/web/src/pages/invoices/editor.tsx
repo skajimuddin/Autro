@@ -19,9 +19,10 @@ import {
   Banknote,
   Smartphone,
   Wallet,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
+import { downloadInvoicePdf } from '@/lib/pdf'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import {
@@ -104,6 +105,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
   const [discountValue, setDiscountValue] = useState('0')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
   // Fetch existing invoice
   const { data: existingInvoice, isLoading: fetchLoading } = useQuery<InvoiceDetail>({
@@ -145,6 +147,70 @@ export default function InvoiceEditorPage(): React.JSX.Element {
       ? (subtotal * (Number(discountValue) || 0)) / 100
       : Number(discountValue) || 0
   const grandTotal = Math.max(0, subtotal + taxAmount - discountAmount)
+
+  // PDF export (Task 4.6). The heavy @react-pdf/renderer import lives inside
+  // lib/pdf.ts, so it only downloads when this handler actually runs.
+  const handleDownloadPdf = useCallback(async () => {
+    if (!tenant) {
+      showToast('error', 'Garage details are still loading. Try again.')
+      return
+    }
+    if (items.length === 0) {
+      showToast('error', 'Add at least one item before exporting a PDF')
+      return
+    }
+
+    setIsGeneratingPdf(true)
+    try {
+      await downloadInvoicePdf({
+        reference: (existingInvoice?.id ?? id ?? 'draft').slice(0, 8).toUpperCase(),
+        date: new Date().toISOString(),
+        garage: {
+          name: tenant.name,
+          phone: tenant.phone,
+          address: tenant.address,
+        },
+        customer: {
+          name: existingInvoice?.customer_name ?? '—',
+          phone: existingInvoice?.customer_phone ?? '—',
+          registration: existingInvoice?.registration_number ?? '—',
+        },
+        items: items.map((item) => ({
+          description: item.description,
+          amount: Number(item.amount) || 0,
+          quantity: Number(item.quantity) || 1,
+        })),
+        subtotal,
+        taxEnabled,
+        taxPercent: Number(taxPercent) || 0,
+        taxAmount,
+        discountAmount,
+        total: grandTotal,
+        paymentStatus: isPaid ? 'PAID' : 'UNPAID',
+        notes: existingInvoice?.notes ?? null,
+      })
+    } catch (err: unknown) {
+      showToast(
+        'error',
+        err instanceof Error ? err.message : 'Could not generate the PDF',
+      )
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }, [
+    tenant,
+    existingInvoice,
+    id,
+    items,
+    subtotal,
+    taxEnabled,
+    taxPercent,
+    taxAmount,
+    discountAmount,
+    grandTotal,
+    isPaid,
+    showToast,
+  ])
 
   // Item handlers
   const addItem = useCallback(() => {
@@ -265,7 +331,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
     <PageShell title="Invoice" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Left accent if from estimate ──────────────────────── */}
         {fromEstimate && (
           <div className="border-l-4 border-primary bg-primary-light/30 rounded-r-card px-4 py-2.5">
@@ -280,7 +346,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
 
         {/* ── Items Section ────────────────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
             <Receipt size={13} />
             Items
           </h3>
@@ -436,7 +502,8 @@ export default function InvoiceEditorPage(): React.JSX.Element {
               variant="outline"
               size="sm"
               leftIcon={<FileDown size={16} />}
-              onClick={() => showToast('error', 'PDF generation coming soon')}
+              isLoading={isGeneratingPdf}
+              onClick={handleDownloadPdf}
             >
               PDF
             </Button>

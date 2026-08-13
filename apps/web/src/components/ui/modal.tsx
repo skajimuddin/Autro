@@ -1,7 +1,10 @@
-// Modal — bottom sheet (mobile-friendly)
+// Modal — bottom sheet on mobile, centred dialog at md:+
+//
+// Known gap (not addressed here): no focus trap and focus is not restored to the
+// trigger on close. Worth fixing before launch.
 import { useEffect } from 'react'
 import type React from 'react'
-import { X } from 'lucide-react'
+import { X } from '@/components/ui/icons'
 
 interface ModalProps {
   isOpen: boolean
@@ -41,23 +44,33 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
         aria-hidden="true"
       />
 
-      {/* Bottom sheet */}
+      {/* Bottom sheet on mobile, centred dialog at md:+ — one element, breakpoints
+          only. Amended 2026-08-13 (was a fixed max-w-[414px] bottom sheet at all
+          widths). */}
       <div
         id={id}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-50 bg-card rounded-t-[24px] shadow-2xl animate-slide-in-top"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+        className={[
+          'fixed z-50 bg-card shadow-2xl',
+          // Mobile: full-width sheet anchored to the bottom
+          'bottom-0 left-0 right-0 rounded-t-[24px] animate-slide-in-top',
+          'pb-[env(safe-area-inset-bottom,16px)]',
+          // md+: centred dialog
+          'md:inset-auto md:top-1/2 md:left-1/2 md:right-auto md:bottom-auto',
+          'md:-translate-x-1/2 md:-translate-y-1/2',
+          'md:w-full md:max-w-lg md:rounded-card md:animate-fade-in',
+        ].join(' ')}
       >
-        {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-1">
+        {/* Drag handle — mobile sheet affordance only */}
+        <div className="flex justify-center pt-3 pb-1 md:hidden">
           <div className="w-10 h-1 rounded-full bg-divider" />
         </div>
 
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-5 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-5 py-3 md:pt-5 border-b border-divider">
             <h2 className="text-base font-semibold text-text">{title}</h2>
             <button
               type="button"

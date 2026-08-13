@@ -1,140 +1,79 @@
 import { useEffect } from 'react'
-import { redirectToGoogleLogin } from '@/lib/auth'
-import { getToken } from '@/lib/auth'
+import { useNavigate } from 'react-router'
+import { Wrench } from '@/components/ui/icons'
+
+import { getToken, redirectToGoogleLogin } from '@/lib/auth'
 
 /**
  * Login page — Screen 1
  *
- * Simple centered layout: App name + subtitle + Google sign-in button.
- * Redirects to dashboard if user is already logged in.
+ * Centered layout: app name + subtitle + Google sign-in button.
+ * Redirects to dashboard if the user is already logged in.
+ *
+ * Converted off inline styles 2026-08-13 (UI-6). Changes beyond the mechanical
+ * conversion, all to bring it back in line with the plan:
+ *   - dropped a 3-stop `linear-gradient` page background and a second gradient on
+ *     the logo tile; neither exists in the design system (05-ui-screens.md
+ *     prescribes solid primary + shadow, and `bg` is a flat #f1f5f9)
+ *   - replaced a hand-rolled wrench <svg> with Lucide's Wrench
+ *   - replaced four onMouse* handlers that mutated element styles imperatively
+ *     with hover:/active: utilities
+ *   - removed a "By signing in, you agree to our Terms of Service." line. Screen 1
+ *     says "Nothing else — dead simple", and there is no Terms page anywhere in
+ *     the app, so the sentence pointed at a document that does not exist.
+ *
+ * The Google mark stays raw inline SVG on purpose: it is Google's brand asset with
+ * fixed brand colours, so it is not a design-system colour and Lucide has no
+ * equivalent.
  */
 export default function LoginPage(): React.JSX.Element {
-  useEffect(() => {
-    // If user already has a token, let the auth provider handle redirect
-    // This component doesn't redirect — the router does that via protected routes
-  }, [])
-
+  const navigate = useNavigate()
   const alreadyLoggedIn = Boolean(getToken())
 
+  useEffect(() => {
+    // If user already has a token, redirect to dashboard/onboarding
+    if (alreadyLoggedIn) {
+      navigate('/', { replace: true })
+    }
+  }, [alreadyLoggedIn, navigate])
+
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        background: 'linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #f0fdf4 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '380px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0',
-        }}
-      >
-        {/* App logo / icon */}
-        <div
-          style={{
-            width: '72px',
-            height: '72px',
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 20px 40px -8px rgba(37, 99, 235, 0.4)',
-            marginBottom: '28px',
-          }}
-        >
-          <svg
-            width="36"
-            height="36"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-          </svg>
+    <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
+      <div className="w-full max-w-[380px] flex flex-col items-center">
+        {/* App mark */}
+        <div className="w-[72px] h-[72px] rounded-[20px] bg-primary flex items-center justify-center shadow-[var(--shadow-primary)] mb-7">
+          <Wrench size={36} strokeWidth={2.5} className="text-white" />
         </div>
 
-        {/* App name */}
-        <h1
-          style={{
-            fontSize: '2rem',
-            fontWeight: 700,
-            color: '#0f172a',
-            margin: 0,
-            letterSpacing: '-0.02em',
-          }}
-        >
+        <h1 className="text-[2rem] font-bold text-text tracking-tight">
           Workshop
         </h1>
 
-        {/* Subtitle */}
-        <p
-          style={{
-            fontSize: '1rem',
-            color: '#64748b',
-            margin: '8px 0 40px',
-            textAlign: 'center',
-            lineHeight: '1.5',
-          }}
-        >
+        <p className="text-base text-text-secondary text-center leading-normal mt-2 mb-10">
           Garage Management Made Simple
         </p>
 
-        {/* Google Sign In button */}
-        {!alreadyLoggedIn && (
+        {alreadyLoggedIn ? (
+          <p className="text-sm text-text-secondary">
+            Redirecting you to your dashboard…
+          </p>
+        ) : (
           <button
             id="google-signin-btn"
+            type="button"
             onClick={redirectToGoogleLogin}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              background: '#ffffff',
-              border: '1.5px solid #cbd5e1',
-              borderRadius: '16px',
-              padding: '14px 24px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: '#0f172a',
-              cursor: 'pointer',
-              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-              transition: 'all 0.15s ease',
-              fontFamily: 'inherit',
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget
-              el.style.boxShadow = '0 10px 20px -4px rgba(0,0,0,0.1)'
-              el.style.transform = 'translateY(-1px)'
-              el.style.borderColor = '#94a3b8'
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget
-              el.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'
-              el.style.transform = 'translateY(0)'
-              el.style.borderColor = '#cbd5e1'
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.98)'
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-            }}
+            className={[
+              'w-full flex items-center justify-center gap-3',
+              'bg-card text-text text-base font-semibold',
+              'border-[1.5px] border-border rounded-button px-6 py-3.5',
+              'shadow-[var(--shadow-card)] cursor-pointer',
+              'transition-all duration-150',
+              'hover:-translate-y-px hover:border-text-muted hover:shadow-md',
+              'active:translate-y-0 active:scale-[0.98]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+            ].join(' ')}
           >
-            {/* Google icon */}
+            {/* Google brand mark — fixed brand colours, not design tokens */}
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -156,24 +95,6 @@ export default function LoginPage(): React.JSX.Element {
             Sign in with Google
           </button>
         )}
-
-        {alreadyLoggedIn && (
-          <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-            Redirecting you to your dashboard…
-          </p>
-        )}
-
-        {/* Footer */}
-        <p
-          style={{
-            marginTop: '48px',
-            fontSize: '0.75rem',
-            color: '#94a3b8',
-            textAlign: 'center',
-          }}
-        >
-          By signing in, you agree to our Terms of Service.
-        </p>
       </div>
     </div>
   )

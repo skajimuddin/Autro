@@ -67,7 +67,7 @@ Once it works perfectly, check off the box `[x]` in `planning/final/06-tasks.md`
 
 - **Never say "Build the authentication system."** Say "Complete Task 1.2." Vague prompts lead to hallucinations.
 - **Keep context fresh.** If an agent starts making mistakes or acting weird after a long session, start a _new chat session_. The `AGENTS.md` and plan files will quickly catch the new session up to speed.
-- **Enforce the rules.** If the agent breaks a rule (like adding a random dependency), scold it: _"You broke the rule in AGENTS.md. Revert that and follow the project constraints."_
+- **Enforce the rules.** If the agent breaks a rule, scold it: _"You broke a rule in AGENTS.md. Revert that and follow the project constraints."_
 - **Use `/plan` for complex mid-task changes.** If you suddenly decide to change how a feature works while in the middle of a task, use `/plan` to make the agent stop and write down the new architecture before touching the code.
 - **Where to create files:** The agent should ONLY create project files inside the `apps/` or `packages/` directories as defined in `planning/final/02-folder-structure.md`. No code should live in the root directory (except config files).
 

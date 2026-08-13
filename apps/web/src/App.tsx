@@ -26,45 +26,14 @@ import StaffAttendancePage from '@/pages/staff/attendance'
 import StaffCheckinPage from '@/pages/staff/checkin'
 import InviteAcceptPage from '@/pages/invite/accept'
 import SettingsPage from '@/pages/settings/index'
-
-// ── Loading spinner (used while auth/tenant state resolves) ───────────────────
-function AppLoader(): React.JSX.Element {
-  return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#f8fafc',
-        fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            width: '36px',
-            height: '36px',
-            border: '3px solid #e2e8f0',
-            borderTop: '3px solid #2563eb',
-            borderRadius: '50%',
-            margin: '0 auto 12px',
-            animation: 'spin 0.8s linear infinite',
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0 }}>Loading Workshop…</p>
-      </div>
-    </div>
-  )
-}
+import { FullPageSpinner } from '@/components/ui/loading'
 
 // ── Route guard: requires authentication ──────────────────────────────────────
 function RequireAuth(): React.JSX.Element {
   const { token, isLoading } = useAuth()
   const location = useLocation()
 
-  if (isLoading) return <AppLoader />
+  if (isLoading) return <FullPageSpinner label="Loading Workshop…" />
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -78,7 +47,7 @@ function RequireTenant(): React.JSX.Element {
   const { isLoading: tenantLoading, tenant } = useTenant()
   const location = useLocation()
 
-  if (tenantLoading) return <AppLoader />
+  if (tenantLoading) return <FullPageSpinner label="Loading Workshop…" />
 
   if (!tenant) {
     return <Navigate to="/onboarding" state={{ from: location }} replace />

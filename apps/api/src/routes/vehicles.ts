@@ -3,6 +3,8 @@ import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull, like, sql } from 'drizzle-orm'
 import { CreateVehicleSchema, UpdateVehicleSchema, CreateVisitSchema, AddVehicleImageSchema } from '@workshop/shared'
 import type { Env, Variables } from '@/env'
+import type { D1Write } from '@/db/batch'
+import { runBatch } from '@/db/batch'
 import { customers, vehicles, service_visits, vehicle_images, estimates, estimate_items, invoices } from '@/db/schema'
 
 const vehiclesRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -101,81 +103,98 @@ vehiclesRouter.post('/', async (c) => {
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   const data = parsed.data
-  
-  try {
-    let customerId = ''
-    let vehicleId = ''
-    const visitId = crypto.randomUUID()
-    
-    await db.transaction(async (tx) => {
-      const existingCustomer = await tx.select().from(customers)
-        .where(and(eq(customers.tenant_id, tenantId), eq(customers.phone, data.customer_phone)))
-        .get()
-        
-      if (existingCustomer) {
-        customerId = existingCustomer.id
-      } else {
-        customerId = crypto.randomUUID()
-        await tx.insert(customers).values({
-          id: customerId,
-          tenant_id: tenantId,
-          name: data.customer_name,
-          phone: data.customer_phone,
-          created_at: now,
-          updated_at: now,
-          deleted_at: null
-        })
-      }
-      
-      const existingVehicle = await tx.select().from(vehicles)
-        .where(and(eq(vehicles.tenant_id, tenantId), eq(vehicles.registration_number, data.registration_number)))
-        .get()
-        
-      if (existingVehicle) {
-        vehicleId = existingVehicle.id
-      } else {
-        vehicleId = crypto.randomUUID()
-        await tx.insert(vehicles).values({
-          id: vehicleId,
-          tenant_id: tenantId,
-          customer_id: customerId,
-          registration_number: data.registration_number,
-          name: data.name,
-          created_at: now,
-          updated_at: now,
-          deleted_at: null
-        })
-      }
-      
-      await tx.insert(service_visits).values({
-        id: visitId,
+
+  // A D1 batch is a fixed list of statements — no branching mid-batch — so the
+  // "does this customer/vehicle already exist?" lookups happen up front.
+  const visitId = crypto.randomUUID()
+  const writes: D1Write[] = []
+
+  const existingCustomer = await db
+    .select({ id: customers.id })
+    .from(customers)
+    .where(and(eq(customers.tenant_id, tenantId), eq(customers.phone, data.customer_phone)))
+    .get()
+
+  let customerId: string
+  if (existingCustomer) {
+    customerId = existingCustomer.id
+  } else {
+    customerId = crypto.randomUUID()
+    writes.push(
+      db.insert(customers).values({
+        id: customerId,
         tenant_id: tenantId,
-        vehicle_id: vehicleId,
-        complaint: data.complaint || null,
-        status: 'NEW',
+        name: data.customer_name,
+        phone: data.customer_phone,
         created_at: now,
         updated_at: now,
-        delivered_at: null,
-        deleted_at: null
-      })
-      
-      if (data.image_urls.length > 0) {
-        const imageValues = data.image_urls.map(url => ({
+        deleted_at: null,
+      }),
+    )
+  }
+
+  const existingVehicle = await db
+    .select({ id: vehicles.id })
+    .from(vehicles)
+    .where(
+      and(
+        eq(vehicles.tenant_id, tenantId),
+        eq(vehicles.registration_number, data.registration_number),
+      ),
+    )
+    .get()
+
+  let vehicleId: string
+  if (existingVehicle) {
+    vehicleId = existingVehicle.id
+  } else {
+    vehicleId = crypto.randomUUID()
+    writes.push(
+      db.insert(vehicles).values({
+        id: vehicleId,
+        tenant_id: tenantId,
+        customer_id: customerId,
+        registration_number: data.registration_number,
+        name: data.name,
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+      }),
+    )
+  }
+
+  writes.push(
+    db.insert(service_visits).values({
+      id: visitId,
+      tenant_id: tenantId,
+      vehicle_id: vehicleId,
+      complaint: data.complaint || null,
+      status: 'NEW',
+      created_at: now,
+      updated_at: now,
+      delivered_at: null,
+      deleted_at: null,
+    }),
+  )
+
+  if (data.image_urls.length > 0) {
+    writes.push(
+      db.insert(vehicle_images).values(
+        data.image_urls.map((url) => ({
           id: crypto.randomUUID(),
           tenant_id: tenantId,
           vehicle_id: vehicleId,
           image_url: url,
-          uploaded_at: now
-        }))
-        await tx.insert(vehicle_images).values(imageValues)
-      }
-    })
-    
-    const vehicle = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).get()
-    return c.json({ vehicle, visit_id: visitId }, 201)
-  } catch (err: any) {
-    return c.json({ error: { code: 'SERVER_ERROR', message: err.message } }, 500)
+          uploaded_at: now,
+        })),
+      ),
+    )
   }
+
+  await runBatch(db, writes)
+
+  const vehicle = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).get()
+  return c.json({ vehicle, visit_id: visitId }, 201)
 })
 
 // GET /:id
@@ -288,9 +307,28 @@ vehiclesRouter.post('/:id/visits', async (c) => {
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   const visitId = crypto.randomUUID()
-  
-  await db.transaction(async (tx) => {
-    await tx.insert(service_visits).values({
+
+  // The vehicle id comes from the URL. Without confirming it belongs to this
+  // tenant, a caller could open a visit against another garage's vehicle.
+  const vehicle = await db
+    .select({ id: vehicles.id })
+    .from(vehicles)
+    .where(
+      and(
+        eq(vehicles.tenant_id, tenantId),
+        eq(vehicles.id, vehicleId),
+        isNull(vehicles.deleted_at),
+      ),
+    )
+    .get()
+
+  if (!vehicle) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, 404)
+  }
+
+  // D1 has no SQL transactions; runBatch() uses db.batch(), its atomic primitive.
+  const writes: D1Write[] = [
+    db.insert(service_visits).values({
       id: visitId,
       tenant_id: tenantId,
       vehicle_id: vehicleId,
@@ -298,21 +336,26 @@ vehiclesRouter.post('/:id/visits', async (c) => {
       status: 'NEW',
       created_at: now,
       updated_at: now,
-      deleted_at: null
-    })
-    
-    if (parsed.data.image_urls.length > 0) {
-      const imageValues = parsed.data.image_urls.map(url => ({
-        id: crypto.randomUUID(),
-        tenant_id: tenantId,
-        vehicle_id: vehicleId,
-        image_url: url,
-        uploaded_at: now
-      }))
-      await tx.insert(vehicle_images).values(imageValues)
-    }
-  })
-  
+      deleted_at: null,
+    }),
+  ]
+
+  if (parsed.data.image_urls.length > 0) {
+    writes.push(
+      db.insert(vehicle_images).values(
+        parsed.data.image_urls.map((url) => ({
+          id: crypto.randomUUID(),
+          tenant_id: tenantId,
+          vehicle_id: vehicleId,
+          image_url: url,
+          uploaded_at: now,
+        })),
+      ),
+    )
+  }
+
+  await runBatch(db, writes)
+
   const visit = await db.select().from(service_visits).where(eq(service_visits.id, visitId)).get()
   return c.json({ visit }, 201)
 })
@@ -330,7 +373,24 @@ vehiclesRouter.post('/:id/images', async (c) => {
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   const imageId = crypto.randomUUID()
-  
+
+  // Same reason as POST /:id/visits — verify tenant ownership of the vehicle.
+  const vehicle = await db
+    .select({ id: vehicles.id })
+    .from(vehicles)
+    .where(
+      and(
+        eq(vehicles.tenant_id, tenantId),
+        eq(vehicles.id, vehicleId),
+        isNull(vehicles.deleted_at),
+      ),
+    )
+    .get()
+
+  if (!vehicle) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, 404)
+  }
+
   await db.insert(vehicle_images).values({
     id: imageId,
     tenant_id: tenantId,

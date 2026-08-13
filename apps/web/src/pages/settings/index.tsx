@@ -13,7 +13,7 @@ import {
   Navigation,
   LogOut,
   Save,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
@@ -117,10 +117,10 @@ export default function SettingsPage(): React.JSX.Element {
     <PageShell title="Settings">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 flex flex-col gap-5">
+      <div className="p-4 md:p-6 flex flex-col gap-5">
         {/* ── Profile Section ──────────────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Your Profile
           </h3>
           <Card id="settings-profile-card">
@@ -156,7 +156,7 @@ export default function SettingsPage(): React.JSX.Element {
 
         {/* ── Garage Section ───────────────────────────────────── */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
             Garage Details
           </h3>
           <Card id="settings-garage-card">
