@@ -11,6 +11,7 @@ import {
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
+import { useTenant } from '@/providers/tenant-provider'
 import { MobileContainer } from '@/components/layout/mobile-container'
 import {
   Card,
@@ -37,6 +38,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const { user, token: authToken } = useAuth()
+  const { refetch: refetchTenant } = useTenant()
   const { toasts, showToast, dismissToast } = useToast()
 
   const { data: invite, isLoading, isError } = useQuery<InviteDetails>({
@@ -52,6 +54,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
       }),
     onSuccess: () => {
       showToast('success', 'Invitation accepted!')
+      refetchTenant()
       setTimeout(() => navigate('/checkin'), 800)
     },
     onError: (err: Error) => {

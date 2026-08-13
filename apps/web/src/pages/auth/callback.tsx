@@ -32,6 +32,7 @@ export default function AuthCallbackPage(): React.JSX.Element {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const state = params.get('state')
 
     if (!code) {
       setError('No authorization code received from Google.')
@@ -41,8 +42,12 @@ export default function AuthCallbackPage(): React.JSX.Element {
     handleOAuthCallback(code)
       .then(({ token, user }) => {
         onLoginSuccess(token, user)
-        // Navigate to root — the auth provider will check for garage and redirect
-        navigate('/', { replace: true })
+        // Navigate to state if provided (e.g., returning to an invite link), else root
+        if (state && state.startsWith('/')) {
+          navigate(state, { replace: true })
+        } else {
+          navigate('/', { replace: true })
+        }
       })
       .catch((err: unknown) => {
         const message =
