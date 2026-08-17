@@ -958,7 +958,7 @@ DO:
 DONE WHEN: The user has manually verified every flow works perfectly on their local machine.
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -1014,7 +1014,7 @@ DO:
 DONE WHEN: All flows work, Lighthouse passes, no errors
 ```
 
-- [ ] Completed
+- [x] Completed
 
 ---
 

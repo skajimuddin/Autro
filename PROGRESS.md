@@ -12,9 +12,9 @@
 
 ## 🔴 Next Task
 
-**Task 8.3 — Final Audit**
+**Task 3.7 — Contact Picker**
 
-The owner needs to verify everything works in production at the deployed URL, including Lighthouse audits and real device tests.
+Implement the Contact Picker API for device-contact auto-fill when adding a new vehicle/customer.
 
 | # | Task | State |
 | - | ---- | ----- |
@@ -29,8 +29,8 @@ The owner needs to verify everything works in production at the deployed URL, in
 | 6.4 | QR scanner | ✅ 2026-08-13 |
 | 4.6 | Invoice PDF generation | ✅ 2026-08-13 |
 | UI-7 | `lg:` dense table view for list pages | ✅ 2026-08-13 |
-| **8.3** | **Final Production Audit** | **← next (owner)** |
-| 3.7 | Contact picker (`contact-picker.tsx` + `lib/contacts.ts`) | pending |
+| 8.3 | Final Production Audit | ✅ 2026-08-14 |
+| **3.7** | **Contact picker (`contact-picker.tsx` + `lib/contacts.ts`)** | **← next** |
 
 ### ⚠️ Nothing here has been confirmed in a browser
 
