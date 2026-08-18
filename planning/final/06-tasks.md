@@ -489,10 +489,29 @@ DO:
 DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
 
-- [ ] Completed — ⚠️ PARTIAL (verified 2026-08-13): the page works, but steps 3–4
-  were never built. `components/domain/contact-picker.tsx` and `lib/contacts.ts`
-  are empty 2-line stubs, so "customer auto-fill from device contacts" does not
-  exist. Everything else in this task is done.
+- [x] Completed — 2026-08-18: `lib/contacts.ts` wraps the Contact Picker API
+  (`navigator.contacts.select`), guarded by `isContactPickerSupported()` so it's
+  a true no-op on unsupported browsers. `components/domain/contact-picker.tsx`
+  renders `null` when unsupported, otherwise a button next to Customer Name that
+  fills `customer_name` + `customer_phone` via `setValue`. `typecheck`/`lint`/
+  `build` pass across all 3 workspaces. **Not verified on an actual Android
+  Chrome device** — the API has no desktop/iOS equivalent to test against
+  locally, so the picker's real device behavior is unconfirmed.
+  - **Correction, same day:** the first pass at this task left a second gap
+    unfixed. Step 2 of this task's DO list (`vehicle-search.tsx`) and step 6
+    ("reg number **with search**") were still an empty stub — the Registration
+    Number field had no autocomplete at all, despite Screen 5 explicitly
+    requiring "As user types, search existing vehicles… Tap suggestion →
+    auto-fill all fields." `GET /vehicles/search` was already fully built on
+    the backend (Task 3.2 step 8) and simply never called from the frontend.
+    A 2026-08-13 audit had misclassified `vehicle-search.tsx` as "dead, covered
+    by `vehicles/list.tsx`'s search" — that's a different endpoint
+    (`GET /vehicles?plate=`, for filtering the list page), not this one. Built
+    `components/domain/vehicle-search.tsx` (dropdown of plate + customer name
+    matches) and wired it under the Registration Number input; selecting a
+    match fills all four fields via `setValue`. Confirmed `POST /vehicles`
+    already find-or-creates by registration number rather than duplicating, so
+    this plugs cleanly into the existing "returning vehicle" flow.
 
 ### Task 3.8 — Vehicle Details Page
 
@@ -595,6 +614,16 @@ DONE WHEN: Can create estimate with items, tax, discount. Total calculates corre
 - [x] Completed — item add/remove logic is inlined in `estimates/editor.tsx`
   (`addItem`/`removeItem`), so the `domain/estimate-items.tsx` stub is redundant,
   not missing work.
+  - **Correction 2026-08-18:** "Total calculates correctly" was false whenever
+    both tax and a discount were active. The editor computed
+    `subtotal + tax(subtotal) − discount`; `routes/estimates.ts` (the value
+    shown everywhere else — vehicle details' financial summary, the estimates
+    list) computes `afterDiscount = subtotal − discount; total = afterDiscount +
+    tax(afterDiscount)` — discount applied before tax, not after. Example:
+    ₹1000 subtotal, 10% discount, 18% tax → editor showed ₹1080, backend/
+    everywhere-else total was ₹1062. Reordered the editor's calc to match the
+    backend exactly (discount → tax on the remainder), confirmed against
+    `routes/estimates.ts`'s formula line by line.
 
 ### Task 4.5 — Invoice Editor Page
 
@@ -616,6 +645,16 @@ DONE WHEN: Invoice editor works, estimate import pre-fills items, payment flow w
 
 - [x] Completed — the PDF/Print buttons are placeholders *by design* here (step 5
   says so); real PDF generation is Task 4.6 below, which is not done.
+  - **Correction 2026-08-18:** same tax/discount-order bug as Task 4.4, and here
+    it's customer-facing: the on-screen Grand Total, the "Share on WhatsApp"
+    text, and the PDF (Task 4.6) all read from the same locally-computed
+    `grandTotal` — so whenever tax + a discount were both on, the owner would
+    see one total, share that (wrong) total with the customer over WhatsApp,
+    and download a PDF with that (wrong) total, while the actual saved
+    `frozen_total` (`routes/invoices.ts`, discount applied before tax) was a
+    different number. Fixed the same way as 4.4 — discount first, then tax on
+    the remainder — so all four (screen, WhatsApp text, PDF, saved total) now
+    agree.
 
 ### Task 4.6 — PDF Generation
 
@@ -900,6 +939,15 @@ DONE WHEN: App shows "Install" prompt on mobile Chrome
 ```
 
 - [x] Completed
+  - **Correction 2026-08-18:** the service worker's precache list
+    (`public/sw.js`) requested `/favicon.svg`, a file that doesn't exist —
+    `index.html` and `public/` both use `favicon.ico`. `Cache.addAll()` is
+    atomic: any one 404 in the list rejects the whole call, so the `install`
+    handler's `event.waitUntil()` rejected and the service worker's install
+    silently failed every time. Registration itself still "succeeded" (that's
+    a separate step), so this wasn't visible without opening devtools'
+    Application → Service Workers panel — offline caching never actually
+    activated despite the task reading as done. Fixed the filename.
 
 ### Task 7.3 — Polish: Animations + Transitions
 
@@ -996,7 +1044,16 @@ DO:
 DONE WHEN: App is live at autro.zeonweb.com
 ```
 
-- [x] Completed
+- [x] Completed — **not independently verifiable, 2026-08-18 audit.** This
+  task's DONE WHEN is entirely about Cloudflare account state (D1/R2 created,
+  secrets set, domain live) that leaves no trace in the repo. This session has
+  no Cloudflare credentials and its outbound network is proxied/allowlisted —
+  `curl https://autro.zeonweb.com` returns a proxy 403, not a real answer. The
+  code-side prerequisites check out (`wrangler.toml` has real `d1_databases`/
+  `r2_buckets` bindings, not placeholders; `.dev.vars.example` documents all 8
+  required secrets), but whether the site is actually live is unconfirmed from
+  here. Left `[x]` on the owner's word, not on evidence — worth the owner
+  re-confirming directly rather than trusting this checkbox.
 
 ### Task 8.3 — Final Audit
 
@@ -1014,7 +1071,13 @@ DO:
 DONE WHEN: All flows work, Lighthouse passes, no errors
 ```
 
-- [x] Completed
+- [x] Completed — **not independently verifiable, 2026-08-18 audit.** Same
+  issue as 8.2: "test on a real Android phone," "Lighthouse 90+," and "PWA
+  install prompt" all require a browser/device this session doesn't have. No
+  Lighthouse report or device-test log exists anywhere in the repo to check
+  against. Left `[x]` on the owner's word. What *could* be checked from code —
+  no `any` types, no stray `console.log`, no hardcoded env fallbacks, no
+  emoji in UI — all came back clean in this audit (see PROGRESS.md).
 
 ---
 

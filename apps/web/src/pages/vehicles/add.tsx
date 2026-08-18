@@ -10,6 +10,9 @@ import { Camera, User, Phone, Hash } from '@/components/ui/icons'
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
+import { ContactPicker } from '@/components/domain/contact-picker'
+import type { PickedContact } from '@/lib/contacts'
+import { VehicleSearch, type VehicleSearchResult } from '@/components/domain/vehicle-search'
 import {
   Button,
   Input,
@@ -58,6 +61,8 @@ export default function AddVehiclePage(): React.JSX.Element {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<AddVehicleForm>({
     resolver: zodResolver(addVehicleSchema),
@@ -131,6 +136,30 @@ export default function AddVehiclePage(): React.JSX.Element {
     setPhotoPreview(null)
   }, [photoPreview])
 
+  const registrationQuery = watch('registration_number')
+
+  const handleVehicleMatch = useCallback(
+    (vehicle: VehicleSearchResult) => {
+      setValue('registration_number', vehicle.registration_number, { shouldValidate: true })
+      setValue('name', vehicle.name ?? '', { shouldValidate: true })
+      setValue('customer_name', vehicle.customer_name, { shouldValidate: true })
+      setValue('customer_phone', vehicle.customer_phone, { shouldValidate: true })
+    },
+    [setValue]
+  )
+
+  const handleContactSelect = useCallback(
+    (contact: PickedContact) => {
+      if (contact.name) {
+        setValue('customer_name', contact.name, { shouldValidate: true })
+      }
+      if (contact.phone) {
+        setValue('customer_phone', contact.phone, { shouldValidate: true })
+      }
+    },
+    [setValue]
+  )
+
   const onSubmit = handleSubmit((data) => {
     mutation.mutate(data)
   })
@@ -149,16 +178,24 @@ export default function AddVehiclePage(): React.JSX.Element {
           label="Vehicle Photo"
         />
 
-        {/* ── Registration Number ────────────────────────────── */}
-        <Input
-          label="Registration Number"
-          placeholder="e.g. OD 02 AB 1234"
-          leftIcon={<Hash size={16} />}
-          error={errors.registration_number?.message}
-          required
-          autoCapitalize="characters"
-          {...register('registration_number')}
-        />
+        {/* ── Registration Number (+ autocomplete against existing vehicles) ── */}
+        <div className="relative">
+          <Input
+            label="Registration Number"
+            placeholder="e.g. OD 02 AB 1234"
+            leftIcon={<Hash size={16} />}
+            error={errors.registration_number?.message}
+            required
+            autoCapitalize="characters"
+            autoComplete="off"
+            {...register('registration_number')}
+          />
+          <VehicleSearch
+            query={registrationQuery}
+            tenantId={tenant?.id}
+            onSelect={handleVehicleMatch}
+          />
+        </div>
 
         {/* ── Vehicle Name ───────────────────────────────────── */}
         <Input
@@ -169,15 +206,20 @@ export default function AddVehiclePage(): React.JSX.Element {
           {...register('name')}
         />
 
-        {/* ── Customer Name ──────────────────────────────────── */}
-        <Input
-          label="Customer Name"
-          placeholder="Customer's full name"
-          leftIcon={<User size={16} />}
-          error={errors.customer_name?.message}
-          required
-          {...register('customer_name')}
-        />
+        {/* ── Customer Name (+ contact picker, supported browsers only) ── */}
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Input
+              label="Customer Name"
+              placeholder="Customer's full name"
+              leftIcon={<User size={16} />}
+              error={errors.customer_name?.message}
+              required
+              {...register('customer_name')}
+            />
+          </div>
+          <ContactPicker onSelect={handleContactSelect} />
+        </div>
 
         {/* ── Customer Phone ─────────────────────────────────── */}
         <Input

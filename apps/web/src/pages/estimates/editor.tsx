@@ -115,14 +115,21 @@ export default function EstimateEditorPage(): React.JSX.Element {
     return sum + amount * qty
   }, 0)
 
-  const taxAmount = taxEnabled ? (subtotal * (Number(taxPercent) || 0)) / 100 : 0
-
+  // Discount applies to the subtotal, then tax applies to what's left —
+  // matches the backend's canonical calc in routes/estimates.ts and
+  // routes/invoices.ts. Taxing the pre-discount subtotal (as this used to)
+  // silently disagreed with the total the server freezes and displays
+  // everywhere else once both tax and a discount are in use.
   const discountAmount =
     discountType === 'PERCENT'
       ? (subtotal * (Number(discountValue) || 0)) / 100
       : Number(discountValue) || 0
 
-  const grandTotal = Math.max(0, subtotal + taxAmount - discountAmount)
+  const afterDiscount = Math.max(0, subtotal - discountAmount)
+
+  const taxAmount = taxEnabled ? (afterDiscount * (Number(taxPercent) || 0)) / 100 : 0
+
+  const grandTotal = afterDiscount + taxAmount
 
   // Add item
   const addItem = useCallback(() => {

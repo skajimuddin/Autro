@@ -141,12 +141,19 @@ export default function InvoiceEditorPage(): React.JSX.Element {
     const qty = Number(item.quantity) || 1
     return sum + amount * qty
   }, 0)
-  const taxAmount = taxEnabled ? (subtotal * (Number(taxPercent) || 0)) / 100 : 0
+  // Discount applies to the subtotal, then tax applies to what's left —
+  // matches the backend's canonical calc in routes/invoices.ts. Taxing the
+  // pre-discount subtotal (as this used to) silently disagreed with the
+  // frozen_total the server computes and saves once both tax and a discount
+  // are in use — the WhatsApp share text below reads straight off grandTotal,
+  // so a wrong on-screen figure would go straight to the customer.
   const discountAmount =
     discountType === 'PERCENT'
       ? (subtotal * (Number(discountValue) || 0)) / 100
       : Number(discountValue) || 0
-  const grandTotal = Math.max(0, subtotal + taxAmount - discountAmount)
+  const afterDiscount = Math.max(0, subtotal - discountAmount)
+  const taxAmount = taxEnabled ? (afterDiscount * (Number(taxPercent) || 0)) / 100 : 0
+  const grandTotal = afterDiscount + taxAmount
 
   // PDF export (Task 4.6). The heavy @react-pdf/renderer import lives inside
   // lib/pdf.ts, so it only downloads when this handler actually runs.
