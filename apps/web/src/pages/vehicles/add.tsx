@@ -12,6 +12,7 @@ import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { ContactPicker } from '@/components/domain/contact-picker'
 import type { PickedContact } from '@/lib/contacts'
+import { VehicleSearch, type VehicleSearchResult } from '@/components/domain/vehicle-search'
 import {
   Button,
   Input,
@@ -61,6 +62,7 @@ export default function AddVehiclePage(): React.JSX.Element {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<AddVehicleForm>({
     resolver: zodResolver(addVehicleSchema),
@@ -134,6 +136,18 @@ export default function AddVehiclePage(): React.JSX.Element {
     setPhotoPreview(null)
   }, [photoPreview])
 
+  const registrationQuery = watch('registration_number')
+
+  const handleVehicleMatch = useCallback(
+    (vehicle: VehicleSearchResult) => {
+      setValue('registration_number', vehicle.registration_number, { shouldValidate: true })
+      setValue('name', vehicle.name ?? '', { shouldValidate: true })
+      setValue('customer_name', vehicle.customer_name, { shouldValidate: true })
+      setValue('customer_phone', vehicle.customer_phone, { shouldValidate: true })
+    },
+    [setValue]
+  )
+
   const handleContactSelect = useCallback(
     (contact: PickedContact) => {
       if (contact.name) {
@@ -164,16 +178,24 @@ export default function AddVehiclePage(): React.JSX.Element {
           label="Vehicle Photo"
         />
 
-        {/* ── Registration Number ────────────────────────────── */}
-        <Input
-          label="Registration Number"
-          placeholder="e.g. OD 02 AB 1234"
-          leftIcon={<Hash size={16} />}
-          error={errors.registration_number?.message}
-          required
-          autoCapitalize="characters"
-          {...register('registration_number')}
-        />
+        {/* ── Registration Number (+ autocomplete against existing vehicles) ── */}
+        <div className="relative">
+          <Input
+            label="Registration Number"
+            placeholder="e.g. OD 02 AB 1234"
+            leftIcon={<Hash size={16} />}
+            error={errors.registration_number?.message}
+            required
+            autoCapitalize="characters"
+            autoComplete="off"
+            {...register('registration_number')}
+          />
+          <VehicleSearch
+            query={registrationQuery}
+            tenantId={tenant?.id}
+            onSelect={handleVehicleMatch}
+          />
+        </div>
 
         {/* ── Vehicle Name ───────────────────────────────────── */}
         <Input

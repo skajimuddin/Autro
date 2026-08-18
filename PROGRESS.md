@@ -12,14 +12,21 @@
 
 ## 🔴 Next Task
 
-**No task-list item remains unchecked in `06-tasks.md`.** With 3.7 done, every
-task 0.1–8.3 (including 7.5.1) is `[x]`. The real remaining work is the device
-verification this file has been flagging for several entries running:
-nothing has actually been opened in a browser or on a phone — see the warning
-block just below, which still applies. **Next: do that pass** (7.5.1 local
-flows, the sidebar/tablet layout, camera QR scan + geolocation permission
-prompt, rendered invoice PDF, and now the contact picker on real Android
-Chrome — see 3.7's caveat below).
+**No task-list item remains unchecked in `06-tasks.md`**, and a full
+code-vs-plan audit ran 2026-08-18 (see "Full tracker audit" section below) —
+three real bugs behind `[x]` marks got caught and fixed: no registration-number
+autocomplete on Add Vehicle, a wrong tax/discount order on estimate + invoice
+totals, and a broken service worker precache. Two tasks (8.2, 8.3) still can't
+be verified from inside a sandboxed session at all — they're Cloudflare/device
+state, not code — and are flagged rather than trusted.
+
+The real remaining work is still the device verification this file has been
+flagging for several entries running: nothing has actually been opened in a
+browser or on a phone — see the warning block just below, which still
+applies. **Next: do that pass** (7.5.1 local flows, the sidebar/tablet layout,
+camera QR scan + geolocation permission prompt, rendered invoice PDF, the
+contact picker, and the new registration-number autocomplete — all only
+exist as code someone needs to actually click through).
 
 | # | Task | State |
 | - | ---- | ----- |
@@ -34,8 +41,9 @@ Chrome — see 3.7's caveat below).
 | 6.4 | QR scanner | ✅ 2026-08-13 |
 | 4.6 | Invoice PDF generation | ✅ 2026-08-13 |
 | UI-7 | `lg:` dense table view for list pages | ✅ 2026-08-13 |
-| 8.3 | Final Production Audit | ✅ 2026-08-14 |
-| **3.7** | **Contact picker (`contact-picker.tsx` + `lib/contacts.ts`)** | **✅ 2026-08-18** |
+| 8.3 | Final Production Audit | ⚠️ unverifiable from a sandbox — see audit |
+| 3.7 | Contact picker (`contact-picker.tsx` + `lib/contacts.ts`) | ✅ 2026-08-18 |
+| **audit** | **Full tracker audit — 3 real bugs found + fixed** | **✅ 2026-08-18** |
 
 ### ⚠️ Nothing here has been confirmed in a browser
 
@@ -60,6 +68,84 @@ Both heavy deps sit behind dynamic `import()`. Adding all three libraries grew t
 initial bundle by only ~19 KB net. The build prints a "chunk larger than 500 kB"
 warning — that refers to the lazy react-pdf chunk and is expected. **Do not
 convert these to static imports.**
+
+---
+
+## 🔍 Full tracker audit — 2026-08-18
+
+Owner asked for every `[x]` in `06-tasks.md` to be checked against the actual
+code, not re-read from the tracker. Method: cross-referenced every task's DO
+list and DONE WHEN against the real files (not just their existence — their
+contents), plus grep sweeps for known failure classes (`window.prompt`,
+`console.log`, `any`, hardcoded env fallbacks, TODO/FIXME, direct
+`react-icons` imports, pages with zero responsive breakpoints). Full results
+in `06-tasks.md`'s "Correction 2026-08-18" notes under each affected task;
+summary here.
+
+**Three tasks were marked done with a real functional gap, all now fixed:**
+
+1. **Task 3.7 (Add Vehicle)** — the Registration Number field had no
+   autocomplete at all. Screen 5's spec and the task's own DO list both
+   require it; the backend endpoint (`GET /vehicles/search`) was fully built
+   and simply never called. A prior audit had waved this off as "covered by
+   the vehicle list page's search" — that's a different endpoint entirely.
+   Built `components/domain/vehicle-search.tsx` and wired it in.
+2. **Tasks 4.4 + 4.5 (Estimate/Invoice Editors)** — "Total calculates
+   correctly" was false whenever both tax and a discount were active. The
+   editors taxed the pre-discount subtotal; the backend (the number actually
+   saved, and shown on the vehicle details page) taxes the post-discount
+   amount. On a ₹1000 subtotal with 10% discount + 18% tax, the editor showed
+   ₹1080 while the saved total was ₹1062. On the invoice side this was
+   customer-facing: the WhatsApp share text and the downloaded PDF both read
+   off the same wrong number. Fixed both editors to match the backend's
+   calc order exactly.
+3. **Task 7.2 (PWA Setup)** — the service worker's precache list referenced
+   `/favicon.svg`, a file that doesn't exist (the app uses `favicon.ico`).
+   `Cache.addAll()` is all-or-nothing, so that one bad entry silently failed
+   the service worker's `install` step every time — offline caching never
+   activated, invisibly, because SW *registration* still reports success even
+   when *install* fails. Fixed the filename.
+
+**Two tasks (8.2 Production Setup, 8.3 Final Audit) can't be verified from
+here at all** — their DONE WHEN criteria are entirely about Cloudflare account
+state and physical-device testing (live domain, Lighthouse score, real Android
+phone). This session has no Cloudflare credentials and the network proxy
+blocks arbitrary outbound domains (`curl autro.zeonweb.com` → proxy 403, not a
+real answer). Left `[x]` since that's the owner's own claim, not this
+session's, but flagging plainly: **nobody has verified those two from inside
+an agent session, ever.** Worth the owner spot-checking the live URL and
+running Lighthouse directly.
+
+**Everything else checked out clean:**
+- Zero `any` types, zero stray `console.log`, zero hardcoded env fallbacks,
+  zero `window.prompt`/`alert`, zero direct `react-icons` imports outside
+  `components/ui/icons.tsx` — across both `apps/web/src` and `apps/api/src`.
+- The 7 stub files a 2026-08-13 audit called "genuinely dead, safe to delete"
+  (`domain/estimate-items.tsx`, `domain/invoice-items.tsx`, `hooks/
+  use-vehicles.ts`, `hooks/use-staff.ts`, `hooks/use-debounce.ts`, `lib/
+  location.ts` — `vehicle-search.tsx` turned out **not** to be dead, see
+  above) are still there, still unused, still correctly explained by working
+  code elsewhere (item add/remove inlined, geolocation inlined 3×, etc.).
+  Not deleted — no task asked for it — but flagged again in case the owner
+  wants them gone.
+- `POST /vehicles` already find-or-creates by registration number (doesn't
+  duplicate a returning vehicle), which is what makes the new autocomplete
+  safe to wire in without a backend change.
+- Dashboard stats route matches `04-api-routes.md`'s response shape exactly.
+- `PATCH /tenants/:id` correctly enforces OWNER-only server-side.
+
+**One gap re-confirmed, not fixed (out of scope for a tracker correction —
+it's a cross-cutting change, not a single mismarked task):** staff invite,
+staff removal, and salary reads (`routes/staff.ts`) have no caller-role check
+at all — any STAFF member can invite/remove other staff and read salaries,
+even though `05-ui-screens.md` marks every staff screen "Access: Owner." This
+was already disclosed in the 2026-08-12 audit ("Known-good, left alone") and
+no task's DONE WHEN claims it's fixed, so it isn't a false `[x]` — but it's
+still open. Needs an `requireOwner` middleware applied across `staff.ts` (and
+ideally a frontend route guard to match) as its own task.
+
+`typecheck`, `lint`, `build` re-verified clean across all 3 workspaces after
+every fix above.
 
 ---
 
@@ -406,6 +492,7 @@ Owner reviewed the production UI against `planning/demo-ui` and approved:
 | 8.1 — GitHub Actions CI/CD (Frontend + Backend) | 2026-08-13 |
 | 8.2 — Production Setup (Cloudflare D1, R2, Pages, Secrets) | 2026-08-13 |
 | 3.7 — Contact Picker (device-contact auto-fill) | 2026-08-18 |
+| Full tracker audit — vehicle search, tax/discount order, SW precache fixed | 2026-08-18 |
 
 ### Not complete (previously misreported)
 
