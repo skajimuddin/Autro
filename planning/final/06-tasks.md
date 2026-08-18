@@ -489,10 +489,14 @@ DO:
 DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
 
-- [ ] Completed — ⚠️ PARTIAL (verified 2026-08-13): the page works, but steps 3–4
-  were never built. `components/domain/contact-picker.tsx` and `lib/contacts.ts`
-  are empty 2-line stubs, so "customer auto-fill from device contacts" does not
-  exist. Everything else in this task is done.
+- [x] Completed — 2026-08-18: `lib/contacts.ts` wraps the Contact Picker API
+  (`navigator.contacts.select`), guarded by `isContactPickerSupported()` so it's
+  a true no-op on unsupported browsers. `components/domain/contact-picker.tsx`
+  renders `null` when unsupported, otherwise a button next to Customer Name that
+  fills `customer_name` + `customer_phone` via `setValue`. `typecheck`/`lint`/
+  `build` pass across all 3 workspaces. **Not verified on an actual Android
+  Chrome device** — the API has no desktop/iOS equivalent to test against
+  locally, so the picker's real device behavior is unconfirmed.
 
 ### Task 3.8 — Vehicle Details Page
 

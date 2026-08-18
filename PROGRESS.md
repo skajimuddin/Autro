@@ -12,9 +12,14 @@
 
 ## 🔴 Next Task
 
-**Task 3.7 — Contact Picker**
-
-Implement the Contact Picker API for device-contact auto-fill when adding a new vehicle/customer.
+**No task-list item remains unchecked in `06-tasks.md`.** With 3.7 done, every
+task 0.1–8.3 (including 7.5.1) is `[x]`. The real remaining work is the device
+verification this file has been flagging for several entries running:
+nothing has actually been opened in a browser or on a phone — see the warning
+block just below, which still applies. **Next: do that pass** (7.5.1 local
+flows, the sidebar/tablet layout, camera QR scan + geolocation permission
+prompt, rendered invoice PDF, and now the contact picker on real Android
+Chrome — see 3.7's caveat below).
 
 | # | Task | State |
 | - | ---- | ----- |
@@ -30,7 +35,7 @@ Implement the Contact Picker API for device-contact auto-fill when adding a new 
 | 4.6 | Invoice PDF generation | ✅ 2026-08-13 |
 | UI-7 | `lg:` dense table view for list pages | ✅ 2026-08-13 |
 | 8.3 | Final Production Audit | ✅ 2026-08-14 |
-| **3.7** | **Contact picker (`contact-picker.tsx` + `lib/contacts.ts`)** | **← next** |
+| **3.7** | **Contact picker (`contact-picker.tsx` + `lib/contacts.ts`)** | **✅ 2026-08-18** |
 
 ### ⚠️ Nothing here has been confirmed in a browser
 
@@ -55,6 +60,38 @@ Both heavy deps sit behind dynamic `import()`. Adding all three libraries grew t
 initial bundle by only ~19 KB net. The build prints a "chunk larger than 500 kB"
 warning — that refers to the lazy react-pdf chunk and is expected. **Do not
 convert these to static imports.**
+
+---
+
+## 🛠️ Fixes landed 2026-08-18
+
+**Task 3.7 — Contact Picker.** The last two stub files from the 2026-08-13
+audit's "real missing features" list are now built:
+
+- `lib/contacts.ts` wraps `navigator.contacts.select(['name', 'tel'])` (the
+  Contact Picker API). `isContactPickerSupported()` checks for `'contacts' in
+  navigator && 'ContactsManager' in window` — true only on Chromium-based
+  mobile browsers (Chrome/Edge on Android); false everywhere else (desktop,
+  iOS Safari, Firefox). `pickContact()` never throws: cancel, permission
+  denial, or an unsupported browser all resolve `null`, which callers treat
+  as a no-op.
+- `components/domain/contact-picker.tsx` renders `null` when unsupported —
+  matching Screen 5's spec, "shown only on supported browsers" — otherwise a
+  54px icon button (`Smartphone`, swapping to a spinning `Loader2` while the
+  picker is open) sized to match `Input`'s height.
+- Wired into `pages/vehicles/add.tsx` next to the Customer Name field. On
+  select, `setValue` fills both `customer_name` and `customer_phone` (each
+  independently, only if the picked contact actually has that field) and
+  triggers validation.
+- `typecheck`/`lint`/`build` pass across all 3 workspaces (root scripts,
+  after `npm install` — `node_modules` wasn't present at session start).
+  Main JS chunk: 486 KB → 510 KB (+24 KB), all first-party code, no new
+  dependency — the two heavy chunks (`react-pdf.browser`, `esm`) are
+  unchanged.
+
+**Not verified:** the Contact Picker API has no desktop or iOS equivalent, so
+this can only be device-tested on Android Chrome — untested on an actual
+device. Add to the owner's browser/device pass.
 
 ---
 
@@ -368,15 +405,19 @@ Owner reviewed the production UI against `planning/demo-ui` and approved:
 | Tracker correction — verified all 47 tasks against code, fixed 12 checkboxes | 2026-08-13 |
 | 8.1 — GitHub Actions CI/CD (Frontend + Backend) | 2026-08-13 |
 | 8.2 — Production Setup (Cloudflare D1, R2, Pages, Secrets) | 2026-08-13 |
+| 3.7 — Contact Picker (device-contact auto-fill) | 2026-08-18 |
 
 ### Not complete (previously misreported)
 
+All four rows below are now closed — 4.6, 6.3, and 6.4 on 2026-08-13; 3.7 on
+2026-08-18 (see "Fixes landed 2026-08-18" below). Kept for history:
+
 | Task | State |
 | ---- | ----- |
-| 3.7 — Add Vehicle Page | ⚠️ Partial — no contact picker |
-| 4.6 — PDF Generation | ❌ Not started |
-| 6.3 — QR Attendance Page | ❌ Placeholder icon, not a QR code |
-| 6.4 — Staff Check-In Page | ❌ `window.prompt` instead of a scanner |
+| 3.7 — Add Vehicle Page | ✅ 2026-08-18 — contact picker built |
+| 4.6 — PDF Generation | ✅ 2026-08-13 |
+| 6.3 — QR Attendance Page | ✅ 2026-08-13 |
+| 6.4 — Staff Check-In Page | ✅ 2026-08-13 |
 
 ---
 
