@@ -27,10 +27,10 @@ export function FilterChips({ chips, selected, onChange, id }: FilterChipsProps)
             type="button"
             onClick={() => onChange(chip.value)}
             className={[
-              'flex-shrink-0 px-4 h-8 rounded-full text-sm font-medium transition-colors',
+              'flex-shrink-0 px-4 h-8 text-row-sub font-medium transition-colors border-[1.5px]',
               isActive
-                ? 'bg-primary text-white'
-                : 'bg-card border border-border text-text-secondary hover:border-primary hover:text-primary',
+                ? 'bg-primary text-white border-primary'
+                : 'bg-card border-border text-text-secondary hover:border-primary hover:text-primary',
             ].join(' ')}
           >
             {chip.label}

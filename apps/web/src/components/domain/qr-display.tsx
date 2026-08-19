@@ -32,7 +32,7 @@ export function QRDisplay({
     // White padding supplies the quiet zone scanners need, so marginSize is 0.
     <div
       id={id}
-      className="bg-white p-3 rounded-2xl border border-border inline-flex items-center justify-center"
+      className="bg-white p-3 border border-border inline-flex items-center justify-center"
     >
       <QRCodeSVG
         value={token}

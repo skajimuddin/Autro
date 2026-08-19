@@ -1,11 +1,17 @@
-/* Inter font from Google Fonts — must be first @import */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Archivo font from Google Fonts — must be first @import.
+   Design system rebuilt 2026-08-19 against planning/design_handoff_autro_ui
+   (Blue variant) — see DESIGN.md. Was Inter; the handoff specifies Archivo
+   throughout, and it's now the app's only font. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Autro Design System — Tailwind v4 CSS Theme
-   All tokens from planning/final/05-ui-screens.md
+   Tokens from planning/design_handoff_autro_ui/README.md, reconciled with the
+   app's existing accent/status colors (already blue + green/amber/red — see
+   DESIGN.md "Color"). Flat "Modernist" surface system: zero radius, hairline
+   shadows, 2px section dividers, 1px row dividers.
 ───────────────────────────────────────────────────────────────────────────── */
 
 @theme {
@@ -31,30 +37,31 @@
   --color-danger-light:     #fee2e2;
 
   /* ── Typography ────────────────────────────────────────────────────────── */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Archivo', system-ui, sans-serif;
 
-  /* Type scale calibrated against planning/demo-ui/styles.css (2026-08-13).
-     The first build used Tailwind's default scale, which rendered every screen
-     20–38% smaller and lighter than the approved demo — the single biggest
-     reason production looked weaker than planning/demo-ui. Names are semantic so
-     call sites read as intent, not magic numbers. */
-  --text-value-xl:   2rem;      /* .stat-value, attendance counters */
-  --text-value:      1.5rem;    /* stat-box value, .greeting */
-  --text-row-title:  1.1rem;    /* .list-item-title, .stat-label, .btn */
-  --text-detail:     1.05rem;   /* .detail-row */
-  --text-label:      0.95rem;   /* .input-group label, .section-title */
-  --text-row-sub:    0.9rem;    /* .list-item-sub, stat-box label */
+  /* Type scale matches the handoff's actual rendered sizes (README + markup):
+     row-title 14px/600, row-sub 12px @ 55% opacity, kicker 11px uppercase
+     0.08em, stat/total numbers 28px/700. Named tokens so call sites read as
+     intent. */
+  --text-value-xl:   1.75rem;   /* 28px — stat tiles, invoice/estimate grand total */
+  --text-value:      1.375rem;  /* 22px — secondary stat number, page greeting */
+  --text-row-title:  0.875rem;  /* 14px — list row titles (pair with font-semibold) */
+  --text-detail:     0.875rem;  /* 14px — line-item rows (estimate/invoice) */
+  --text-label:      0.8125rem; /* 13px — form field labels */
+  --text-row-sub:    0.75rem;   /* 12px — row subtitles, stat tile labels */
+  --text-kicker:     0.6875rem; /* 11px — uppercase card kickers / section headers */
 
   /* ── Border radius ─────────────────────────────────────────────────────── */
-  --radius-card:   16px;
-  --radius-button: 16px;
-  --radius-input:  12px;
+  /* Zero everywhere — the handoff's flat "Modernist" system, not this app's
+     previous rounded-2xl/rounded-xl surfaces. */
+  --radius-card:   0px;
+  --radius-button: 0px;
+  --radius-input:  0px;
 
   /* ── Box shadows ────────────────────────────────────────────────────────── */
-  --shadow-card:    0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  --shadow-topbar:  0 2px 10px rgba(0, 0, 0, 0.05);
-  --shadow-primary: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-  --shadow-success: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+  /* "Elevation: subtle card shadows only; nothing floats" — no button glow. */
+  --shadow-card:    0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-elev-md: 0 4px 12px rgba(15, 23, 42, 0.08);
 
   /* ── Animations ──────────────────────────────────────────────────────────── */
   --animate-spin: spin 0.8s linear infinite;
