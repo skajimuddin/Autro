@@ -1,4 +1,5 @@
 import type { D1Database, R2Bucket } from '@cloudflare/workers-types'
+import type { Role } from '@autro/shared'
 
 /**
  * Typed Cloudflare Workers bindings.
@@ -31,6 +32,8 @@ export interface Env {
 export interface Variables {
   userId: string
   tenantId: string
+  /** Caller's role in the current tenant. Set by tenantMiddleware. */
+  role: Role
 }
 
 /**

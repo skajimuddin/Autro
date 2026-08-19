@@ -56,6 +56,22 @@ function RequireTenant(): React.JSX.Element {
   return <Outlet />
 }
 
+// ── Route guard: requires OWNER role ───────────────────────────────────────────
+// Every /staff/* screen is "Access: Owner" per 05-ui-screens.md — a STAFF
+// member's only screen is /checkin. Must sit inside RequireTenant (role isn't
+// known until the tenant fetch resolves). This is a UI convenience, not the
+// security boundary — the API's requireOwner middleware is what actually
+// blocks a STAFF caller who hits these routes directly.
+function RequireOwner(): React.JSX.Element {
+  const { role } = useTenant()
+
+  if (role !== 'OWNER') {
+    return <Navigate to="/checkin" replace />
+  }
+
+  return <Outlet />
+}
+
 // ── App routes ────────────────────────────────────────────────────────────────
 function AppRoutes(): React.JSX.Element {
   return (
@@ -92,11 +108,13 @@ function AppRoutes(): React.JSX.Element {
           <Route path="/invoices/:id" element={<InvoiceEditorPage />} />
           <Route path="/invoices/new" element={<InvoiceEditorPage />} />
 
-          {/* Staff */}
-          <Route path="/staff" element={<StaffListPage />} />
-          <Route path="/staff/add" element={<StaffAddPage />} />
-          <Route path="/staff/attendance" element={<StaffAttendancePage />} />
-          <Route path="/staff/:id" element={<StaffProfilePage />} />
+          {/* Staff — Owner only */}
+          <Route element={<RequireOwner />}>
+            <Route path="/staff" element={<StaffListPage />} />
+            <Route path="/staff/add" element={<StaffAddPage />} />
+            <Route path="/staff/attendance" element={<StaffAttendancePage />} />
+            <Route path="/staff/:id" element={<StaffProfilePage />} />
+          </Route>
 
           {/* Settings */}
           <Route path="/settings" element={<SettingsPage />} />

@@ -71,6 +71,64 @@ convert these to static imports.**
 
 ---
 
+## 🛠️ Fixes landed 2026-08-19 — staff routes are now Owner-only
+
+Closed the one open item from the 2026-08-18 audit's disclosed-but-unfixed
+list: `routes/staff.ts` had zero caller-role check, so any authenticated
+STAFF member could invite staff, remove staff, revoke invites, and read
+everyone's salary via `GET /staff` / `GET /staff/:id` — despite
+`05-ui-screens.md` marking every one of those screens "Access: Owner."
+
+- `tenantMiddleware` (`middleware/tenant.ts`) now also sets `role` on Hono
+  context — it already looked up the `tenant_members` row for the tenant
+  check, so this is free, no extra query.
+- New `requireOwner` middleware in the same file: 403s
+  `{ code: 'FORBIDDEN' }` unless `role === 'OWNER'`. Added `role: Role` to
+  the `Variables` type (`env.ts`) so it's compiler-checked, not a stringly-
+  typed `c.get('role')`.
+- Wired into `index.ts` as one line — `app.use('/staff/*', requireOwner)`,
+  after `tenantMiddleware` — covering all of `staffRouter` (list, invite,
+  profile, update salary, remove, revoke) in one place instead of six
+  separate per-handler checks. Confirmed it does **not** catch the two
+  routes that must stay reachable without ownership: `publicStaffRouter`'s
+  `GET /staff/invite/:token` (pre-auth) and `acceptInviteRouter`'s
+  `POST /staff/invite/:token/accept` (authed but not yet a member) — both
+  are mounted earlier and their handlers terminate the request before
+  reaching this middleware, same pattern the existing accept-invite flow
+  already relied on.
+- Frontend: new `RequireOwner` route guard in `App.tsx`, wrapping the four
+  `/staff/*` routes — a STAFF user hitting them client-side now redirects to
+  `/checkin` instead of rendering a page full of API 403s. This is UX only;
+  the API middleware is the actual boundary.
+
+**Verified live, not just typechecked** — seeded a local D1 (`wrangler d1
+migrations apply --local` + hand-inserted one OWNER and one STAFF
+`tenant_members` row), minted real JWTs with the project's own `jose`
+signing code, ran `wrangler dev`, and hit the routes directly:
+
+| Request | STAFF token | OWNER token |
+| ------- | ----------- | ----------- |
+| `GET /staff` | 403 FORBIDDEN | 200, staff list |
+| `POST /staff/invite` | 403 FORBIDDEN | 201, invite created |
+| `PATCH /staff/invite/:id/revoke` | 403 FORBIDDEN | (not re-tested, same guard) |
+| `GET /staff/invite/:token` (public) | — | 404 (not found, not 403 — unaffected) |
+| `POST /staff/invite/:token/accept` | 200, joined tenant | — |
+
+All five outcomes matched intent exactly. `typecheck`/`lint`/`build` clean
+across all 3 workspaces.
+
+**Not done — flagged again, still open:** this only covers `/staff/*`.
+`05-ui-screens.md` marks `/vehicles`, `/estimates`, `/invoices`, and
+`/settings` "Access: Owner" too, and today a STAFF member can reach every one
+of those (frontend has no guard, and the corresponding API routes only check
+tenant membership, not role). Out of scope for this fix — it's the same
+`requireOwner` middleware, just applied more broadly, but that's a bigger,
+more consequential change (would need product sign-off on whether STAFF
+should truly be locked out of viewing e.g. the vehicle list) rather than a
+tracker correction.
+
+---
+
 ## 🔍 Full tracker audit — 2026-08-18
 
 Owner asked for every `[x]` in `06-tasks.md` to be checked against the actual
@@ -493,6 +551,7 @@ Owner reviewed the production UI against `planning/demo-ui` and approved:
 | 8.2 — Production Setup (Cloudflare D1, R2, Pages, Secrets) | 2026-08-13 |
 | 3.7 — Contact Picker (device-contact auto-fill) | 2026-08-18 |
 | Full tracker audit — vehicle search, tax/discount order, SW precache fixed | 2026-08-18 |
+| Staff routes locked to Owner-only (`requireOwner` middleware + frontend guard) | 2026-08-19 |
 
 ### Not complete (previously misreported)
 
@@ -601,7 +660,9 @@ statement list, so reads the writes depend on now happen before the batch.
 - List endpoints use OFFSET paging while `03-database.md` specifies cursor-based.
   Works correctly; drifts from spec and can skip rows under concurrent inserts.
 - `GET /estimates` does N+1 queries to total each estimate (comment admits it).
-- No OWNER-only guard on staff/settings mutations — any STAFF member can invite,
-  remove staff, and read salaries. Check against the intended role model.
+- ~~No OWNER-only guard on staff/settings mutations~~ **Fixed 2026-08-19** — see
+  "Fixes landed 2026-08-19" below. (Settings mutations specifically were never
+  affected: `PATCH /tenants/:id` already checked caller role server-side, see
+  `tenants.ts:108`. It was `staff.ts` that had no check at all.)
 - `dashboard/stats` computes "today" in UTC, so revenue rolls over at 05:30 IST.
 - `POST /auth/refresh` accepts tokens up to 30 days expired, indefinitely.
