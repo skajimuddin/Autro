@@ -215,7 +215,23 @@ wrapper — every page uses it), `Topbar`, `BottomNav`.
 `ToastContainer`/`useToast`.
 
 **Domain** (`components/domain/`): `VehicleSearch`, `ContactPicker`,
-`QRDisplay`, `QRScanner`, `EstimateItems`/`InvoiceItems`.
+`QRDisplay`, `QRScanner`.
+
+`estimate-items.tsx` and `invoice-items.tsx` also exist in this folder but
+are dead two-line stubs (`export {}`, never imported anywhere) — the line-
+item UI they were meant to hold is built inline in `estimates/editor.tsx`
+and `invoices/editor.tsx` instead, and the two editors already share the
+same shape by hand. Same story for `hooks/use-debounce.ts`,
+`hooks/use-staff.ts`, and `lib/location.ts` — all unimported stubs; every
+page that needs geolocation (`onboarding/setup.tsx`, `settings/index.tsx`,
+`staff/checkin.tsx`) calls `navigator.geolocation.getCurrentPosition`
+inline instead of through the never-built helper. None of this was
+introduced by this change — it predates it — but it means: don't trust a
+file's existence as proof a pattern is implemented, and don't import these
+five files expecting them to do anything. Either build them out for real
+next time one of these screens is touched, or delete them — the old
+`AGENTS.md` rule ("never create an empty placeholder file... build the file
+or leave it absent") applies to leaving them as-is too.
 
 ## Patterns adopted from the handoff
 
