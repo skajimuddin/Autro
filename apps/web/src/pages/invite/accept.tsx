@@ -95,7 +95,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
         <div className="min-h-dvh flex items-center justify-center p-4">
           <Card className="!p-6 text-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
+              <div className="w-16 h-16 bg-success-light flex items-center justify-center">
                 <Users size={28} className="text-success" />
               </div>
               <div>
@@ -140,7 +140,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
         <Card className="!p-6 w-full">
           <div className="flex flex-col items-center gap-5 text-center">
             {/* Garage Icon */}
-            <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center">
+            <div className="w-20 h-20 bg-primary-light flex items-center justify-center">
               <Building2 size={36} className="text-primary" />
             </div>
 
@@ -154,7 +154,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
 
             {/* Details */}
             <div className="w-full flex flex-col gap-2">
-              <div className="flex items-center gap-3 bg-bg rounded-xl px-4 py-3">
+              <div className="flex items-center gap-3 bg-bg px-4 py-3">
                 <Shield size={16} className="text-text-secondary" />
                 <div className="text-left">
                   <p className="text-[0.65rem] text-text-muted uppercase font-bold">
@@ -165,7 +165,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-bg rounded-xl px-4 py-3">
+              <div className="flex items-center gap-3 bg-bg px-4 py-3">
                 <User size={16} className="text-text-secondary" />
                 <div className="text-left">
                   <p className="text-[0.65rem] text-text-muted uppercase font-bold">
@@ -181,16 +181,16 @@ export default function InviteAcceptPage(): React.JSX.Element {
             {/* Action */}
             {authToken && user ? (
               <div className="w-full flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-bg rounded-xl px-3 py-2 text-left">
+                <div className="flex items-center gap-2 bg-bg px-3 py-2 text-left">
                   {user.avatar_url ? (
                     <img
                       src={user.avatar_url}
                       alt=""
-                      className="w-8 h-8 rounded-lg object-cover"
+                      className="w-8 h-8 object-cover"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center">
+                    <div className="w-8 h-8 bg-primary-light flex items-center justify-center">
                       <User size={14} className="text-primary" />
                     </div>
                   )}

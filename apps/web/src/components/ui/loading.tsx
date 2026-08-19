@@ -8,7 +8,7 @@ interface SkeletonProps {
 function Skeleton({ className = '' }: SkeletonProps): React.JSX.Element {
   return (
     <div
-      className={`animate-pulse rounded bg-divider ${className}`}
+      className={`animate-pulse bg-divider ${className}`}
     />
   )
 }
@@ -18,8 +18,8 @@ function Skeleton({ className = '' }: SkeletonProps): React.JSX.Element {
 /** Generic horizontal list row skeleton */
 export function ListItemSkeleton(): React.JSX.Element {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-divider">
-      <Skeleton className="w-10 h-10 rounded-xl flex-shrink-0" />
+    <div className="flex items-center gap-3 px-3 py-3 border-b border-divider">
+      <Skeleton className="w-14 h-14 flex-shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-3.5 w-2/3" />
         <Skeleton className="h-3 w-1/2" />
@@ -31,12 +31,9 @@ export function ListItemSkeleton(): React.JSX.Element {
 /** Generic stat card skeleton */
 export function StatCardSkeleton(): React.JSX.Element {
   return (
-    <div className="bg-card rounded-card p-4 flex items-center gap-3 shadow-[var(--shadow-card)]">
-      <Skeleton className="w-10 h-10 rounded-xl flex-shrink-0" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-5 w-16" />
-        <Skeleton className="h-3 w-24" />
-      </div>
+    <div className="bg-card rounded-card border border-divider p-4 shadow-[var(--shadow-card)]">
+      <Skeleton className="h-2.5 w-20" />
+      <Skeleton className="h-6 w-14 mt-2.5" />
     </div>
   )
 }

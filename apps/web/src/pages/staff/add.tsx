@@ -165,7 +165,7 @@ export default function StaffAddPage(): React.JSX.Element {
           <Card id="staff-invite-result-card">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-success-light flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-success-light flex items-center justify-center flex-shrink-0">
                   <Link2 size={22} className="text-success" />
                 </div>
                 <div>
@@ -179,7 +179,7 @@ export default function StaffAddPage(): React.JSX.Element {
               </div>
 
               {/* Link Preview */}
-              <div className="bg-bg rounded-xl p-3 border border-border">
+              <div className="bg-bg p-3 border border-border">
                 <p className="text-xs text-text-secondary break-all font-mono leading-relaxed">
                   {inviteUrl}
                 </p>

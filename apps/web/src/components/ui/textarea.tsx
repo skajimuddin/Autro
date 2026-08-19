@@ -1,4 +1,4 @@
-// Textarea — same styling as Input but multiline
+// Textarea — same flat styling as Input, multiline. Restyled 2026-08-19.
 import type React from 'react'
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -19,8 +19,7 @@ export function Textarea({
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Matches Input: demo label is 0.95rem/600 secondary */}
+    <div className="flex flex-col gap-1.5">
       {label && (
         <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
           {label}
@@ -32,8 +31,7 @@ export function Textarea({
         id={inputId}
         rows={rows}
         className={[
-          // Demo .input-group textarea: 16px padding, radius 12px, 1rem text
-          'w-full rounded-input border bg-card text-text text-base font-normal px-4 py-4',
+          'w-full rounded-input border-[1.5px] bg-card text-text text-row-title font-normal px-3 py-3',
           'placeholder:text-text-muted resize-none leading-normal',
           'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
           error ? 'border-danger' : 'border-border',
@@ -42,8 +40,8 @@ export function Textarea({
         {...rest}
       />
 
-      {error && <p className="text-xs text-danger">{error}</p>}
-      {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
+      {error && <p className="text-row-sub text-danger">{error}</p>}
+      {hint && !error && <p className="text-row-sub text-text-muted">{hint}</p>}
     </div>
   )
 }

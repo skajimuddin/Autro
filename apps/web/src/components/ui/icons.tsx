@@ -1,80 +1,76 @@
-// Icons — FontAwesome 6 solid, re-exported under the names the app already uses.
+// Icons — Lucide, via react-icons/lu, re-exported under the names the app uses.
 //
 // WHY THIS FILE EXISTS
-// The approved visual reference (planning/demo-ui) uses FontAwesome **solid**:
-// filled, heavy glyphs. The first build used Lucide, whose 2px outline strokes read
-// as noticeably thinner and weaker at the same size. The owner reviewed both and
-// chose the demo's icons, and amended the Icons row in AGENTS.md accordingly.
+// planning/design_handoff_autro_ui (the current visual reference — see
+// DESIGN.md) draws every icon as a 2px-stroke, round-cap outline glyph —
+// literally Lucide's own path style. The app previously used FontAwesome
+// **solid** (filled, heavy) glyphs, chosen against an earlier demo that no
+// longer governs the design. Switched back to match the current handoff.
 //
-// Each icon is exported under its previous Lucide name, so pages only change their
-// import source — no JSX edits, no prop churn across 27 files, and swapping icon
-// libraries again later is a one-file change.
+// Each icon is exported under the same semantic name as before, so pages only
+// change their import source when a name is actually wrong for its icon (see
+// the vehicles/add.tsx Camera→Car/Save fix) — no wide JSX churn. Swapping
+// icon libraries again later is still a one-file change.
 //
-// NOTE ON PROPS: react-icons accepts `size` and `className` exactly like Lucide, so
-// existing call sites keep working. `strokeWidth` is meaningless on a filled glyph;
-// it is accepted (it is a valid SVG attribute) and simply has no effect. Leaving it
-// in place is harmless — do not churn files just to strip it.
-//
-// Where the demo used a specific glyph, that glyph wins. The mapping is annotated
-// with the demo's original class so the provenance is checkable.
+// NOTE ON PROPS: react-icons accepts `size`, `className` and `strokeWidth`
+// identically across its sets, so existing call sites keep working — Lucide
+// glyphs actually use strokeWidth (FontAwesome's filled glyphs ignored it).
 export {
-  // ── Present in planning/demo-ui ────────────────────────────────────────────
-  FaArrowLeft as ArrowLeft, //            fa-arrow-left
-  FaCamera as Camera, //                  fa-camera
-  FaCarSide as Car, //                    fa-car-side (demo hero) / fa-car (nav)
-  FaCheck as Check, //                    fa-check
-  FaCircleCheck as CheckCircle, //        fa-circle-check
-  FaCircleCheck as CheckCircle2, //       fa-circle-check
-  FaGear as Settings, //                  fa-gear
-  FaHouse as Home, //                     fa-house
-  FaMagnifyingGlass as Search, //         fa-magnifying-glass
-  FaPlus as Plus, //                      fa-plus
-  FaPrint as Printer, //                  fa-print
-  FaQrcode as QrCode, //                  fa-qrcode
-  FaReceipt as Receipt, //                fa-receipt
-  FaRotateRight as RefreshCw, //          fa-rotate-right
-  FaTriangleExclamation as AlertTriangle, // fa-triangle-exclamation
-  FaUser as User, //                      fa-user
-  FaUsers as Users, //                    fa-users
-  FaFileInvoiceDollar as FileText, //     fa-file-invoice-dollar (New Estimate)
+  LuArrowLeft as ArrowLeft,
+  LuCamera as Camera,
+  LuCar as Car,
+  LuCheck as Check,
+  LuCircleCheck as CheckCircle,
+  LuCircleCheck as CheckCircle2,
+  LuSettings as Settings,
+  LuHouse as Home,
+  LuSearch as Search,
+  LuPlus as Plus,
+  LuPrinter as Printer,
+  LuQrCode as QrCode,
+  LuReceipt as Receipt,
+  LuRotateCw as RefreshCw,
+  LuTriangleAlert as AlertTriangle,
+  LuUser as User,
+  LuUsers as Users,
+  LuFileText as FileText,
 
-  // ── No demo equivalent: nearest FontAwesome solid ─────────────────────────
-  FaArrowRight as ArrowRight,
-  FaBuilding as Building2,
-  FaCalendarDays as CalendarDays,
-  FaChevronDown as ChevronDown,
-  FaChevronRight as ChevronRight,
-  FaCircleExclamation as AlertCircle,
-  FaCircleXmark as XCircle,
-  FaClock as Clock,
-  FaCopy as Copy,
-  FaCreditCard as CreditCard,
-  FaEnvelope as Mail,
-  FaFileArrowDown as FileDown,
-  FaFloppyDisk as Save,
-  FaHashtag as Hash,
-  FaImages as ImagePlus,
-  FaIndianRupeeSign as IndianRupee,
-  FaLink as Link2,
-  FaLocationArrow as Navigation,
-  FaLocationDot as MapPin,
-  FaMapLocationDot as MapPinned,
-  FaMobileScreen as Smartphone,
-  FaMoneyBillWave as Banknote,
-  FaPen as Edit3,
-  FaPercent as Percent,
-  FaPhone as Phone,
-  FaQrcode as ScanLine, //                the "scan this code" affordance
-  FaRightFromBracket as LogOut,
-  FaRightToBracket as LogIn,
-  FaShareNodes as Share2,
-  FaShieldHalved as Shield,
-  FaSpinner as Loader2, //                pair with `animate-spin-fast`
-  FaToggleOff as ToggleLeft,
-  FaToggleOn as ToggleRight,
-  FaTrash as Trash2,
-  FaTruck as Truck,
-  FaWallet as Wallet,
-  FaWrench as Wrench,
-  FaXmark as X, //                        close / dismiss affordance
-} from 'react-icons/fa6'
+  LuArrowRight as ArrowRight,
+  LuBuilding2 as Building2,
+  LuCalendarDays as CalendarDays,
+  LuChevronDown as ChevronDown,
+  LuChevronRight as ChevronRight,
+  LuCircleAlert as AlertCircle,
+  LuCircleX as XCircle,
+  LuClock as Clock,
+  LuCopy as Copy,
+  LuCreditCard as CreditCard,
+  LuMail as Mail,
+  LuFileDown as FileDown,
+  LuSave as Save,
+  LuHash as Hash,
+  LuImagePlus as ImagePlus,
+  LuIndianRupee as IndianRupee,
+  LuLink2 as Link2,
+  LuNavigation as Navigation,
+  LuMapPin as MapPin,
+  LuMapPinned as MapPinned,
+  LuSmartphone as Smartphone,
+  LuBanknote as Banknote,
+  LuPenLine as Edit3,
+  LuPercent as Percent,
+  LuPhone as Phone,
+  LuScanLine as ScanLine,
+  LuLogOut as LogOut,
+  LuLogIn as LogIn,
+  LuShare2 as Share2,
+  LuShield as Shield,
+  LuLoaderCircle as Loader2, //          pair with `animate-spin-fast`
+  LuToggleLeft as ToggleLeft,
+  LuToggleRight as ToggleRight,
+  LuTrash2 as Trash2,
+  LuTruck as Truck,
+  LuWallet as Wallet,
+  LuWrench as Wrench,
+  LuX as X, //                          close / dismiss affordance
+} from 'react-icons/lu'

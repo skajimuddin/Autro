@@ -31,7 +31,7 @@ import {
   Input,
   Modal,
   PriceRow,
-  TotalRow,
+  SegmentedControl,
   useToast,
   ToastContainer,
 } from '@/components/ui'
@@ -338,14 +338,15 @@ export default function InvoiceEditorPage(): React.JSX.Element {
     <PageShell title="Invoice" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 flex flex-col gap-4">
+      <div className="p-4 md:p-6 md:grid md:grid-cols-[1fr_380px] md:gap-6 md:items-start">
+      <div className="flex flex-col gap-4">
         {/* ── Left accent if from estimate ──────────────────────── */}
         {fromEstimate && (
-          <div className="border-l-4 border-primary bg-primary-light/30 rounded-r-card px-4 py-2.5">
-            <p className="text-xs font-semibold text-primary">
+          <div className="border-l-4 border-primary bg-primary-light/30 px-4 py-2.5">
+            <p className="text-row-sub font-semibold text-primary">
               Imported from Estimate
             </p>
-            <p className="text-[0.65rem] text-text-secondary mt-0.5">
+            <p className="text-row-sub text-text-secondary mt-0.5">
               Items have been pre-filled. You can edit them before saving.
             </p>
           </div>
@@ -353,64 +354,64 @@ export default function InvoiceEditorPage(): React.JSX.Element {
 
         {/* ── Items Section ────────────────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
             <Receipt size={13} />
             Items
           </h3>
 
-          <Card className="!p-3 flex flex-col gap-3">
+          <Card className="!p-3 flex flex-col gap-2">
             {items.map((item) => (
-              <div key={item.tempId} className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'description', e.target.value)
-                    }
-                    placeholder="Item description"
-                    className="flex-1 h-10 rounded-input border border-border bg-card text-text text-sm px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.tempId)}
-                    className="w-10 h-10 rounded-input flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
-                    aria-label="Remove item"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={item.amount}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'amount', e.target.value)
-                    }
-                    placeholder="₹ Amount"
-                    className="flex-1 h-10 rounded-input border border-border bg-card text-text text-sm px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'quantity', e.target.value)
-                    }
-                    placeholder="Qty"
-                    className="w-16 h-10 rounded-input border border-border bg-card text-text text-sm px-3 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
+              <div key={item.tempId} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'description', e.target.value)
+                  }
+                  placeholder="Item description"
+                  className="flex-1 min-w-0 h-10 border-[1.5px] border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'quantity', e.target.value)
+                  }
+                  placeholder="Qty"
+                  aria-label="Quantity"
+                  className="w-12 h-10 border-[1.5px] border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  value={item.amount}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'amount', e.target.value)
+                  }
+                  placeholder="₹ Amount"
+                  aria-label="Amount"
+                  className="w-24 h-10 border-[1.5px] border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(item.tempId)}
+                  className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
+                  aria-label="Remove item"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             ))}
 
             <Button
               id="invoice-add-item"
-              variant="dashed"
+              variant="ghost"
               size="sm"
-              leftIcon={<Plus size={16} />}
+              fullWidth={false}
+              leftIcon={<Plus size={14} />}
               onClick={addItem}
+              className="self-start !px-0 hover:!bg-transparent hover:!text-primary"
             >
-              Add Item
+              Add line item
             </Button>
           </Card>
         </section>
@@ -445,30 +446,16 @@ export default function InvoiceEditorPage(): React.JSX.Element {
         <Card>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-text">Discount</span>
-            <div className="flex rounded-full border border-border overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setDiscountType('FLAT')}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
-                  discountType === 'FLAT'
-                    ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:bg-bg'
-                }`}
-              >
-                ₹ Flat
-              </button>
-              <button
-                type="button"
-                onClick={() => setDiscountType('PERCENT')}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
-                  discountType === 'PERCENT'
-                    ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:bg-bg'
-                }`}
-              >
-                %
-              </button>
-            </div>
+            <SegmentedControl
+              id="invoice-discount-type"
+              aria-label="Discount type"
+              value={discountType}
+              onChange={setDiscountType}
+              options={[
+                { value: 'FLAT', label: '₹ Flat' },
+                { value: 'PERCENT', label: '%' },
+              ]}
+            />
           </div>
           <Input
             type="number"
@@ -485,8 +472,8 @@ export default function InvoiceEditorPage(): React.JSX.Element {
           />
         </Card>
 
-        {/* ── Totals ───────────────────────────────────────────── */}
-        <Card id="invoice-totals">
+        {/* ── Line breakdown (subtotal/tax/discount) ────────────── */}
+        <Card>
           <PriceRow name="Subtotal" price={subtotal} />
           {taxEnabled && taxAmount > 0 && (
             <PriceRow name={`Tax (${taxPercent}%)`} price={taxAmount} />
@@ -497,79 +484,86 @@ export default function InvoiceEditorPage(): React.JSX.Element {
               price={-discountAmount}
             />
           )}
-          <TotalRow total={grandTotal} />
+        </Card>
+      </div>
+
+      {/* ── Total due + actions (right column at md:+) ───────────── */}
+      <div className="flex flex-col gap-3 mt-4 md:mt-0 pb-6">
+        <Card id="invoice-totals" elevated className="flex flex-col gap-1">
+          <span className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
+            Total due
+          </span>
+          <span className="text-value-xl font-bold text-primary tabular-nums">
+            ₹{grandTotal.toLocaleString('en-IN')}
+          </span>
         </Card>
 
-        {/* ── Actions ──────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3 pb-6">
-          {/* PDF + Print */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              id="invoice-pdf"
-              variant="outline"
-              size="sm"
-              leftIcon={<FileDown size={16} />}
-              isLoading={isGeneratingPdf}
-              onClick={handleDownloadPdf}
-            >
-              PDF
-            </Button>
-            <Button
-              id="invoice-print"
-              variant="outline"
-              size="sm"
-              leftIcon={<Printer size={16} />}
-              onClick={() => window.print()}
-            >
-              Print
-            </Button>
-          </div>
-
+        <div className="grid grid-cols-2 gap-3">
           <Button
-            id="invoice-share-whatsapp"
+            id="invoice-pdf"
             variant="outline"
-            leftIcon={<Share2 size={16} />}
-            onClick={handleWhatsAppShare}
+            size="sm"
+            leftIcon={<FileDown size={16} />}
+            isLoading={isGeneratingPdf}
+            onClick={handleDownloadPdf}
           >
-            Share on WhatsApp
+            PDF
           </Button>
-
-          {!isPaid && (
-            <Button
-              id="invoice-mark-paid"
-              variant="success"
-              leftIcon={<CheckCircle2 size={18} />}
-              onClick={() => {
-                if (!isNew && id) {
-                  setShowPaymentModal(true)
-                } else {
-                  showToast('error', 'Save the invoice first')
-                }
-              }}
-            >
-              Mark as Paid
-            </Button>
-          )}
-
-          {isPaid && (
-            <div className="flex items-center justify-center gap-2 py-3 bg-success-light rounded-card">
-              <CheckCircle2 size={18} className="text-success" />
-              <span className="text-sm font-bold text-success">Paid</span>
-            </div>
-          )}
-
-          {!isPaid && (
-            <Button
-              id="invoice-save"
-              variant="ghost"
-              leftIcon={<Save size={16} />}
-              isLoading={saveMutation.isPending}
-              onClick={() => saveMutation.mutate()}
-            >
-              Save Draft
-            </Button>
-          )}
+          <Button
+            id="invoice-print"
+            variant="outline"
+            size="sm"
+            leftIcon={<Printer size={16} />}
+            onClick={() => window.print()}
+          >
+            Print
+          </Button>
         </div>
+
+        <Button
+          id="invoice-share-whatsapp"
+          leftIcon={<Share2 size={16} />}
+          onClick={handleWhatsAppShare}
+        >
+          Share on WhatsApp
+        </Button>
+
+        {!isPaid && (
+          <Button
+            id="invoice-mark-paid"
+            variant="success"
+            leftIcon={<CheckCircle2 size={18} />}
+            onClick={() => {
+              if (!isNew && id) {
+                setShowPaymentModal(true)
+              } else {
+                showToast('error', 'Save the invoice first')
+              }
+            }}
+          >
+            Mark as Paid
+          </Button>
+        )}
+
+        {isPaid && (
+          <div className="flex items-center justify-center gap-2 py-3 bg-success-light border border-success/30">
+            <CheckCircle2 size={18} className="text-success" />
+            <span className="text-row-title font-bold text-success">Paid</span>
+          </div>
+        )}
+
+        {!isPaid && (
+          <Button
+            id="invoice-save"
+            variant="ghost"
+            leftIcon={<Save size={16} />}
+            isLoading={saveMutation.isPending}
+            onClick={() => saveMutation.mutate()}
+          >
+            Save Draft
+          </Button>
+        )}
+      </div>
       </div>
 
       {/* ── Payment Method Modal ───────────────────────────────── */}
@@ -588,7 +582,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
               disabled={payMutation.isPending}
               className="flex items-center gap-3 px-4 py-3 rounded-card border border-border hover:border-primary hover:bg-primary-light/30 transition-colors text-left"
             >
-              <div className="w-10 h-10 rounded-xl bg-bg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-bg flex items-center justify-center flex-shrink-0">
                 <Icon size={20} className="text-text-secondary" />
               </div>
               <span className="text-sm font-semibold text-text">{label}</span>

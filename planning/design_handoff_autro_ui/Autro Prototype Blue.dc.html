@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-807fcbc8-e951-4c4d-8495-9aacaf00b254/styles.css">
+  <script src="_ds/modernist-807fcbc8-e951-4c4d-8495-9aacaf00b254/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    :root{
+      --color-accent:#2b62dd;
+      --color-accent-100:#e6edfc;
+      --color-accent-200:#c4d5f8;
+      --color-accent-300:#94b2f1;
+      --color-accent-400:#5a88e8;
+      --color-accent-500:#2b62dd;
+      --color-accent-600:#2452bc;
+      --color-accent-700:#1e449b;
+      --color-accent-800:#18367b;
+      --color-accent-900:#12275a;
+      --color-accent-2:#2b62dd;
+      --color-accent-2-100:#e6edfc;
+      --color-accent-2-500:#2b62dd;
+      --color-accent-2-700:#1e449b;
+    }
+    body{margin:0;background:var(--color-bg);}
+    a{color:var(--color-accent-700);}
+    a:hover{color:var(--color-accent);}
+    .app-shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+    .app-sidebar{display:flex;}
+    .app-bottombar{display:none;}
+    .app-grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:var(--space-6);}
+    .app-grid-inv{display:grid;grid-template-columns:1fr 380px;gap:var(--space-6);}
+    .app-grid-att{display:grid;grid-template-columns:260px 1fr;gap:var(--space-6);}
+    .app-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);}
+    .app-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);}
+    .app-content{padding:var(--space-6);}
+    .app-only-desktop{display:inline-flex;}
+    .app-only-mobile{display:none;}
+    .btn{white-space:nowrap;}
+    .seg{flex-wrap:nowrap;}
+    .seg-opt{white-space:nowrap;}
+    .card-kicker{white-space:nowrap;}
+    .row-title{font:600 14px var(--font-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .row-sub{font-size:12px;opacity:0.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .row-label{font-size:14px;white-space:nowrap;}
+    image-slot{--is-placeholder-size:9px;}
+    @media (max-width: 860px) {
+      .app-shell{display:flex;flex-direction:column;}
+      .app-sidebar{display:none;}
+      .app-bottombar{display:flex;}
+      .app-grid-2{grid-template-columns:1fr;}
+      .app-grid-inv{grid-template-columns:1fr;}
+      .app-grid-att{grid-template-columns:1fr;}
+      .app-stats{grid-template-columns:repeat(3,1fr);gap:var(--space-2);}
+      .app-content{padding:var(--space-4);padding-bottom:calc(var(--space-4) + 64px);}
+      .app-only-desktop{display:none;}
+      .app-only-mobile{display:inline-flex;}
+    }
+    @media (max-width: 480px) {
+      .app-stats{grid-template-columns:1fr 1fr;}
+      .app-photos{grid-template-columns:repeat(3,1fr);gap:var(--space-2);}
+    }
+  </style>
+</helmet>
+<div style="display:flex;align-items:center;gap:14px;justify-content:center;padding:12px 20px;font-family:var(--font-body);border-bottom:2px solid var(--color-divider);background:var(--color-bg);">
+  <span style="font:11px var(--font-body);letter-spacing:0.1em;text-transform:uppercase;opacity:0.5;white-space:nowrap;">View as</span>
+  <div class="seg" role="radiogroup" aria-label="Role" style="flex:none;">
+    <label class="seg-opt"><input type="radio" name="role" checked="{{ isOwnerRole }}" onChange="{{ setRoleOwner }}"/>Owner</label>
+    <label class="seg-opt"><input type="radio" name="role" checked="{{ isStaffRole }}" onChange="{{ setRoleStaff }}"/>Staff</label>
+  </div>
+  <span style="font-size:11px;opacity:0.4;white-space:nowrap;">— resize the window to see it adapt</span>
+</div>
+
+<div style="font-family:var(--font-body);color:var(--color-text);min-height:100vh;">
+
+  <sc-if value="{{ isStaffRole }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:520px;margin:0 auto;padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);">
+      <div><div style="font:700 26px var(--font-heading);">Autro</div><div style="font:12px var(--font-body);opacity:0.55;margin-top:2px;">Staff attendance</div></div>
+      <div class="card elev-md" style="display:flex;flex-direction:column;gap:var(--space-3);">
+        <div class="card-kicker">Status</div>
+        <div class="card-title">{{ staffStatusLabel }}</div>
+        <sc-if value="{{ staffCheckedIn }}" hint-placeholder-val="{{ false }}">
+          <p class="card-body">Checked in at {{ staffCheckInTime }} · GPS verified at Autro Garage.</p>
+          <button type="button" class="btn btn-primary" onClick="{{ staffCheckOut }}" style="align-self:flex-start;">Check out<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        </sc-if>
+        <sc-if value="{{ staffNotCheckedIn }}" hint-placeholder-val="{{ true }}">
+          <p class="card-body">Scan the QR code at the garage entrance to check in.</p>
+          <button type="button" class="btn btn-primary" onClick="{{ staffCheckIn }}" style="align-self:flex-start;">Scan &amp; check in<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        </sc-if>
+      </div>
+      <div>
+        <div style="font:11px var(--font-body);letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;white-space:nowrap;margin-bottom:var(--space-2);">This week</div>
+        <div class="hr" style="margin-bottom:var(--space-2);"></div>
+        <sc-for list="{{ staffHistory }}" as="row" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--color-divider);">
+            <div style="min-width:0;flex:1;"><div class="row-title">{{ row.day }}</div><div class="row-sub">{{ row.time }}</div></div>
+            <span class="tag {{ row.tagClass }}">{{ row.tagLabel }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isOwnerRole }}" hint-placeholder-val="{{ true }}">
+
+    <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+      <div style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--space-6);gap:var(--space-6);text-align:center;">
+        <img src="uploads/apple-touch-icon.png" alt="Autro" style="width:64px;height:64px;display:block;"/>
+        <div>
+          <div style="font:700 32px var(--font-heading);">Autro</div>
+          <p style="font-size:14px;opacity:0.6;margin-top:8px;max-width:32ch;">Garage management, simplified. Vehicles, estimates and invoices in one place.</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-block" onClick="{{ goOnboarding }}" style="width:min(320px,80vw);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>Continue with Google</button>
+        <p style="font-size:11px;opacity:0.45;">Owner login only. Staff sign in for attendance.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:center;padding:var(--space-6) var(--space-4);">
+        <div style="width:min(420px,100%);display:flex;flex-direction:column;gap:var(--space-4);">
+          <div><div style="font:700 26px var(--font-heading);">Set up your garage</div><div style="font:12px var(--font-body);opacity:0.55;margin-top:2px;">Takes under a minute</div></div>
+          <div class="field"><label>Garage name</label><input class="input" value="Sharma Auto Works"/></div>
+          <div class="field"><label>Phone number</label><input class="input" value="+91 98765 43210"/></div>
+          <div class="field"><label>Address</label><textarea class="input" rows="2">Plot 14, GT Road, Ludhiana</textarea></div>
+          <div class="field"><label>Logo (optional)</label>
+            <div style="border:2px dashed var(--color-divider);height:64px;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0.5;">Upload logo</div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onClick="{{ goDashboard }}" style="margin-top:var(--space-2);">Create garage<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMainApp }}" hint-placeholder-val="{{ false }}">
+      <div class="app-shell">
+        <div class="app-sidebar" style="flex-direction:column;border-right:2px solid var(--color-divider);">
+          <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);">
+            <div style="font:700 20px var(--font-heading);">Autro</div>
+            <div style="font:11px var(--font-body);opacity:0.5;margin-top:2px;">Sharma Auto Works</div>
+          </div>
+          <div style="display:flex;flex-direction:column;padding:var(--space-3) 0;flex:1;">
+            <button type="button" onClick="{{ goDashboard }}" style="display:flex;align-items:center;gap:10px;padding:var(--space-3) var(--space-4);background:{{ navDashboardBg }};border:none;border-left:3px solid {{ tabDashboardColor }};font:13px var(--font-body);font-weight:600;color:{{ tabDashboardColor }};cursor:pointer;text-align:left;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7"/><path d="M9 22V12h6v10"/></svg>Dashboard
+            </button>
+            <button type="button" onClick="{{ goVehicles }}" style="display:flex;align-items:center;gap:10px;padding:var(--space-3) var(--space-4);background:{{ navVehiclesBg }};border:none;border-left:3px solid {{ tabVehiclesColor }};font:13px var(--font-body);font-weight:600;color:{{ tabVehiclesColor }};cursor:pointer;text-align:left;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><path d="M3 11h18v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg>Vehicles
+            </button>
+            <button type="button" onClick="{{ goAttendance }}" style="display:flex;align-items:center;gap:10px;padding:var(--space-3) var(--space-4);background:{{ navAttendanceBg }};border:none;border-left:3px solid {{ tabAttendanceColor }};font:13px var(--font-body);font-weight:600;color:{{ tabAttendanceColor }};cursor:pointer;text-align:left;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-6"/></svg>Attendance
+            </button>
+            <button type="button" onClick="{{ goSettings }}" style="display:flex;align-items:center;gap:10px;padding:var(--space-3) var(--space-4);background:{{ navSettingsBg }};border:none;border-left:3px solid {{ tabSettingsColor }};font:13px var(--font-body);font-weight:600;color:{{ tabSettingsColor }};cursor:pointer;text-align:left;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M2 12h4M18 12h4M4.2 19.8L7 17M17 7l2.8-2.8"/></svg>Settings
+            </button>
+          </div>
+          <button type="button" class="btn btn-ghost" onClick="{{ goLogin }}" style="margin:var(--space-3);">Sign out</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-width:0;">
+
+          <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;justify-content:space-between;align-items:center;">
+              <div style="font:700 24px var(--font-heading);">Dashboard</div>
+              <button type="button" class="btn btn-ghost btn-icon app-only-mobile" aria-label="Profile" onClick="{{ goSettings }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></button>
+            </div>
+            <div class="app-content" style="display:flex;flex-direction:column;gap:var(--space-6);max-width:1000px;">
+              <div class="app-stats">
+                <div class="card" style="padding:var(--space-4);"><div class="card-kicker">Active repairs</div><div style="font:700 28px var(--font-heading);margin-top:6px;">{{ stats.active }}</div></div>
+                <div class="card" style="padding:var(--space-4);"><div class="card-kicker">Ready</div><div style="font:700 28px var(--font-heading);margin-top:6px;">{{ stats.ready }}</div></div>
+                <div class="card" style="padding:var(--space-4);"><div class="card-kicker">This month</div><div style="font:700 22px var(--font-heading);margin-top:6px;">{{ stats.revenue }}</div></div>
+              </div>
+              <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary" onClick="{{ goAddVehicle }}">+ Add vehicle</button>
+                <button type="button" class="btn btn-secondary" onClick="{{ goVehicles }}">View all vehicles</button>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-2);">
+                  <span style="font:11px var(--font-body);letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;white-space:nowrap;">Recent vehicles</span>
+                  <a href="#" onClick="{{ goVehicles }}" style="font-size:13px;">See all</a>
+                </div>
+                <div class="hr" style="margin-bottom:var(--space-2);"></div>
+                <sc-for list="{{ recentVehicles }}" as="v" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider);cursor:pointer;" onClick="{{ v.open }}">
+                    <div style="display:flex;align-items:center;gap:var(--space-3);min-width:0;flex:1;">
+                      <div style="width:56px;height:56px;flex:none;border:2px solid var(--color-divider);display:flex;align-items:center;justify-content:center;color:var(--color-text);opacity:0.3;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><path d="M3 11h18v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg></div>
+                      <div style="min-width:0;flex:1;"><div class="row-title">{{ v.plate }}</div><div class="row-sub">{{ v.owner }} · {{ v.model }}</div></div>
+                    </div>
+                    <span class="tag {{ v.tagClass }}">{{ v.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isVehicles }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+              <div style="font:700 24px var(--font-heading);">Vehicles</div>
+              <button type="button" class="btn btn-primary" onClick="{{ goAddVehicle }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add vehicle</button>
+            </div>
+            <div class="app-content" style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <input class="input" style="max-width:360px;" placeholder="Search plate or owner" value="{{ search }}" onChange="{{ onSearch }}"/>
+              <div class="seg" role="radiogroup" aria-label="Status filter" style="max-width:420px;">
+                <label class="seg-opt"><input type="radio" name="filter" checked="{{ filterAll }}" onChange="{{ setFilterAll }}"/>All</label>
+                <label class="seg-opt"><input type="radio" name="filter" checked="{{ filterRepairing }}" onChange="{{ setFilterRepairing }}"/>Repairing</label>
+                <label class="seg-opt"><input type="radio" name="filter" checked="{{ filterReady }}" onChange="{{ setFilterReady }}"/>Ready</label>
+              </div>
+              <sc-for list="{{ filteredVehicles }}" as="v" hint-placeholder-count="5">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider);cursor:pointer;" onClick="{{ v.open }}">
+                  <div style="display:flex;align-items:center;gap:var(--space-3);min-width:0;flex:1;">
+                    <div style="width:56px;height:56px;flex:none;border:2px solid var(--color-divider);display:flex;align-items:center;justify-content:center;color:var(--color-text);opacity:0.3;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><path d="M3 11h18v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg></div>
+                    <div style="min-width:0;flex:1;"><div class="row-title">{{ v.plate }}</div><div class="row-sub">{{ v.owner }} · {{ v.model }}</div></div>
+                  </div>
+                  <span class="tag {{ v.tagClass }}">{{ v.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isVehicleDetail }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:var(--space-3);">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ goBack }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div><div style="font:700 20px var(--font-heading);">{{ selectedVehicle.plate }}</div><div style="font-size:12px;opacity:0.55;white-space:nowrap;">{{ selectedVehicle.model }}</div></div>
+            </div>
+            <div class="app-content app-grid-2" style="max-width:1100px;">
+              <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+                <div class="seg" role="radiogroup" aria-label="Status">
+                  <label class="seg-opt"><input type="radio" name="vstatus" checked="{{ selectedVehicle.isRepairing }}" onChange="{{ setStatusRepairing }}"/>Repairing</label>
+                  <label class="seg-opt"><input type="radio" name="vstatus" checked="{{ selectedVehicle.isReady }}" onChange="{{ setStatusReady }}"/>Ready</label>
+                  <label class="seg-opt"><input type="radio" name="vstatus" checked="{{ selectedVehicle.isDelivered }}" onChange="{{ setStatusDelivered }}"/>Delivered</label>
+                </div>
+                <div>
+                  <div style="font:11px var(--font-body);letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;white-space:nowrap;margin-bottom:var(--space-2);">Photos</div>
+                  <div class="app-photos">
+                    <div style="aspect-ratio:1;max-height:160px;overflow:hidden;"><image-slot id="vphoto-front" shape="rect" style="width:100%;height:100%;" placeholder="Front"></image-slot></div>
+                    <div style="aspect-ratio:1;max-height:160px;overflow:hidden;"><image-slot id="vphoto-damage" shape="rect" style="width:100%;height:100%;" placeholder="Damage"></image-slot></div>
+                    <div style="aspect-ratio:1;max-height:160px;overflow:hidden;"><image-slot id="vphoto-extra" shape="rect" style="width:100%;height:100%;" placeholder="Add photo"></image-slot></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+                  <button type="button" class="btn btn-secondary btn-block" style="flex:1;min-width:140px;">Call customer</button>
+                  <button type="button" class="btn btn-primary btn-block" style="flex:1;min-width:140px;" onClick="{{ goEstimate }}">Create estimate</button>
+                </div>
+              </div>
+              <div class="card" style="display:flex;flex-direction:column;gap:6px;align-self:start;">
+                <div class="card-kicker">Customer</div>
+                <div class="card-title">{{ selectedVehicle.owner }}</div>
+                <p class="card-body">{{ selectedVehicle.phone }} · Vehicle in since {{ selectedVehicle.dateIn }}</p>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isAddVehicle }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:var(--space-3);">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ goBack }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div style="font:700 20px var(--font-heading);">Add vehicle</div>
+            </div>
+            <div class="app-content" style="max-width:520px;display:flex;flex-direction:column;gap:var(--space-4);">
+              <div class="field"><label>Customer name</label><input class="input" placeholder="e.g. Ramesh Kumar"/></div>
+              <div class="field"><label>Phone number</label><input class="input" placeholder="+91"/></div>
+              <div class="field"><label>Vehicle type</label>
+                <div class="seg" role="radiogroup" aria-label="Vehicle type">
+                  <label class="seg-opt"><input type="radio" name="vtype" defaultChecked="true"/>Car</label>
+                  <label class="seg-opt"><input type="radio" name="vtype"/>Bike</label>
+                  <label class="seg-opt"><input type="radio" name="vtype"/>Truck</label>
+                  <label class="seg-opt"><input type="radio" name="vtype"/>Auto</label>
+                </div>
+              </div>
+              <div class="field"><label>Plate number</label><input class="input" placeholder="e.g. PB10 AB1234"/></div>
+              <div class="field"><label>Model</label><input class="input" placeholder="e.g. Maruti Swift"/></div>
+              <div class="field"><label>Notes</label><textarea class="input" rows="3" placeholder="Reported issue"></textarea></div>
+              <button type="button" class="btn btn-primary" onClick="{{ goBack }}" style="align-self:flex-start;padding-left:var(--space-6);padding-right:var(--space-6);">Save vehicle</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isEstimate }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:var(--space-3);">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ goBack }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div><div style="font:700 20px var(--font-heading);">New estimate</div><div style="font-size:12px;opacity:0.55;white-space:nowrap;">{{ selectedVehicle.plate }}</div></div>
+            </div>
+            <div class="app-content" style="max-width:560px;display:flex;flex-direction:column;gap:var(--space-3);">
+              <sc-for list="{{ estimateItems }}" as="item" hint-placeholder-count="3">
+                <div style="display:flex;gap:var(--space-2);align-items:center;">
+                  <input class="input" style="flex:1;" value="{{ item.desc }}" onChange="{{ item.onDesc }}"/>
+                  <input class="input" style="width:100px;" value="{{ item.amt }}" onChange="{{ item.onAmt }}"/>
+                  <button type="button" class="btn btn-ghost btn-icon" aria-label="Remove" onClick="{{ item.remove }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                </div>
+              </sc-for>
+              <button type="button" class="btn btn-ghost" onClick="{{ addLineItem }}" style="align-self:flex-start;">+ Add line item</button>
+              <div class="hr"></div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px;"><span>Subtotal</span><span>₹{{ estimateSubtotal }}</span></div>
+              <button type="button" class="btn btn-primary" onClick="{{ goInvoice }}" style="align-self:flex-start;padding-left:var(--space-6);padding-right:var(--space-6);margin-top:var(--space-2);">Convert to invoice<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isInvoice }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:var(--space-3);">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ goBack }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <div><div style="font:700 20px var(--font-heading);">Invoice</div><div style="font-size:12px;opacity:0.55;white-space:nowrap;">{{ selectedVehicle.plate }}</div></div>
+            </div>
+            <div class="app-content app-grid-inv" style="max-width:1000px;">
+              <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+                <sc-for list="{{ estimateItems }}" as="item" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);font-size:14px;padding:6px 0;border-bottom:1px solid var(--color-divider);">
+                    <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.desc }}</span><span style="white-space:nowrap;font-weight:600;">₹{{ item.amt }}</span>
+                  </div>
+                </sc-for>
+                <div class="field">
+                  <label>Tax</label>
+                  <div class="seg" role="radiogroup" aria-label="Tax">
+                    <label class="seg-opt"><input type="radio" name="tax" checked="{{ taxOff }}" onChange="{{ setTaxOff }}"/>No tax</label>
+                    <label class="seg-opt"><input type="radio" name="tax" checked="{{ taxOn }}" onChange="{{ setTaxOn }}"/>Add GST 18%</label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Discount</label>
+                  <div style="display:flex;gap:var(--space-2);">
+                    <div class="seg" role="radiogroup" aria-label="Discount type" style="flex:1;">
+                      <label class="seg-opt"><input type="radio" name="disc" checked="{{ discFlat }}" onChange="{{ setDiscFlat }}"/>₹ flat</label>
+                      <label class="seg-opt"><input type="radio" name="disc" checked="{{ discPct }}" onChange="{{ setDiscPct }}"/>%</label>
+                    </div>
+                    <input class="input" style="width:100px;" value="{{ discountVal }}" onChange="{{ onDiscountVal }}"/>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Payment method</label>
+                  <div class="seg" role="radiogroup" aria-label="Payment method">
+                    <label class="seg-opt"><input type="radio" name="pay" checked="{{ payCash }}" onChange="{{ setPayCash }}"/>Cash</label>
+                    <label class="seg-opt"><input type="radio" name="pay" checked="{{ payUpi }}" onChange="{{ setPayUpi }}"/>UPI</label>
+                    <label class="seg-opt"><input type="radio" name="pay" checked="{{ payCard }}" onChange="{{ setPayCard }}"/>Card</label>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);align-self:start;">
+                <div class="card elev-md" style="display:flex;flex-direction:column;gap:4px;">
+                  <span class="card-kicker">Total due</span>
+                  <span style="font:700 28px var(--font-heading);color:var(--color-accent-700);">₹{{ invoiceTotal }}</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-block">PDF</button>
+                <button type="button" class="btn btn-primary btn-block">Share on WhatsApp<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isAttendance }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);">
+              <div style="font:700 24px var(--font-heading);">Attendance</div>
+              <div style="font:12px var(--font-body);opacity:0.55;margin-top:2px;">August 2026</div>
+            </div>
+            <div class="app-content app-grid-att" style="max-width:900px;">
+              <div class="card elev-md" style="display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);align-self:start;">
+                <div class="card-kicker">Static QR — display at entrance</div>
+                <div style="width:140px;height:140px;position:relative;background:#fff;border:2px solid var(--color-text);">
+                  <div style="position:absolute;top:6px;left:6px;width:28px;height:28px;border:5px solid var(--color-text);"></div>
+                  <div style="position:absolute;top:6px;right:6px;width:28px;height:28px;border:5px solid var(--color-text);"></div>
+                  <div style="position:absolute;bottom:6px;left:6px;width:28px;height:28px;border:5px solid var(--color-text);"></div>
+                  <div style="position:absolute;inset:44px;background:repeating-conic-gradient(var(--color-text) 0% 25%, transparent 0% 50%) 0 0/16px 16px;"></div>
+                </div>
+                <button type="button" class="btn btn-secondary">Download QR</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+                <div>
+                  <div style="font:11px var(--font-body);letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;white-space:nowrap;margin-bottom:var(--space-2);">Today's check-ins</div>
+                  <div class="hr" style="margin-bottom:var(--space-2);"></div>
+                  <sc-for list="{{ attendanceToday }}" as="row" hint-placeholder-count="3">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--color-divider);">
+                      <div style="min-width:0;flex:1;"><div class="row-title">{{ row.name }}</div><div class="row-sub">{{ row.time }}</div></div>
+                      <span class="tag {{ row.tagClass }}">{{ row.tagLabel }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div class="card"><div class="card-kicker">This month</div><div class="card-title">3 staff · 78 shifts</div></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);border-bottom:2px solid var(--color-divider);">
+              <div style="font:700 24px var(--font-heading);">Settings</div>
+            </div>
+            <div class="app-content" style="max-width:560px;display:flex;flex-direction:column;gap:var(--space-6);">
+              <div class="card" style="display:flex;flex-direction:column;gap:var(--space-2);">
+                <div class="card-kicker">Garage profile</div>
+                <div class="card-title">Sharma Auto Works</div>
+                <p class="card-body">+91 98765 43210 · Plot 14, GT Road, Ludhiana</p>
+                <button type="button" class="btn btn-secondary" style="align-self:flex-start;">Edit profile</button>
+              </div>
+              <div>
+                <div class="hr"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider);">
+                  <span class="row-label">Staff &amp; invitations</span>
+                  <svg width="8" height="14" viewBox="0 0 8 14" style="opacity:0.4;"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider);">
+                  <span class="row-label">Tax &amp; payment defaults</span>
+                  <svg width="8" height="14" viewBox="0 0 8 14" style="opacity:0.4;"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider);">
+                  <span class="row-label" style="opacity:0.45;">Dark mode</span><span class="tag tag-neutral">Soon</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-3) 0;">
+                  <span class="row-label" style="opacity:0.45;">Language — English</span><span class="tag tag-neutral">Soon</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-ghost" onClick="{{ goLogin }}" style="align-self:flex-start;">Sign out</button>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+
+      <div class="app-bottombar" style="border-top:2px solid var(--color-divider);background:var(--color-bg);position:fixed;bottom:0;left:0;right:0;">
+        <button type="button" onClick="{{ goDashboard }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 10px;background:none;border:none;font:11px var(--font-body);color:{{ tabDashboardColor }};cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7"/><path d="M9 22V12h6v10"/></svg>Home
+        </button>
+        <button type="button" onClick="{{ goVehicles }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 10px;background:none;border:none;font:11px var(--font-body);color:{{ tabVehiclesColor }};cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><path d="M3 11h18v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg>Vehicles
+        </button>
+        <button type="button" onClick="{{ goAttendance }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 10px;background:none;border:none;font:11px var(--font-body);color:{{ tabAttendanceColor }};cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-6"/></svg>Attendance
+        </button>
+        <button type="button" onClick="{{ goSettings }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 10px;background:none;border:none;font:11px var(--font-body);color:{{ tabSettingsColor }};cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M2 12h4M18 12h4M4.2 19.8L7 17M17 7l2.8-2.8"/></svg>Settings
+        </button>
+      </div>
+    </sc-if>
+
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    role: 'owner',
+    screen: 'login',
+    stack: [],
+    search: '',
+    filter: 'All',
+    selectedVehicleId: 'v1',
+    vehicles: [
+      { id: 'v1', plate: 'PB10 AB 1234', owner: 'Ramesh Kumar', phone: '+91 98765 11111', model: 'Maruti Swift', type: 'Car', status: 'Repairing', dateIn: 'Aug 12' },
+      { id: 'v2', plate: 'PB65 CD 5678', owner: 'Anita Verma', phone: '+91 98765 22222', model: 'Hero Splendor', type: 'Bike', status: 'Ready', dateIn: 'Aug 15' },
+      { id: 'v3', plate: 'PB08 EF 9012', owner: 'Suresh Singh', phone: '+91 98765 33333', model: 'Tata Ace', type: 'Truck', status: 'Delivered', dateIn: 'Aug 9' },
+      { id: 'v4', plate: 'PB29 GH 3456', owner: 'Priya Malhotra', phone: '+91 98765 44444', model: 'Hyundai i20', type: 'Car', status: 'Repairing', dateIn: 'Aug 17' },
+      { id: 'v5', plate: 'PB11 IJ 7890', owner: 'Vikram Rao', phone: '+91 98765 55555', model: 'Bajaj Auto', type: 'Auto', status: 'Ready', dateIn: 'Aug 16' },
+    ],
+    estimateItems: [
+      { desc: 'Engine oil change', amt: '800' },
+      { desc: 'Brake pad replacement', amt: '1200' },
+      { desc: 'Labor charge', amt: '500' },
+    ],
+    tax: false,
+    discountType: 'flat',
+    discountVal: '0',
+    payment: 'Cash',
+    staffCheckedIn: false,
+  };
+
+  nav = (screen) => this.setState(s => ({ stack: [...s.stack, s.screen], screen }));
+  tab = (screen) => this.setState({ screen, stack: [] });
+  back = () => this.setState(s => {
+    const stack = [...s.stack];
+    const prev = stack.pop() || 'dashboard';
+    return { stack, screen: prev };
+  });
+
+  tagClass(status) {
+    if (status === 'Ready') return 'tag-accent';
+    if (status === 'Repairing') return 'tag-outline';
+    return 'tag-neutral';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const mkVehicle = (v) => ({
+      ...v,
+      tagClass: this.tagClass(v.status),
+      thumbId: 'vthumb-' + v.id,
+      open: () => this.setState(prev => ({ selectedVehicleId: v.id, stack: [...prev.stack, prev.screen], screen: 'vehicleDetail' })),
+    });
+
+    const q = s.search.trim().toLowerCase();
+    const filtered = s.vehicles.filter(v => {
+      const matchesFilter = s.filter === 'All' || v.status === s.filter;
+      const matchesSearch = !q || v.plate.toLowerCase().includes(q) || v.owner.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+
+    const selected = s.vehicles.find(v => v.id === s.selectedVehicleId) || s.vehicles[0];
+    const selectedVehicle = {
+      ...selected,
+      isRepairing: selected.status === 'Repairing',
+      isReady: selected.status === 'Ready',
+      isDelivered: selected.status === 'Delivered',
+    };
+
+    const items = s.estimateItems.map((item, idx) => ({
+      desc: item.desc,
+      amt: item.amt,
+      onDesc: (e) => this.setState(prev => {
+        const arr = [...prev.estimateItems]; arr[idx] = { ...arr[idx], desc: e.target.value }; return { estimateItems: arr };
+      }),
+      onAmt: (e) => this.setState(prev => {
+        const arr = [...prev.estimateItems]; arr[idx] = { ...arr[idx], amt: e.target.value.replace(/[^0-9]/g, '') }; return { estimateItems: arr };
+      }),
+      remove: () => this.setState(prev => ({ estimateItems: prev.estimateItems.filter((_, i) => i !== idx) })),
+    }));
+
+    const subtotal = s.estimateItems.reduce((sum, it) => sum + (parseFloat(it.amt) || 0), 0);
+    const taxAmt = s.tax ? subtotal * 0.18 : 0;
+    const discAmt = s.discountType === 'flat' ? (parseFloat(s.discountVal) || 0) : subtotal * ((parseFloat(s.discountVal) || 0) / 100);
+    const total = Math.max(0, subtotal + taxAmt - discAmt);
+
+    const active = s.vehicles.filter(v => v.status === 'Repairing').length;
+    const ready = s.vehicles.filter(v => v.status === 'Ready').length;
+
+    const activeColor = 'var(--color-accent-700)';
+    const inactiveColor = 'rgba(32,30,29,0.45)';
+
+    const attendanceToday = [
+      { name: 'Mohan Lal', time: 'In 8:58 AM', tagClass: 'tag-accent', tagLabel: 'On time' },
+      { name: 'Deepak Yadav', time: 'In 9:14 AM', tagClass: 'tag-neutral', tagLabel: 'Late' },
+      { name: 'Sunil Thakur', time: 'Not checked in', tagClass: 'tag-outline', tagLabel: 'Pending' },
+    ];
+    const staffHistory = [
+      { day: 'Mon, Aug 17', time: '9:02 AM – 6:10 PM', tagClass: 'tag-accent', tagLabel: 'On time' },
+      { day: 'Tue, Aug 18', time: '9:11 AM – 6:05 PM', tagClass: 'tag-neutral', tagLabel: 'Late' },
+      { day: 'Wed, Aug 19', time: s.staffCheckedIn ? 'In progress' : 'Not started', tagClass: 'tag-outline', tagLabel: s.staffCheckedIn ? 'Active' : 'Pending' },
+    ];
+
+    const vehicleTabScreens = ['vehicles', 'vehicleDetail', 'addVehicle', 'estimate', 'invoice'];
+
+    return {
+      isOwnerRole: s.role === 'owner',
+      isStaffRole: s.role === 'staff',
+      setRoleOwner: () => this.setState({ role: 'owner' }),
+      setRoleStaff: () => this.setState({ role: 'staff' }),
+
+      staffCheckedIn: s.staffCheckedIn,
+      staffNotCheckedIn: !s.staffCheckedIn,
+      staffStatusLabel: s.staffCheckedIn ? 'Checked in' : 'Not checked in',
+      staffCheckInTime: '9:03 AM',
+      staffCheckIn: () => this.setState({ staffCheckedIn: true }),
+      staffCheckOut: () => this.setState({ staffCheckedIn: false }),
+      staffHistory,
+
+      isLogin: s.screen === 'login',
+      isOnboarding: s.screen === 'onboarding',
+      isMainApp: !['login', 'onboarding'].includes(s.screen),
+      isDashboard: s.screen === 'dashboard',
+      isVehicles: s.screen === 'vehicles',
+      isVehicleDetail: s.screen === 'vehicleDetail',
+      isAddVehicle: s.screen === 'addVehicle',
+      isEstimate: s.screen === 'estimate',
+      isInvoice: s.screen === 'invoice',
+      isAttendance: s.screen === 'attendance',
+      isSettings: s.screen === 'settings',
+
+      goOnboarding: () => this.setState({ screen: 'onboarding' }),
+      goDashboard: () => this.tab('dashboard'),
+      goVehicles: () => this.tab('vehicles'),
+      goAttendance: () => this.tab('attendance'),
+      goSettings: () => this.tab('settings'),
+      goAddVehicle: () => this.nav('addVehicle'),
+      goEstimate: () => this.nav('estimate'),
+      goInvoice: () => this.nav('invoice'),
+      goBack: this.back,
+      goLogin: () => this.setState({ screen: 'login', stack: [] }),
+
+      tabDashboardColor: s.screen === 'dashboard' ? activeColor : inactiveColor,
+      tabVehiclesColor: vehicleTabScreens.includes(s.screen) ? activeColor : inactiveColor,
+      tabAttendanceColor: s.screen === 'attendance' ? activeColor : inactiveColor,
+      tabSettingsColor: s.screen === 'settings' ? activeColor : inactiveColor,
+      navDashboardBg: s.screen === 'dashboard' ? 'var(--color-accent-100)' : 'transparent',
+      navVehiclesBg: vehicleTabScreens.includes(s.screen) ? 'var(--color-accent-100)' : 'transparent',
+      navAttendanceBg: s.screen === 'attendance' ? 'var(--color-accent-100)' : 'transparent',
+      navSettingsBg: s.screen === 'settings' ? 'var(--color-accent-100)' : 'transparent',
+
+      stats: { active, ready, revenue: '₹18,400' },
+      recentVehicles: s.vehicles.slice(0, 3).map(mkVehicle),
+      filteredVehicles: filtered.map(mkVehicle),
+      search: s.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+      filterAll: s.filter === 'All',
+      filterRepairing: s.filter === 'Repairing',
+      filterReady: s.filter === 'Ready',
+      setFilterAll: () => this.setState({ filter: 'All' }),
+      setFilterRepairing: () => this.setState({ filter: 'Repairing' }),
+      setFilterReady: () => this.setState({ filter: 'Ready' }),
+
+      selectedVehicle,
+      setStatusRepairing: () => this.setState(prev => ({ vehicles: prev.vehicles.map(v => v.id === prev.selectedVehicleId ? { ...v, status: 'Repairing' } : v) })),
+      setStatusReady: () => this.setState(prev => ({ vehicles: prev.vehicles.map(v => v.id === prev.selectedVehicleId ? { ...v, status: 'Ready' } : v) })),
+      setStatusDelivered: () => this.setState(prev => ({ vehicles: prev.vehicles.map(v => v.id === prev.selectedVehicleId ? { ...v, status: 'Delivered' } : v) })),
+
+      estimateItems: items,
+      addLineItem: () => this.setState(prev => ({ estimateItems: [...prev.estimateItems, { desc: 'New item', amt: '0' }] })),
+      estimateSubtotal: subtotal.toLocaleString('en-IN'),
+
+      taxOff: !s.tax,
+      taxOn: s.tax,
+      setTaxOff: () => this.setState({ tax: false }),
+      setTaxOn: () => this.setState({ tax: true }),
+      discFlat: s.discountType === 'flat',
+      discPct: s.discountType === 'percent',
+      setDiscFlat: () => this.setState({ discountType: 'flat' }),
+      setDiscPct: () => this.setState({ discountType: 'percent' }),
+      discountVal: s.discountVal,
+      onDiscountVal: (e) => this.setState({ discountVal: e.target.value.replace(/[^0-9]/g, '') }),
+      payCash: s.payment === 'Cash',
+      payUpi: s.payment === 'UPI',
+      payCard: s.payment === 'Card',
+      setPayCash: () => this.setState({ payment: 'Cash' }),
+      setPayUpi: () => this.setState({ payment: 'UPI' }),
+      setPayCard: () => this.setState({ payment: 'Card' }),
+      invoiceTotal: total.toLocaleString('en-IN'),
+
+      attendanceToday,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

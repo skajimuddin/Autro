@@ -1,4 +1,11 @@
 // Button — variants: primary, outline, dashed, success, ghost
+//
+// Restyled 2026-08-19 to the flat system from planning/design_handoff_autro_ui
+// (.btn/.btn-primary/.btn-secondary/.btn-ghost — see DESIGN.md): zero radius
+// (rounded-button is now 0), no floating glow shadow, 1.5px borders instead
+// of 2px, 14px/600 label matching the handoff's row-title size. `dashed` has
+// no equivalent in the handoff (its "+ Add line item" is a plain ghost
+// button) but stays available — nothing in this app depends on removing it.
 import type React from 'react'
 
 type ButtonVariant = 'primary' | 'outline' | 'dashed' | 'success' | 'ghost'
@@ -15,19 +22,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-hover active:scale-press disabled:opacity-60',
-  outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary-light active:scale-press',
-  dashed: 'bg-transparent border-2 border-dashed border-border text-text-secondary hover:border-primary hover:text-primary active:scale-press',
+  outline: 'bg-transparent border-[1.5px] border-primary text-primary hover:bg-primary-light active:scale-press',
+  dashed: 'bg-transparent border-[1.5px] border-dashed border-border text-text-secondary hover:border-primary hover:text-primary active:scale-press',
   success: 'bg-success text-white hover:opacity-90 active:scale-press disabled:opacity-60',
   ghost: 'bg-transparent text-text-secondary hover:bg-bg active:scale-press',
 }
 
-// Sizes calibrated to planning/demo-ui .btn: 18px padding + 1.1rem/600 text,
-// i.e. roughly a 56px tall control. The first build used h-12 with 1rem text,
-// which read smaller and less tappable than the approved demo.
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-10 px-4 text-sm',
-  md: 'h-14 px-5 text-row-title',
-  lg: 'h-[58px] px-6 text-row-title',
+  sm: 'h-9 px-4 text-row-sub',
+  md: 'h-11 px-5 text-row-title',
+  lg: 'h-12 px-6 text-row-title',
 }
 
 export function Button({

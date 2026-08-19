@@ -52,10 +52,10 @@ type LocationStatus = 'idle' | 'loading' | 'set' | 'error'
 
 // Colour here is semantic (success = captured, danger = failed), not decorative.
 const LOCATION_BUTTON_STYLES: Record<LocationStatus, string> = {
-  idle: 'border-dashed border-primary text-primary hover:bg-primary-light',
-  loading: 'border-dashed border-primary text-primary cursor-wait',
-  set: 'border-solid border-success bg-success-light text-success',
-  error: 'border-solid border-danger bg-danger-light text-danger',
+  idle: 'border-[1.5px] border-dashed border-primary text-primary hover:bg-primary-light',
+  loading: 'border-[1.5px] border-dashed border-primary text-primary cursor-wait',
+  set: 'border-[1.5px] border-solid border-success bg-success-light text-success',
+  error: 'border-[1.5px] border-solid border-danger bg-danger-light text-danger',
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -140,13 +140,13 @@ export default function OnboardingPage(): React.JSX.Element {
       <div className="w-full max-w-md md:max-w-lg mx-auto">
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="text-center mb-7">
-          <div className="w-14 h-14 rounded-card bg-primary flex items-center justify-center mx-auto mb-4 shadow-[var(--shadow-primary)]">
-            <Building2 size={28} strokeWidth={2.5} className="text-white" />
+          <div className="w-14 h-14 bg-primary flex items-center justify-center mx-auto mb-4">
+            <Building2 size={26} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-text mb-2">
+          <h1 className="text-[1.625rem] font-bold text-text mb-2">
             Set Up Your Garage
           </h1>
-          <p className="text-sm text-text-secondary leading-normal">
+          <p className="text-row-title text-text-secondary leading-normal">
             We need these details for your invoices and staff attendance.
           </p>
         </div>

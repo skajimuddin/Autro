@@ -1,21 +1,25 @@
 // Vehicle List — paginated, filterable vehicle directory
+//
+// Rebuilt 2026-08-19 to match planning/design_handoff_autro_ui: search input
+// + a `.seg` status filter (not pill chips), then flat thin-divider rows
+// (56px bordered thumbnail + row-title/row-sub + status tag) — one markup
+// tree at every width, not a separate mobile-card / desktop-table pair. The
+// handoff is explicit about this: "One markup tree, CSS-driven — do not
+// build separate mobile and desktop screens." `Delivered` stays as a 4th
+// filter option (real status the API supports; the handoff's own filter
+// only shows 3 as a demo simplification). See DESIGN.md.
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Plus,
-  Car,
-  Search,
-} from '@/components/ui/icons'
+import { Plus, Car, ChevronRight } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import {
   Button,
-  Card,
   Badge,
-  FilterChips,
+  SegmentedControl,
   SearchBar,
   EmptyState,
   Loading,
@@ -40,7 +44,7 @@ interface VehicleListResponse {
   cursor: string | null
 }
 
-// ── Filter Chips Config ───────────────────────────────────────────────────────
+// ── Filter config ────────────────────────────────────────────────────────────
 
 const STATUS_FILTERS = [
   { value: 'ALL', label: 'All' },
@@ -92,37 +96,37 @@ export default function VehicleListPage(): React.JSX.Element {
     <PageShell
       title="Vehicles"
       showBack
-      wide
       rightAction={
         <button
           id="vehicles-add-btn"
           type="button"
           onClick={() => navigate('/vehicles/add')}
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-bg transition-colors"
+          className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors"
           aria-label="Add vehicle"
         >
-          <Plus size={20} className="text-primary" />
+          <Plus size={18} className="text-primary" />
         </button>
       }
     >
       <div className="p-4 md:p-6 flex flex-col gap-4">
-        {/* ── Filters ──────────────────────────────────────────── */}
-        <FilterChips
-          id="vehicle-status-filter"
-          chips={STATUS_FILTERS}
-          selected={statusFilter}
-          onChange={setStatusFilter}
-        />
-
-        {/* ── Search ───────────────────────────────────────────── */}
         <SearchBar
           id="vehicle-search"
           value={search}
           onChange={setSearch}
-          placeholder="Search by registration number…"
+          placeholder="Search plate or owner"
         />
 
-        {/* ── Vehicle List ─────────────────────────────────────── */}
+        <div className="max-w-[480px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <SegmentedControl
+            id="vehicle-status-filter"
+            aria-label="Status filter"
+            fill
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={STATUS_FILTERS}
+          />
+        </div>
+
         {isLoading ? (
           <Loading rows={5} />
         ) : isError ? (
@@ -150,54 +154,36 @@ export default function VehicleListPage(): React.JSX.Element {
             }
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            {/* Mobile / Tablet grid (hidden on lg and up) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
-              {vehicles.map((vehicle) => (
-                <VehicleCard
+          <div>
+            {vehicles.map((vehicle) => {
+              const badge = STATUS_BADGE_MAP[vehicle.status]
+              return (
+                <button
                   key={vehicle.id}
-                  vehicle={vehicle}
-                  onTap={handleVehicleTap}
-                />
-              ))}
-            </div>
+                  id={`vehicle-${vehicle.id}`}
+                  type="button"
+                  onClick={() => handleVehicleTap(vehicle.id)}
+                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
+                >
+                  <div className="w-14 h-14 flex-shrink-0 border-2 border-divider flex items-center justify-center text-text/30">
+                    <Car size={22} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-row-title font-semibold text-text truncate">
+                      {vehicle.registration_number}
+                    </p>
+                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
+                      {vehicle.customer_name}{vehicle.name ? ` · ${vehicle.name}` : ''}
+                    </p>
+                  </div>
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
+                </button>
+              )
+            })}
 
-            {/* Desktop table (visible on lg and up) */}
-            <div className="hidden lg:block bg-card rounded-card shadow-[var(--shadow-card)] overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-bg/50 border-b border-border">
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Reg No</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Vehicle</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Customer</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vehicles.map((vehicle) => {
-                    const badge = STATUS_BADGE_MAP[vehicle.status]
-                    return (
-                      <tr
-                        key={vehicle.id}
-                        onClick={() => handleVehicleTap(vehicle.id)}
-                        className="hover:bg-bg/50 cursor-pointer transition-colors border-b border-border last:border-0"
-                      >
-                        <td className="py-4 px-5 text-row-title font-bold text-text">{vehicle.registration_number}</td>
-                        <td className="py-4 px-5 text-row-sub text-text-secondary">{vehicle.name || '—'}</td>
-                        <td className="py-4 px-5 text-row-sub text-text-secondary">{vehicle.customer_name}</td>
-                        <td className="py-4 px-5">
-                          <Badge variant={badge.variant}>{badge.label}</Badge>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Load More */}
             {data?.cursor && (
-              <div className="flex justify-center pt-2">
+              <div className="flex justify-center pt-4">
                 <Button
                   id="vehicles-load-more"
                   variant="ghost"
@@ -215,61 +201,18 @@ export default function VehicleListPage(): React.JSX.Element {
   )
 }
 
-// ── Vehicle Card ──────────────────────────────────────────────────────────────
-
-interface VehicleCardProps {
-  vehicle: VehicleListItem
-  onTap: (id: string) => void
-}
-
-function VehicleCard({ vehicle, onTap }: VehicleCardProps): React.JSX.Element {
-  const badge = STATUS_BADGE_MAP[vehicle.status]
-
-  return (
-    <Card
-      id={`vehicle-${vehicle.id}`}
-      onClick={() => onTap(vehicle.id)}
-      className="!p-0 overflow-hidden"
-    >
-      <div className="flex items-center gap-3 p-4">
-        {/* Vehicle Icon */}
-        <div className="w-11 h-11 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
-          <Car size={20} className="text-primary" />
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-row-title font-bold text-text truncate">
-              {vehicle.registration_number}
-            </p>
-            <Badge variant={badge.variant}>{badge.label}</Badge>
-          </div>
-          <p className="text-xs text-text-secondary mt-0.5 truncate">
-            {vehicle.name ? `${vehicle.name} · ` : ''}
-            {vehicle.customer_name}
-          </p>
-        </div>
-
-        {/* Chevron */}
-        <Search size={14} className="text-text-muted flex-shrink-0 opacity-0" />
-      </div>
-    </Card>
-  )
-}
-
 // ── Error State ───────────────────────────────────────────────────────────────
 
 function ErrorState(): React.JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-danger-light flex items-center justify-center mb-3">
+      <div className="w-14 h-14 bg-danger-light flex items-center justify-center mb-3">
         <Car size={24} className="text-danger" />
       </div>
-      <p className="text-sm font-semibold text-text">
+      <p className="text-row-title font-semibold text-text">
         Failed to load vehicles
       </p>
-      <p className="text-xs text-text-muted mt-1">
+      <p className="text-row-sub text-text-muted mt-1">
         Check your connection and try again
       </p>
     </div>

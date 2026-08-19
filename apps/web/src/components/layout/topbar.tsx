@@ -1,10 +1,10 @@
 // Topbar — sticky top bar.
 //
-// Amended 2026-08-13:
-//   - inline boxShadow style replaced with a Tailwind arbitrary value (no inline
-//     style props — see AGENTS.md "CODE STYLE / CSS")
-//   - title is centred on mobile but left-aligned at md:+, where a centred title
-//     reads as off-centre next to the sidebar
+// Restyled 2026-08-19 to match planning/design_handoff_autro_ui's flat page
+// headers: `padding:var(--space-4);border-bottom:2px solid var(--color-
+// divider);` with a left-aligned 24px/700 title (20px when a back button is
+// present) — no shadow, never centred. Was a fixed 56px bar with a shadow and
+// a mobile-centred title.
 //   - z-30 so the fixed sidebar (z-40) stays above it
 import type React from 'react'
 import { useNavigate } from 'react-router'
@@ -28,33 +28,31 @@ export function Topbar({
   return (
     <header
       id="topbar"
-      className="sticky top-0 z-30 bg-card border-b border-divider shadow-[var(--shadow-topbar)]"
+      className="sticky top-0 z-30 bg-bg border-b-2 border-divider"
     >
-      <div className="flex items-center h-14 px-4 gap-3">
-        {/* Left: back button or spacer. Spacer is only needed to balance the
-            centred mobile title, so it collapses at md:+ when there is no back
-            button and the title is left-aligned. */}
-        <div className={showBack ? 'w-8 flex-shrink-0' : 'w-8 flex-shrink-0 md:hidden'}>
-          {showBack && (
-            <button
-              id="topbar-back-btn"
-              type="button"
-              onClick={() => navigate(-1)}
-              className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-bg transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} strokeWidth={2.5} className="text-text" />
-            </button>
-          )}
-        </div>
+      <div className="flex items-center gap-3 px-4 py-4">
+        {showBack && (
+          <button
+            id="topbar-back-btn"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="w-8 h-8 flex-shrink-0 flex items-center justify-center hover:bg-divider transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} className="text-text" />
+          </button>
+        )}
 
-        {/* Center on mobile, left-aligned at md:+ */}
-        <h1 className="flex-1 text-center md:text-left text-[1.2rem] font-semibold text-text leading-none truncate">
+        <h1
+          className={[
+            'flex-1 font-bold text-text leading-none truncate',
+            showBack ? 'text-[1.25rem]' : 'text-[1.5rem]',
+          ].join(' ')}
+        >
           {title}
         </h1>
 
-        {/* Right: action */}
-        <div className="w-8 flex-shrink-0 flex justify-end">{rightAction}</div>
+        {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
       </div>
     </header>
   )
