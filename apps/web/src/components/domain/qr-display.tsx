@@ -12,8 +12,8 @@
 // Replaces the placeholder that rendered a decorative Lucide <QrCode> icon and
 // the first 12 characters of the token — which was not scannable, meaning
 // attendance could not work at all.
-import type React from 'react'
-import { QRCodeSVG } from 'qrcode.react'
+import React, { useEffect, useRef } from 'react'
+import QRCodeStyling from 'qr-code-styling'
 
 interface QRDisplayProps {
   /** The raw attendance token from GET /attendance/qr */
@@ -28,21 +28,53 @@ export function QRDisplay({
   size = 208,
   id,
 }: QRDisplayProps): React.JSX.Element {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+
+    const qrCode = new QRCodeStyling({
+      width: size,
+      height: size,
+      type: 'svg',
+      data: token,
+      image: '/icon-192.png',
+      dotsOptions: {
+        color: '#0f172a', // --color-text
+        type: 'extra-rounded',
+      },
+      cornersSquareOptions: {
+        color: '#2563eb', // --color-primary
+        type: 'extra-rounded',
+      },
+      cornersDotOptions: {
+        color: '#0f172a', // --color-text
+        type: 'dot',
+      },
+      backgroundOptions: {
+        color: '#ffffff',
+      },
+      imageOptions: {
+        crossOrigin: 'anonymous',
+        margin: 5,
+        imageSize: 0.25, // <= 25% of QR area as requested
+      },
+      qrOptions: {
+        errorCorrectionLevel: 'H',
+      },
+    })
+
+    // Clear any existing QR code before appending
+    ref.current.innerHTML = ''
+    qrCode.append(ref.current)
+  }, [token, size])
+
   return (
-    // White padding supplies the quiet zone scanners need, so marginSize is 0.
+    // White padding supplies the quiet zone scanners need
     <div
       id={id}
+      ref={ref}
       className="bg-white p-3 border border-border inline-flex items-center justify-center"
-    >
-      <QRCodeSVG
-        value={token}
-        size={size}
-        level="M"
-        marginSize={0}
-        bgColor="#ffffff"
-        fgColor="#0f172a"
-        title="Attendance QR code"
-      />
-    </div>
+    />
   )
 }
