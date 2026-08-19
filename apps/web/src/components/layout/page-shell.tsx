@@ -42,7 +42,7 @@ export function PageShell({
       {!hideNav && <BottomNav />}
 
       {/* Offset for the md:+ sidebar */}
-      <div className={hideNav ? '' : 'md:pl-60'}>
+      <div className={hideNav ? '' : 'md:pl-[220px]'}>
         <Topbar title={title} showBack={showBack} rightAction={rightAction} />
 
         {/* pb clears the mobile bottom nav; not needed once nav is a sidebar */}

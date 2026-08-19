@@ -1,4 +1,6 @@
-// Input — label + input with rounded-xl, slate border, blue focus ring
+// Input — label + input, flat `.input` styling from the handoff: zero
+// radius, 1.5px border, 13px label. Restyled 2026-08-19 (was rounded-xl,
+// 16px padding, 0.95rem label).
 import type React from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -22,9 +24,7 @@ export function Input({
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Demo .input-group label: 0.95rem/600 in *secondary*, with an 8px gap.
-          Was 0.875rem/600 in full-strength text with a 6px gap. */}
+    <div className="flex flex-col gap-1.5">
       {label && (
         <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
           {label}
@@ -39,14 +39,12 @@ export function Input({
         <input
           id={inputId}
           className={[
-            // Demo .input-group input: 16px padding all round (~54px tall),
-            // radius 12px, 1rem text. Was h-12 with px-3 — visibly tighter.
-            'w-full py-4 rounded-input border bg-card text-text text-base font-normal',
+            'w-full h-11 rounded-input border-[1.5px] bg-card text-text text-row-title font-normal',
             'placeholder:text-text-muted',
             'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
             error ? 'border-danger' : 'border-border',
-            leftIcon ? 'pl-10' : 'pl-4',
-            rightIcon ? 'pr-10' : 'pr-4',
+            leftIcon ? 'pl-10' : 'pl-3',
+            rightIcon ? 'pr-10' : 'pr-3',
             className,
           ].join(' ')}
           {...rest}
@@ -56,8 +54,8 @@ export function Input({
         )}
       </div>
 
-      {error && <p className="text-xs text-danger">{error}</p>}
-      {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
+      {error && <p className="text-row-sub text-danger">{error}</p>}
+      {hint && !error && <p className="text-row-sub text-text-muted">{hint}</p>}
     </div>
   )
 }

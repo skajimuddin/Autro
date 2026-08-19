@@ -1,4 +1,8 @@
 // Invoice List — filterable list of all invoices
+//
+// Rebuilt 2026-08-19: segmented filter (matching the handoff's `.seg`, not
+// pill chips) and one flat thin-divider row list at every width instead of
+// a separate mobile-card / desktop-table pair. See DESIGN.md.
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -7,14 +11,7 @@ import { Receipt, ChevronRight } from '@/components/ui/icons'
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Badge,
-  Button,
-  FilterChips,
-  EmptyState,
-  Loading,
-} from '@/components/ui'
+import { Badge, Button, SegmentedControl, EmptyState, Loading } from '@/components/ui'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -71,17 +68,16 @@ export default function InvoiceListPage(): React.JSX.Element {
   const invoices = data?.invoices ?? []
 
   return (
-    <PageShell title="Invoices" showBack wide>
+    <PageShell title="Invoices" showBack>
       <div className="p-4 md:p-6 flex flex-col gap-4">
-        {/* ── Filters ──────────────────────────────────────────── */}
-        <FilterChips
+        <SegmentedControl
           id="invoice-status-filter"
-          chips={PAYMENT_FILTERS}
-          selected={statusFilter}
+          aria-label="Payment status filter"
+          value={statusFilter}
           onChange={setStatusFilter}
+          options={PAYMENT_FILTERS}
         />
 
-        {/* ── Invoice List ─────────────────────────────────────── */}
         {isLoading ? (
           <Loading rows={4} />
         ) : invoices.length === 0 ? (
@@ -91,56 +87,40 @@ export default function InvoiceListPage(): React.JSX.Element {
             description="Generate your first invoice from a vehicle's details page"
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            {/* Mobile / Tablet grid (hidden on lg and up) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
-              {invoices.map((inv) => (
-                <InvoiceCard
+          <div>
+            {invoices.map((inv) => {
+              const badge = PAYMENT_BADGE[inv.payment_status]
+              return (
+                <button
                   key={inv.id}
-                  invoice={inv}
-                  onTap={() => navigate(`/invoices/${inv.id}`)}
-                />
-              ))}
-            </div>
-
-            {/* Desktop table (visible on lg and up) */}
-            <div className="hidden lg:block bg-card rounded-card shadow-[var(--shadow-card)] overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-bg/50 border-b border-border">
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Reg No</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Customer</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Amount</th>
-                    <th className="py-4 px-5 text-label font-bold text-text-secondary uppercase tracking-wide">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((inv) => {
-                    const badge = PAYMENT_BADGE[inv.payment_status]
-                    return (
-                      <tr
-                        key={inv.id}
-                        onClick={() => navigate(`/invoices/${inv.id}`)}
-                        className="hover:bg-bg/50 cursor-pointer transition-colors border-b border-border last:border-0"
-                      >
-                        <td className="py-4 px-5 text-row-title font-bold text-text">{inv.registration_number}</td>
-                        <td className="py-4 px-5 text-row-sub text-text-secondary">
-                          {inv.customer_name}
-                          {inv.payment_method ? ` · ${inv.payment_method}` : ''}
-                        </td>
-                        <td className="py-4 px-5 text-row-title font-bold text-text">₹{inv.frozen_total.toLocaleString('en-IN')}</td>
-                        <td className="py-4 px-5">
-                          <Badge variant={badge.variant}>{badge.label}</Badge>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  id={`invoice-${inv.id}`}
+                  type="button"
+                  onClick={() => navigate(`/invoices/${inv.id}`)}
+                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
+                >
+                  <div className="w-11 h-11 bg-success-light flex items-center justify-center flex-shrink-0">
+                    <Receipt size={18} className="text-success" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-row-title font-semibold text-text truncate">
+                      {inv.registration_number}
+                    </p>
+                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
+                      {inv.customer_name}
+                      {inv.payment_method ? ` · ${inv.payment_method}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-row-title font-bold text-text flex-shrink-0">
+                    ₹{inv.frozen_total.toLocaleString('en-IN')}
+                  </span>
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
+                </button>
+              )
+            })}
 
             {data?.cursor && (
-              <div className="flex justify-center pt-2">
+              <div className="flex justify-center pt-4">
                 <Button
                   id="invoices-load-more"
                   variant="ghost"
@@ -155,44 +135,5 @@ export default function InvoiceListPage(): React.JSX.Element {
         )}
       </div>
     </PageShell>
-  )
-}
-
-// ── Invoice Card ──────────────────────────────────────────────────────────────
-
-interface InvoiceCardProps {
-  invoice: InvoiceListItem
-  onTap: () => void
-}
-
-function InvoiceCard({ invoice, onTap }: InvoiceCardProps): React.JSX.Element {
-  const badge = PAYMENT_BADGE[invoice.payment_status]
-
-  return (
-    <Card id={`invoice-${invoice.id}`} onClick={onTap}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-success-light flex items-center justify-center flex-shrink-0">
-          <Receipt size={18} className="text-success" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-row-title font-bold text-text truncate">
-              {invoice.registration_number}
-            </p>
-            <Badge variant={badge.variant}>{badge.label}</Badge>
-          </div>
-          <p className="text-row-sub text-text-secondary mt-0.5 truncate">
-            {invoice.customer_name}
-            {invoice.payment_method ? ` · ${invoice.payment_method}` : ''}
-          </p>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <span className="text-row-title font-bold text-text">
-            ₹{invoice.frozen_total.toLocaleString('en-IN')}
-          </span>
-          <ChevronRight size={14} className="text-text-muted" />
-        </div>
-      </div>
-    </Card>
   )
 }

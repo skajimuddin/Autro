@@ -101,7 +101,7 @@ export function QRScanner({
     >
       <div
         id={SCANNER_ELEMENT_ID}
-        className="w-full max-w-sm rounded-2xl overflow-hidden bg-black"
+        className="w-full max-w-sm overflow-hidden bg-black"
       />
 
       <p className="text-white text-sm font-medium text-center">

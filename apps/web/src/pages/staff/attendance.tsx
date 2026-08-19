@@ -95,32 +95,30 @@ export default function StaffAttendancePage(): React.JSX.Element {
     <PageShell title="Staff Attendance" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 flex flex-col gap-5">
+      <div className="p-4 md:p-6 md:grid md:grid-cols-[260px_1fr] md:gap-6 md:items-start">
+      <div className="flex flex-col gap-3">
         {/* ── QR Code Card ─────────────────────────────────────── */}
-        <Card id="attendance-qr-card" className="!p-6">
+        <Card id="attendance-qr-card" elevated className="!p-6">
           <div className="flex flex-col items-center gap-4 text-center">
+            <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
+              Static QR — display at entrance
+            </p>
             {qrLoading ? (
-              <div className="w-48 h-48 rounded-2xl bg-divider animate-pulse" />
+              <div className="w-48 h-48 bg-divider animate-pulse" />
             ) : qr?.qr_token ? (
               <QRDisplay id="attendance-qr" token={qr.qr_token} />
             ) : (
-              <div className="w-48 h-48 rounded-2xl bg-bg flex items-center justify-center">
+              <div className="w-48 h-48 bg-bg flex items-center justify-center">
                 <QrCode size={48} className="text-text-muted" />
               </div>
             )}
 
-            <div>
-              <p className="text-sm font-semibold text-text">
-                Staff can scan this QR to check in
-              </p>
-              <p className="text-xs text-text-muted mt-1">
-                Works only when staff is at the autro location
-              </p>
-            </div>
+            <p className="text-row-sub text-text-muted">
+              Staff can scan this to check in — works only at the autro location
+            </p>
           </div>
         </Card>
 
-        {/* ── Regenerate Button ─────────────────────────────────── */}
         <Button
           id="attendance-regenerate-qr"
           variant="outline"
@@ -130,10 +128,12 @@ export default function StaffAttendancePage(): React.JSX.Element {
         >
           Regenerate QR
         </Button>
+      </div>
 
+      <div className="flex flex-col gap-5 mt-5 md:mt-0">
         {/* ── Today's Stats ────────────────────────────────────── */}
         <div>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             Today
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -165,7 +165,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
         {/* ── Today's Attendance List ──────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             Attendance Log
           </h3>
           {todayLoading ? (
@@ -173,7 +173,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
               <div className="space-y-3">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-divider animate-pulse" />
+                    <div className="w-9 h-9 bg-divider animate-pulse" />
                     <div className="flex-1 space-y-1.5">
                       <div className="h-3 w-24 rounded bg-divider animate-pulse" />
                       <div className="h-2.5 w-16 rounded bg-divider animate-pulse" />
@@ -197,6 +197,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
           )}
         </section>
       </div>
+      </div>
     </PageShell>
   )
 }
@@ -212,7 +213,7 @@ function AttendanceRow({
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-divider last:border-b-0">
-      <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
+      <div className="w-9 h-9 bg-primary-light flex items-center justify-center flex-shrink-0">
         <Users size={14} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">

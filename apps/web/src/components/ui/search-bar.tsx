@@ -22,7 +22,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search…', id }: Se
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-11 pl-10 pr-4 rounded-input border border-border bg-card text-text text-base placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+        className="w-full h-11 pl-10 pr-4 rounded-input border-[1.5px] border-border bg-card text-text text-row-title placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
       />
     </div>
   )

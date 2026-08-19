@@ -1,4 +1,4 @@
-// Select — styled dropdown matching Input design
+// Select — styled dropdown matching Input's flat styling. Restyled 2026-08-19.
 import type React from 'react'
 import { ChevronDown } from '@/components/ui/icons'
 
@@ -30,7 +30,7 @@ export function Select({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-semibold text-text">
+        <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
           {label}
           {rest.required && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -40,7 +40,7 @@ export function Select({
         <select
           id={inputId}
           className={[
-            'w-full h-12 rounded-input border bg-card text-text text-base font-normal pl-3 pr-10',
+            'w-full h-11 rounded-input border-[1.5px] bg-card text-text text-row-title font-normal pl-3 pr-10',
             'appearance-none cursor-pointer',
             'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
             error ? 'border-danger' : 'border-border',
@@ -60,15 +60,14 @@ export function Select({
           ))}
         </select>
 
-        {/* Custom chevron icon */}
         <ChevronDown
           size={16}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
         />
       </div>
 
-      {error && <p className="text-xs text-danger">{error}</p>}
-      {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
+      {error && <p className="text-row-sub text-danger">{error}</p>}
+      {hint && !error && <p className="text-row-sub text-text-muted">{hint}</p>}
     </div>
   )
 }

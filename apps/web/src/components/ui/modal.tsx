@@ -53,14 +53,15 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
         aria-modal="true"
         aria-label={title}
         className={[
-          'fixed z-50 bg-card shadow-2xl',
-          // Mobile: full-width sheet anchored to the bottom
-          'bottom-0 left-0 right-0 rounded-t-[24px] animate-slide-in-top',
+          'fixed z-50 bg-card shadow-2xl border-t-2 border-divider md:border-2',
+          // Mobile: full-width sheet anchored to the bottom. Zero radius (the
+          // handoff's flat system), so no rounded-t utility needed.
+          'bottom-0 left-0 right-0 animate-slide-in-top',
           'pb-[env(safe-area-inset-bottom,16px)]',
           // md+: centred dialog
           'md:inset-auto md:top-1/2 md:left-1/2 md:right-auto md:bottom-auto',
           'md:-translate-x-1/2 md:-translate-y-1/2',
-          'md:w-full md:max-w-lg md:rounded-card md:animate-fade-in',
+          'md:w-full md:max-w-lg md:animate-fade-in',
         ].join(' ')}
       >
         {/* Drag handle — mobile sheet affordance only */}
@@ -75,7 +76,7 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-text-muted hover:bg-bg transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-text-muted hover:bg-bg transition-colors"
               aria-label="Close"
             >
               <X size={18} />

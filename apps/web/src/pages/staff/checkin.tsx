@@ -173,7 +173,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
             id="checkin-logout"
             type="button"
             onClick={logout}
-            className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-bg transition-colors"
+            className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors"
             aria-label="Sign out"
           >
             <LogOut size={18} className="text-text-muted" />
@@ -206,7 +206,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
         <Card id="checkin-action-card" className="!p-6">
           {state === 'not_checked_in' && (
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center">
+              <div className="w-20 h-20 bg-primary-light flex items-center justify-center">
                 <ScanLine size={36} className="text-primary" />
               </div>
               <div>
@@ -228,7 +228,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
 
           {state === 'checked_in' && (
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="w-20 h-20 rounded-full bg-success-light flex items-center justify-center">
+              <div className="w-20 h-20 bg-success-light flex items-center justify-center">
                 <CheckCircle2 size={36} className="text-success" />
               </div>
               <div>
@@ -253,7 +253,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
 
           {state === 'done' && (
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="w-20 h-20 rounded-full bg-success-light flex items-center justify-center">
+              <div className="w-20 h-20 bg-success-light flex items-center justify-center">
                 <CheckCircle2 size={36} className="text-success" />
               </div>
               <div>
@@ -288,7 +288,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
 
         {/* ── Monthly Summary ──────────────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
             <CalendarDays size={13} />
             This Month
           </h3>

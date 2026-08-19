@@ -206,64 +206,64 @@ export default function EstimateEditorPage(): React.JSX.Element {
       <div className="p-4 md:p-6 flex flex-col gap-4">
         {/* ── Items Section ────────────────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3 flex items-center gap-1.5">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
             <FileText size={13} />
             Items
           </h3>
 
-          <Card className="!p-3 flex flex-col gap-3">
+          <Card className="!p-3 flex flex-col gap-2">
             {items.map((item) => (
-              <div key={item.tempId} className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'description', e.target.value)
-                    }
-                    placeholder="Item description"
-                    className="flex-1 h-10 rounded-input border border-border bg-card text-text text-sm px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.tempId)}
-                    className="w-10 h-10 rounded-input flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
-                    aria-label="Remove item"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={item.amount}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'amount', e.target.value)
-                    }
-                    placeholder="₹ Amount"
-                    className="flex-1 h-10 rounded-input border border-border bg-card text-text text-sm px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateItem(item.tempId, 'quantity', e.target.value)
-                    }
-                    placeholder="Qty"
-                    className="w-16 h-10 rounded-input border border-border bg-card text-text text-sm px-3 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
+              <div key={item.tempId} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'description', e.target.value)
+                  }
+                  placeholder="Item description"
+                  className="flex-1 min-w-0 h-10 border-[1.5px] border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'quantity', e.target.value)
+                  }
+                  placeholder="Qty"
+                  aria-label="Quantity"
+                  className="w-12 h-10 border-[1.5px] border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <input
+                  type="number"
+                  value={item.amount}
+                  onChange={(e) =>
+                    updateItem(item.tempId, 'amount', e.target.value)
+                  }
+                  placeholder="₹ Amount"
+                  aria-label="Amount"
+                  className="w-24 h-10 border-[1.5px] border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(item.tempId)}
+                  className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
+                  aria-label="Remove item"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             ))}
 
             <Button
               id="estimate-add-item"
-              variant="dashed"
+              variant="ghost"
               size="sm"
-              leftIcon={<Plus size={16} />}
+              fullWidth={false}
+              leftIcon={<Plus size={14} />}
               onClick={addItem}
+              className="self-start !px-0 hover:!bg-transparent hover:!text-primary"
             >
-              Add Item
+              Add line item
             </Button>
           </Card>
         </section>

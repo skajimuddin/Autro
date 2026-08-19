@@ -42,7 +42,7 @@ export function PhotoUpload({ value, onChange, onRemove, label, id }: PhotoUploa
             <button
               type="button"
               onClick={onRemove}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+              className="absolute top-2 right-2 w-7 h-7 bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
               aria-label="Remove photo"
             >
               <X size={14} />

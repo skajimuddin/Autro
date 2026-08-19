@@ -120,7 +120,7 @@ export default function SettingsPage(): React.JSX.Element {
       <div className="p-4 md:p-6 flex flex-col gap-5">
         {/* ── Profile Section ──────────────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             Your Profile
           </h3>
           <Card id="settings-profile-card">
@@ -130,11 +130,11 @@ export default function SettingsPage(): React.JSX.Element {
                 <img
                   src={user.avatar_url}
                   alt={user.name}
-                  className="w-14 h-14 rounded-2xl object-cover flex-shrink-0"
+                  className="w-14 h-14 object-cover flex-shrink-0"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-primary-light flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 bg-primary-light flex items-center justify-center flex-shrink-0">
                   <User size={24} className="text-primary" />
                 </div>
               )}
@@ -156,7 +156,7 @@ export default function SettingsPage(): React.JSX.Element {
 
         {/* ── Garage Section ───────────────────────────────────── */}
         <section>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             Garage Details
           </h3>
           <Card id="settings-garage-card">
@@ -195,7 +195,7 @@ export default function SettingsPage(): React.JSX.Element {
                 </span>
                 <div className="flex items-center gap-2">
                   {tenant?.latitude && tenant?.longitude ? (
-                    <div className="flex items-center gap-1.5 text-xs text-success bg-success-light px-3 py-1.5 rounded-full flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs text-success bg-success-light px-3 py-1.5 border border-success/30 flex-1 min-w-0">
                       <MapPin size={12} className="flex-shrink-0" />
                       <span className="truncate">
                         {tenant.latitude.toFixed(4)}, {tenant.longitude.toFixed(4)}

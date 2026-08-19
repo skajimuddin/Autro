@@ -143,11 +143,11 @@ export default function StaffProfilePage(): React.JSX.Element {
               <img
                 src={profile.avatar_url}
                 alt={profile.name}
-                className="w-16 h-16 rounded-2xl object-cover flex-shrink-0"
+                className="w-16 h-16 object-cover flex-shrink-0"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-16 h-16 rounded-2xl bg-primary-light flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 bg-primary-light flex items-center justify-center flex-shrink-0">
                 <User size={28} className="text-primary" />
               </div>
             )}
@@ -165,7 +165,7 @@ export default function StaffProfilePage(): React.JSX.Element {
 
         {/* ── Today's Attendance ────────────────────────────────── */}
         <Card id="staff-today-attendance">
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             Today
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -184,7 +184,7 @@ export default function StaffProfilePage(): React.JSX.Element {
 
         {/* ── Monthly Stats ────────────────────────────────────── */}
         <div>
-          <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-3">
+          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
             This Month
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -208,11 +208,11 @@ export default function StaffProfilePage(): React.JSX.Element {
         {/* ── Estimated Salary ─────────────────────────────────── */}
         {profile.monthly_salary != null && (
           <Card id="staff-salary-card">
-            <h3 className="text-label font-bold text-text-secondary uppercase tracking-[1px] mb-2">
+            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-2">
               Estimated Salary
             </h3>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-primary-light flex items-center justify-center flex-shrink-0">
                 <IndianRupee size={18} className="text-primary" />
               </div>
               <div>
@@ -344,7 +344,7 @@ function TimeBlock({ label, time, variant }: TimeBlockProps): React.JSX.Element 
   const formatted = time ? formatTime(time) : '--:--'
 
   return (
-    <div className="flex items-center gap-2.5 bg-bg rounded-xl px-3 py-2.5">
+    <div className="flex items-center gap-2.5 bg-bg px-3 py-2.5">
       <Clock
         size={16}
         className={variant === 'success' ? 'text-success' : 'text-text-muted'}
