@@ -1,6 +1,7 @@
 import type { Context, Next } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, eq, isNull } from 'drizzle-orm'
+import type { Role } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { tenant_members } from '@/db/schema'
 
@@ -47,6 +48,31 @@ export async function tenantMiddleware(
   }
 
   c.set('tenantId', tenantId)
+  c.set('role', member.role as Role)
+
+  await next()
+}
+
+/**
+ * requireOwner — rejects the request unless the caller's role in the current
+ * tenant is OWNER.
+ *
+ * MUST run AFTER tenantMiddleware (which sets `role` on context). Route
+ * groups that are Owner-only per 05-ui-screens.md's Access column (e.g. all
+ * of /staff/*, aside from the public invite view and the accept endpoint —
+ * which run before tenant context even exists) use this instead of every
+ * handler re-checking role itself.
+ */
+export async function requireOwner(
+  c: Context<{ Bindings: Env; Variables: Variables }>,
+  next: Next,
+): Promise<Response | void> {
+  if (c.get('role') !== 'OWNER') {
+    return c.json(
+      { error: { code: 'FORBIDDEN', message: 'Only the garage owner can do this' } },
+      403,
+    )
+  }
 
   await next()
 }

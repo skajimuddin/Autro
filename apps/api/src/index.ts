@@ -3,7 +3,7 @@ import type { Env, Variables } from '@/env'
 import { validateEnv } from '@/env'
 import { corsMiddleware } from '@/middleware/cors'
 import { authMiddleware } from '@/middleware/auth'
-import { tenantMiddleware } from '@/middleware/tenant'
+import { tenantMiddleware, requireOwner } from '@/middleware/tenant'
 import authRoutes from '@/routes/auth'
 import tenantsRouter from '@/routes/tenants'
 import vehiclesRouter from '@/routes/vehicles'
@@ -103,8 +103,15 @@ app.use('/invoices/*', authMiddleware)
 app.use('/invoices/*', tenantMiddleware)
 app.route('/invoices', invoicesRouter)
 
+// Every route on staffRouter is Owner-only per 05-ui-screens.md (staff list,
+// invite, profile/salary, remove, revoke) — STAFF's only access point is
+// /checkin, served by attendanceRouter below, not this router. The public
+// invite view and the accept endpoint are mounted separately above and never
+// reach this chain (their own routes terminate the request first), so they
+// stay reachable by an unauthenticated or not-yet-a-member caller.
 app.use('/staff/*', authMiddleware)
 app.use('/staff/*', tenantMiddleware)
+app.use('/staff/*', requireOwner)
 app.route('/staff', staffRouter)
 
 app.use('/attendance/*', authMiddleware)
