@@ -32,6 +32,7 @@ import {
   Modal,
   PriceRow,
   TotalRow,
+  SegmentedControl,
   useToast,
   ToastContainer,
 } from '@/components/ui'
@@ -445,30 +446,16 @@ export default function InvoiceEditorPage(): React.JSX.Element {
         <Card>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-text">Discount</span>
-            <div className="flex rounded-full border border-border overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setDiscountType('FLAT')}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
-                  discountType === 'FLAT'
-                    ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:bg-bg'
-                }`}
-              >
-                ₹ Flat
-              </button>
-              <button
-                type="button"
-                onClick={() => setDiscountType('PERCENT')}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${
-                  discountType === 'PERCENT'
-                    ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:bg-bg'
-                }`}
-              >
-                %
-              </button>
-            </div>
+            <SegmentedControl
+              id="invoice-discount-type"
+              aria-label="Discount type"
+              value={discountType}
+              onChange={setDiscountType}
+              options={[
+                { value: 'FLAT', label: '₹ Flat' },
+                { value: 'PERCENT', label: '%' },
+              ]}
+            />
           </div>
           <Input
             type="number"

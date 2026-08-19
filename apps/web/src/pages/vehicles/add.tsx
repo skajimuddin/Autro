@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Camera, User, Phone, Hash } from '@/components/ui/icons'
+import { Car, Save, User, Phone, Hash } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -201,7 +201,7 @@ export default function AddVehiclePage(): React.JSX.Element {
         <Input
           label="Vehicle Name"
           placeholder="e.g. Honda City, Splendor"
-          leftIcon={<Camera size={16} />}
+          leftIcon={<Car size={16} />}
           error={errors.name?.message}
           {...register('name')}
         />
@@ -247,7 +247,7 @@ export default function AddVehiclePage(): React.JSX.Element {
             id="add-vehicle-submit"
             type="submit"
             isLoading={mutation.isPending}
-            leftIcon={!mutation.isPending ? <Camera size={18} /> : undefined}
+            leftIcon={!mutation.isPending ? <Save size={18} /> : undefined}
           >
             Save Vehicle
           </Button>
