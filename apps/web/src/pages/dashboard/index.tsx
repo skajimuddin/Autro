@@ -20,23 +20,26 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Card, Chip, Typography, Stack, Button, Divider, Table, TableBody,
-  TableCell, TableHead, TableRow, Avatar, LinearProgress, Skeleton,
-  useMediaQuery, useTheme, ButtonBase, IconButton,
+  Box, Card, Typography, Stack, Button, Divider, Avatar, LinearProgress,
+  Skeleton, IconButton,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import SettingsIcon from '@mui/icons-material/SettingsOutlined'
 import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
+import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
 
 import { apiFetch } from '@/lib/api'
+import { inr } from '@/lib/format'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import { stageChipSx } from '@/theme'
+import { Kicker } from '@/components/ui/kicker'
+import { SectionCard } from '@/components/ui/section-card'
+import { EmptyPanel } from '@/components/ui/empty-panel'
+import { VehicleList } from '@/components/domain/vehicle-list'
+import type { VehicleListItem } from '@/components/domain/vehicle-list'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-type VehicleStatus = 'NEW' | 'REPAIRING' | 'READY' | 'DELIVERED'
 
 interface DashboardStats {
   vehicles_today: number
@@ -44,18 +47,6 @@ interface DashboardStats {
   ready: number
   revenue_today: number
   unpaid_invoices: number
-}
-
-interface VehicleRow {
-  id: string
-  registration_number: string
-  name: string | null
-  customer_name: string
-  customer_phone: string
-  status: VehicleStatus
-  created_at: string
-  complaint: string | null
-  visit_started_at: string | null
 }
 
 interface StaffRow {
@@ -67,17 +58,10 @@ interface StaffRow {
   check_in_at: string | null
 }
 
-const STAGE_LABEL: Record<VehicleStatus, string> = {
-  NEW: 'New', REPAIRING: 'Repairing', READY: 'Ready', DELIVERED: 'Delivered',
-}
-
-/** A job sitting this long without handover is worth surfacing. */
-const STALE_AFTER_DAYS = 5
+/** Enough rows to see the shape of the day without becoming the list page. */
 const WORKSHOP_LIMIT = 6
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const inr = (n: number): string => `₹${n.toLocaleString('en-IN')}`
 
 function greeting(): string {
   const h = new Date().getHours()
@@ -93,18 +77,6 @@ function today(): string {
   return `${weekday}, ${rest}`
 }
 
-function daysInShop(iso: string | null): number | null {
-  if (!iso) return null
-  const started = new Date(iso)
-  if (Number.isNaN(started.getTime())) return null
-  const midnight = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
-  return Math.max(0, Math.round((midnight(new Date()) - midnight(started)) / 86_400_000))
-}
-
-function durationLabel(d: number): string {
-  return d === 0 ? 'Today' : d === 1 ? '1 day' : `${d} days`
-}
-
 function checkInLabel(iso: string | null): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -116,8 +88,6 @@ function checkInLabel(iso: string | null): string {
 
 export default function DashboardPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const theme = useTheme()
-  const desktop = useMediaQuery(theme.breakpoints.up('md'))
   const { tenant, role } = useTenant()
   const { user } = useAuth()
   const isOwner = role === 'OWNER'
@@ -129,9 +99,9 @@ export default function DashboardPage(): React.JSX.Element {
     refetchInterval: 30_000,
   })
 
-  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<{ vehicles: VehicleRow[] }>({
+  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<{ vehicles: VehicleListItem[] }>({
     queryKey: ['vehicles', 'recent', tenant?.id],
-    queryFn: () => apiFetch<{ vehicles: VehicleRow[] }>('/vehicles', { tenantId: tenant?.id }),
+    queryFn: () => apiFetch<{ vehicles: VehicleListItem[] }>('/vehicles', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
   })
   const vehicles = (vehiclesData?.vehicles ?? []).slice(0, WORKSHOP_LIMIT)
@@ -211,15 +181,15 @@ export default function DashboardPage(): React.JSX.Element {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: isOwner ? '1.85fr 1fr' : '1fr' }, gap: 2.5, alignItems: 'start' }}>
           {/* ── In the workshop ─────────────────────────────────────── */}
-          <Card>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.25, py: 1.75 }}>
-              <Typography variant="subtitle2">In the workshop</Typography>
+          {/* Same component the /vehicles page renders — see vehicle-list.tsx. */}
+          <SectionCard
+            title="In the workshop"
+            action={
               <Button size="small" onClick={() => navigate('/vehicles')} sx={{ minWidth: 0, height: 28, px: 1, fontSize: 12 }}>
                 View all
               </Button>
-            </Stack>
-            <Divider />
-
+            }
+          >
             {vehiclesLoading ? (
               <Box sx={{ px: 2.25, py: 1 }}>
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -228,128 +198,44 @@ export default function DashboardPage(): React.JSX.Element {
                 ))}
               </Box>
             ) : vehicles.length === 0 ? (
-              <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 3, textAlign: 'center' }}>
-                <Avatar sx={{ bgcolor: 'action.hover', color: 'text.disabled', width: 48, height: 48 }}>
-                  <CarIcon />
-                </Avatar>
-                <Typography sx={{ fontSize: 14, fontWeight: 600 }}>No vehicles yet</Typography>
-                <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>
-                  Add your first vehicle to start tracking repairs
-                </Typography>
-                <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => navigate('/vehicles/add')} sx={{ mt: 1 }}>
-                  Add vehicle
-                </Button>
-              </Stack>
-            ) : desktop ? (
-              <Table size="small" sx={{ tableLayout: 'fixed' }}>
-                <colgroup>
-                  {/* Stage needs room for a "Repairing" chip and In shop for
-                      "6 days" — at 14%/11% both truncated mid-word. */}
-                  <col width="24%" /><col width="21%" /><col width="27%" /><col width="16%" /><col width="12%" />
-                </colgroup>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    {['Vehicle', 'Customer', 'Job', 'Stage', 'In shop'].map((h) => (
-                      <TableCell key={h} sx={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'text.disabled', py: 1.25, whiteSpace: 'nowrap' }}>
-                        {h}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {vehicles.map((v) => {
-                    const d = daysInShop(v.visit_started_at)
-                    const stale = d !== null && d >= STALE_AFTER_DAYS && v.status !== 'DELIVERED'
-                    return (
-                      <TableRow
-                        key={v.id}
-                        hover
-                        onClick={() => navigate(`/vehicles/${v.id}`)}
-                        sx={{ cursor: 'pointer', '&:last-child td': { border: 0 } }}
-                      >
-                        <TableCell sx={{ py: 1.75 }}>
-                          <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>{v.registration_number}</Typography>
-                          {v.name && <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>{v.name}</Typography>}
-                        </TableCell>
-                        <TableCell>
-                          <Typography noWrap sx={{ fontSize: 13 }}>{v.customer_name}</Typography>
-                          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>{v.customer_phone}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography noWrap title={v.complaint ?? undefined} sx={{ fontSize: 12.5, color: v.complaint ? 'text.secondary' : 'text.disabled' }}>
-                            {v.complaint ?? 'Not inspected'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip size="small" label={STAGE_LABEL[v.status]} sx={stageChipSx(v.status)} />
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: 12.5, whiteSpace: 'nowrap', fontWeight: stale ? 700 : 400, color: stale ? 'warning.main' : 'text.secondary' }}>
-                            {v.status === 'DELIVERED' || d === null ? '—' : durationLabel(d)}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
+              <EmptyPanel
+                icon={<CarIcon />}
+                title="No vehicles yet"
+                description="Add your first vehicle to start tracking repairs"
+                action={{
+                  label: 'Add vehicle',
+                  icon: <AddIcon />,
+                  onClick: () => navigate('/vehicles/add'),
+                }}
+              />
             ) : (
-              <Box>
-                {vehicles.map((v, i) => {
-                  const d = daysInShop(v.visit_started_at)
-                  const stale = d !== null && d >= STALE_AFTER_DAYS && v.status !== 'DELIVERED'
-                  return (
-                    <Box key={v.id}>
-                      {i > 0 && <Divider />}
-                      <ButtonBase
-                        onClick={() => navigate(`/vehicles/${v.id}`)}
-                        sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1.5, px: 2.25, py: 1.75, textAlign: 'left' }}
-                      >
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>{v.registration_number}</Typography>
-                          <Typography noWrap sx={{ fontSize: 12, color: 'text.disabled' }}>
-                            {[v.customer_name, v.name].filter(Boolean).join(' · ')}
-                          </Typography>
-                          <Typography noWrap sx={{ fontSize: 12, color: v.complaint ? 'text.secondary' : 'text.disabled', mt: 0.5 }}>
-                            {v.complaint ?? 'Not inspected'}
-                          </Typography>
-                        </Box>
-                        <Stack alignItems="flex-end" spacing={0.75} sx={{ flexShrink: 0 }}>
-                          <Chip size="small" label={STAGE_LABEL[v.status]} sx={stageChipSx(v.status)} />
-                          <Typography sx={{ fontSize: 12, fontWeight: stale ? 700 : 400, color: stale ? 'warning.main' : 'text.disabled' }}>
-                            {v.status === 'DELIVERED' || d === null ? '—' : durationLabel(d)}
-                          </Typography>
-                        </Stack>
-                      </ButtonBase>
-                    </Box>
-                  )
-                })}
-              </Box>
+              <VehicleList vehicles={vehicles} onSelect={(id) => navigate(`/vehicles/${id}`)} />
             )}
-          </Card>
+          </SectionCard>
 
           {/* ── Attendance (owner only) ─────────────────────────────── */}
           {isOwner && (
-            <Card>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.25, py: 1.75 }}>
-                <Typography variant="subtitle2">Attendance today</Typography>
-                {!staffLoading && staff.length > 0 && (
+            <SectionCard
+              title="Attendance today"
+              action={
+                !staffLoading && staff.length > 0 ? (
                   <Typography sx={{ fontSize: 11.5, color: 'text.disabled' }}>
                     {presentCount} / {staff.length} in
                   </Typography>
-                )}
-              </Stack>
-              {!staffLoading && staff.length > 0 && (
-                <Box sx={{ px: 2.25, pb: 1.75 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(presentCount / staff.length) * 100}
-                    sx={{ height: 4, borderRadius: 2, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }}
-                  />
-                </Box>
-              )}
-              <Divider />
-
+                ) : undefined
+              }
+              headerExtra={
+                !staffLoading && staff.length > 0 ? (
+                  <Box sx={{ px: 2.25, pb: 1.75 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(presentCount / staff.length) * 100}
+                      sx={{ height: 4, borderRadius: 2, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }}
+                    />
+                  </Box>
+                ) : undefined
+              }
+            >
               {staffLoading ? (
                 <Box sx={{ px: 2.25, py: 1.5 }}>
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -358,10 +244,13 @@ export default function DashboardPage(): React.JSX.Element {
                   ))}
                 </Box>
               ) : staff.length === 0 ? (
-                <Stack alignItems="center" spacing={1} sx={{ py: 4, px: 3, textAlign: 'center' }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>No team members yet</Typography>
-                  <Button size="small" onClick={() => navigate('/staff/add')}>Invite staff</Button>
-                </Stack>
+                <EmptyPanel
+                  dense
+                  icon={<PeopleIcon />}
+                  title="No team members yet"
+                  description="Invite your mechanics so their attendance shows up here"
+                  action={{ label: 'Invite staff', onClick: () => navigate('/staff/add') }}
+                />
               ) : (
                 staff.map((s, i) => (
                   <Box key={s.id}>
@@ -393,7 +282,7 @@ export default function DashboardPage(): React.JSX.Element {
                   </Box>
                 ))
               )}
-            </Card>
+            </SectionCard>
           )}
         </Box>
       </Box>
@@ -413,9 +302,7 @@ interface StatProps {
 function Stat({ id, label, value, hero = false }: StatProps): React.JSX.Element {
   return (
     <Card id={id} sx={{ p: 2.25 }}>
-      <Typography sx={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.13em', textTransform: 'uppercase', color: 'text.disabled' }}>
-        {label}
-      </Typography>
+      <Kicker>{label}</Kicker>
       <Typography sx={{ fontSize: 30, fontWeight: 700, mt: 1, lineHeight: 1, letterSpacing: '-.025em', fontVariantNumeric: 'tabular-nums', color: hero ? 'primary.main' : 'text.primary' }}>
         {value}
       </Typography>

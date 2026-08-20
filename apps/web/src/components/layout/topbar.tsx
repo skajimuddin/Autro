@@ -32,8 +32,15 @@ interface TopbarProps {
   showBack?: boolean
   /** Optional right-side action element */
   rightAction?: React.ReactNode
-  /** Right-side action for the mobile app bar, when it differs from desktop. */
+  /** Right-side action for the mobile app bar, when it differs from desktop.
+   *  Pass `null` for a bar with no action at all — a list page whose add
+   *  button already sits in the mobile tab bar does not want a second one
+   *  crowding a 62px bar. Only `undefined` falls back to `rightAction`. */
   mobileAction?: React.ReactNode
+  /** Second line of the mobile app bar. Defaults to the garage name, which is
+   *  what a top-level screen wants; a sub-screen passes the thing it is about
+   *  (a vehicle's model), because by then you know which garage you are in. */
+  mobileSubtitle?: string
 }
 
 export function Topbar({
@@ -44,9 +51,13 @@ export function Topbar({
   showBack = false,
   rightAction,
   mobileAction,
+  mobileSubtitle,
 }: TopbarProps): React.JSX.Element {
   const navigate = useNavigate()
   const { tenant } = useTenant()
+
+  // `??` would treat an explicit null as "not given" and fall back.
+  const resolvedMobileAction = mobileAction === undefined ? rightAction : mobileAction
 
   return (
     <>
@@ -85,16 +96,14 @@ export function Topbar({
           <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.2 }}>
             {mobileTitle ?? title}
           </Typography>
-          {tenant?.name && (
+          {(mobileSubtitle ?? tenant?.name) && (
             <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled', lineHeight: 1.3 }}>
-              {tenant.name}
+              {mobileSubtitle ?? tenant?.name}
             </Typography>
           )}
         </Box>
 
-        {(mobileAction ?? rightAction) && (
-          <Box sx={{ flexShrink: 0 }}>{mobileAction ?? rightAction}</Box>
-        )}
+        {resolvedMobileAction && <Box sx={{ flexShrink: 0 }}>{resolvedMobileAction}</Box>}
       </Box>
 
       {/* ── md:+ page header ─────────────────────────────────────────── */}

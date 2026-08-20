@@ -7,7 +7,6 @@ import { tenantMiddleware, requireOwner } from '@/middleware/tenant'
 import authRoutes from '@/routes/auth'
 import tenantsRouter from '@/routes/tenants'
 import vehiclesRouter from '@/routes/vehicles'
-import customersRouter from '@/routes/customers'
 import visitsRouter from '@/routes/visits'
 import uploadRouter from '@/routes/upload'
 import dashboardRouter from '@/routes/dashboard'
@@ -66,19 +65,12 @@ app.use('/tenants/*', authMiddleware)
 app.on('PATCH', '/tenants/:id', tenantMiddleware)
 app.route('/tenants', tenantsRouter)
 
-// ── Future protected routes (to be registered as features are built) ──────────
-// Pattern:
-//   app.use('/resource/*', authMiddleware)
-//   app.use('/resource/*', tenantMiddleware)
-//   app.route('/resource', resourceRouter)
-
+// ── Protected routes ──────────────────────────────────────────────────────────
+// Each needs a JWT (authMiddleware) and a verified X-Tenant-ID membership
+// (tenantMiddleware) before its router sees the request.
 app.use('/vehicles/*', authMiddleware)
 app.use('/vehicles/*', tenantMiddleware)
 app.route('/vehicles', vehiclesRouter)
-
-app.use('/customers/*', authMiddleware)
-app.use('/customers/*', tenantMiddleware)
-app.route('/customers', customersRouter)
 
 app.use('/staff/invite/*/accept', authMiddleware)
 app.route('/staff', acceptInviteRouter)

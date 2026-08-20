@@ -23,6 +23,10 @@ export interface Env {
   R2_ACCESS_KEY_ID: string
   R2_SECRET_ACCESS_KEY: string
   R2_BUCKET_NAME: string
+  /** Public base URL the uploads bucket is served from, e.g.
+   *  https://pub-xxxx.r2.dev or a custom domain. Uploaded objects are read
+   *  back through this, so it is what gets stored against a vehicle photo. */
+  R2_PUBLIC_URL: string
 }
 
 /**
@@ -58,6 +62,7 @@ const R2_KEYS: (keyof Env)[] = [
   'R2_ACCESS_KEY_ID',
   'R2_SECRET_ACCESS_KEY',
   'R2_BUCKET_NAME',
+  'R2_PUBLIC_URL',
 ]
 
 function assertKeys(env: Env, keys: (keyof Env)[]): void {

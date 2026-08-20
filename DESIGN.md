@@ -9,9 +9,10 @@ Rebuilt 2026-08-20 from an approved design explored outside the repo and
 signed off screen by screen. It replaces the previous flat/zero-radius system
 and the rounded blue system that briefly followed it.
 
-**The dashboard is migrated. Every other screen still renders its content with
-Tailwind** and will be migrated one at a time. Both systems read the same
-palette (below), so they do not drift while that is in progress.
+**The dashboard and the three vehicle screens are migrated. Every other screen
+still renders its content with Tailwind** and will be migrated one at a time.
+Both systems read the same palette (below), so they do not drift while that is
+in progress.
 
 ## Foundations
 
@@ -63,6 +64,34 @@ request on every load, and this app is a PWA, so it yields no font at all
 offline. That is also why the font "looked weird" during design review — the
 request was silently blocked and everything fell back to a system face.
 
+## Shared components
+
+A screen must not re-implement something another screen already draws. Anything
+two screens show is one component, in one file:
+
+| Component | File | Rendered by |
+| --------- | ---- | ----------- |
+| `VehicleList` | `components/domain/vehicle-list.tsx` | dashboard panel, `/vehicles` |
+| `StageChip` | `components/ui/stage-chip.tsx` | anywhere a stage is shown |
+| `SectionCard` | `components/ui/section-card.tsx` | every titled panel |
+| `EmptyPanel` | `components/ui/empty-panel.tsx` | every "nothing here yet" body |
+| `Kicker` | `components/ui/kicker.tsx` | stat labels, card kickers |
+| `Field` | `components/ui/field.tsx` | every MUI form field |
+| format helpers | `lib/format.ts` | money, dates, day counts, stage labels |
+| photo upload | `lib/upload.ts` | Add Vehicle, vehicle detail |
+
+This is not tidiness. The dashboard and `/vehicles` previously drew the same
+rows from two components and had already drifted: one painted `REPAIRING`
+amber and `NEW` blue, the other left both neutral, and each computed
+days-in-shop separately.
+
+Form fields get their height, radius, border and focus from the
+`MuiOutlinedInput` overrides in `theme.ts` — never from `sx` at a call site.
+
+**Icons.** Migrated screens use `@mui/icons-material`. `components/ui/icons.tsx`
+(Lucide) exists only for the screens still on Tailwind and shrinks as they
+migrate; nothing new should be added to it.
+
 ## Rules
 
 - **Never hard-code a colour.** MUI screens use palette keys; Tailwind screens
@@ -72,6 +101,12 @@ request was silently blocked and everything fell back to a system face.
   the element does not ship — see the dashboard's missing money column.
 - Check what an icon actually draws. `LuReceipt` contains a dollar sign; this
   app is ₹ only.
+- **Colour is spent, not sprinkled.** Blue is the primary action, the active
+  nav item and the stage a job is at. Amber means one thing: a visit past
+  `STALE_AFTER_DAYS`. A complaint is not an alert and a customer is not a
+  banner — both were coloured before and are plain now.
+- A filter's selected state is a change of surface, never brand colour: five
+  blue pills beside one blue button teach nobody what blue means.
 
 ## Layout
 
@@ -85,6 +120,15 @@ request was silently blocked and everything fell back to a system face.
 - `Topbar` content sits in the same max-width column as the page body, so the
   title does not drift left of the content on wide screens.
 - `subtitle` takes a node, so a page can style its own second line.
+- `mobileSubtitle` replaces the garage name on the mobile app bar's second
+  line. Top-level screens want the garage; a sub-screen wants the thing it is
+  about (a vehicle's model) — you know which garage you are in by then.
+- `mobileAction={null}` gives the app bar no action at all. Only `undefined`
+  falls back to `rightAction`, so a list page whose add button already sits in
+  the mobile tab bar does not get a second one crowding a 62px bar.
+- Detail and form screens (`hideNav`) carry their primary actions in a bar
+  fixed to the bottom of the screen below `md:`, within thumb reach; at `md:`+
+  those actions move to the page header and the bar is gone.
 
 ## Screens
 

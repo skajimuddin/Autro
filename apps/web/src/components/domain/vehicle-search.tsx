@@ -1,16 +1,20 @@
-// Task 3.7 — Registration number autocomplete (Screen 5 step 2)
+// VehicleSearch — "this car has been here before" prompt on Add Vehicle.
 //
-// Sits under the Registration Number field on Add Vehicle. As the owner
-// types, it searches existing vehicles by plate; tapping a match hands the
-// whole record back so the caller can prefill the rest of the form — the
-// point being a returning vehicle never needs its details typed twice.
+// Sits under the registration field. As the owner types, it looks for existing
+// vehicles by plate; picking one hands the whole record back so the caller can
+// prefill the rest of the form — a returning vehicle should never need its
+// details typed twice.
+//
+// Rendered inline rather than as a floating dropdown: on a phone an overlay
+// covers the very fields it is about to fill, and it cannot be scrolled past.
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Box, ButtonBase, Divider, Stack, Typography } from '@mui/material'
+import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 
 import { apiFetch } from '@/lib/api'
-import { ListItem } from '@/components/ui'
-import { Car } from '@/components/ui/icons'
+import { Kicker } from '@/components/ui/kicker'
 
 export interface VehicleSearchResult {
   id: string
@@ -26,11 +30,15 @@ interface VehicleSearchResponse {
 }
 
 interface VehicleSearchProps {
-  /** Current value of the Registration Number field. */
+  /** Current value of the registration field. */
   query: string
   tenantId: string | undefined
   onSelect: (vehicle: VehicleSearchResult) => void
 }
+
+/** Enough to recognise the right car without turning the form into a list. */
+const MAX_RESULTS = 3
+const MIN_QUERY = 2
 
 export function VehicleSearch({
   query,
@@ -40,7 +48,7 @@ export function VehicleSearch({
   const [dismissed, setDismissed] = useState(false)
   const previousQuery = useRef(query)
 
-  // Typing again after a selection re-opens the dropdown; the dismissal only
+  // Typing again after a selection re-opens the prompt; the dismissal only
   // covers the exact match that was just picked.
   useEffect(() => {
     if (query !== previousQuery.current) {
@@ -53,33 +61,71 @@ export function VehicleSearch({
   const { data } = useQuery<VehicleSearchResponse>({
     queryKey: ['vehicle-search', trimmed, tenantId],
     queryFn: () =>
-      apiFetch<VehicleSearchResponse>(
-        `/vehicles/search?plate=${encodeURIComponent(trimmed)}`,
-        { tenantId },
-      ),
-    enabled: Boolean(tenantId) && trimmed.length >= 2,
+      apiFetch<VehicleSearchResponse>(`/vehicles/search?plate=${encodeURIComponent(trimmed)}`, {
+        tenantId,
+      }),
+    enabled: Boolean(tenantId) && trimmed.length >= MIN_QUERY,
   })
 
-  const results = data?.vehicles ?? []
+  const results = (data?.vehicles ?? []).slice(0, MAX_RESULTS)
 
-  if (dismissed || trimmed.length < 2 || results.length === 0) return null
+  if (dismissed || trimmed.length < MIN_QUERY || results.length === 0) return null
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-1 z-10 bg-card rounded-card border border-border shadow-[var(--shadow-card)] overflow-hidden max-h-64 overflow-y-auto">
+    <Box sx={{ mt: 1, border: 1, borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
+      <Box sx={{ px: 1.5, py: 1, bgcolor: 'action.hover' }}>
+        <Kicker>Already in your records</Kicker>
+      </Box>
+
       {results.map((vehicle) => (
-        <ListItem
-          key={vehicle.id}
-          id={`vehicle-search-result-${vehicle.id}`}
-          leftSlot={<Car size={16} className="text-primary" />}
-          title={vehicle.registration_number}
-          subtitle={vehicle.customer_name}
-          showChevron={false}
-          onClick={() => {
-            setDismissed(true)
-            onSelect(vehicle)
-          }}
-        />
+        <Box key={vehicle.id}>
+          <Divider />
+          <ButtonBase
+            id={`vehicle-search-result-${vehicle.id}`}
+            onClick={() => {
+              setDismissed(true)
+              onSelect(vehicle)
+            }}
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              px: 1.5,
+              py: 1.375,
+              textAlign: 'left',
+            }}
+          >
+            <Box
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: 1,
+                bgcolor: 'action.hover',
+                color: 'text.secondary',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <CarIcon sx={{ fontSize: 17 }} />
+            </Box>
+
+            <Stack sx={{ flex: 1, minWidth: 0 }}>
+              <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
+                {vehicle.registration_number}
+              </Typography>
+              <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                {[vehicle.name, vehicle.customer_name].filter(Boolean).join(' · ')}
+              </Typography>
+            </Stack>
+
+            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'primary.main', flexShrink: 0 }}>
+              Use these
+            </Typography>
+          </ButtonBase>
+        </Box>
       ))}
-    </div>
+    </Box>
   )
 }

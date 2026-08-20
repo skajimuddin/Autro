@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
-import { useTenant } from '@/hooks/use-tenant'
+import { useTenant } from '@/providers/tenant-provider'
 import { Card, Button, Input, Textarea } from '@/components/ui'
 
 // ── Validation schema ─────────────────────────────────────────────────────────

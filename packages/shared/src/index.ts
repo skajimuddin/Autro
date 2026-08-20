@@ -2,7 +2,6 @@
 export * from './schemas/auth'
 export * from './schemas/tenant'
 export * from './schemas/vehicle'
-export * from './schemas/customer'
 export * from './schemas/estimate'
 export * from './schemas/invoice'
 export * from './schemas/staff'

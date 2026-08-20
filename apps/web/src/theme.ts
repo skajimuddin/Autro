@@ -5,6 +5,8 @@
 // <html>, which index.css also keys its Tailwind tokens off, so screens that
 // have not been migrated yet flip with it instead of staying light.
 import { createTheme, alpha } from '@mui/material/styles'
+import type { Theme } from '@mui/material/styles'
+import type { VisitStatus } from '@autro/shared'
 
 /**
  * ONE brand colour: Autro blue, calmed.
@@ -84,6 +86,33 @@ export const theme = createTheme({
       styleOverrides: { root: { height: 40, paddingInline: 18 } },
     },
     MuiChip: { styleOverrides: { root: { fontWeight: 600, fontSize: 12, height: 24, borderRadius: 6 } } },
+    // Fields match the buttons beside them: 40px tall, 8px radius, hairline
+    // border, paper ground. Defined here rather than per form, so a field
+    // added to any screen later is already right.
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontSize: 14,
+          backgroundColor: theme.palette.background.paper,
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.text.disabled },
+          // MUI thickens the outline to 2px on focus, which shifts the text
+          // inside it by a pixel. Colour carries the focus instead.
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderWidth: 1,
+            borderColor: theme.palette.primary.main,
+          },
+          '&.Mui-error .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.error.main },
+          '&.MuiInputBase-multiline': { padding: '10px 12px' },
+        }),
+        input: {
+          height: 40,
+          boxSizing: 'border-box',
+          padding: '0 12px',
+          '&.MuiInputBase-inputMultiline': { height: 'auto', padding: 0 },
+        },
+      },
+    },
     MuiTableCell: { styleOverrides: { root: ({ theme }) => ({ borderColor: theme.palette.divider }) } },
     MuiDrawer: { styleOverrides: { paper: { backgroundImage: 'none' } } },
     MuiAppBar: { styleOverrides: { root: { backgroundImage: 'none' } } },
@@ -104,7 +133,7 @@ export const theme = createTheme({
 /** Stage colours for a vehicle's latest visit.
  *  Only the states that need a decision carry a hue: most rows in a real
  *  workshop are REPAIRING, so colouring them all would make colour noise. */
-export const stageChipSx = (status: 'NEW' | 'REPAIRING' | 'READY' | 'DELIVERED') => (t: any) => ({
+export const stageChipSx = (status: VisitStatus) => (t: Theme) => ({
   NEW:       { bgcolor: alpha(t.palette.text.primary, 0.06), color: t.palette.text.secondary },
   REPAIRING: { bgcolor: alpha(t.palette.text.primary, 0.08), color: t.palette.text.primary },
   READY:     { bgcolor: alpha(t.palette.success.main, 0.16), color: t.palette.success.main },

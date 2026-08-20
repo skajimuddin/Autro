@@ -22,8 +22,11 @@ interface PageShellProps {
   subtitle?: React.ReactNode
   showBack?: boolean
   rightAction?: React.ReactNode
-  /** Right-side action for the mobile app bar, when it differs. */
+  /** Right-side action for the mobile app bar, when it differs. Pass `null`
+   *  for no action at all; omit it to reuse `rightAction`. */
   mobileAction?: React.ReactNode
+  /** Second line of the mobile app bar, in place of the garage name. */
+  mobileSubtitle?: string
   /**
    * Hide the MOBILE tab bar on this page — for sub-screens that carry their
    * own bottom action bar. The desktop sidebar always stays (2026-08-20):
@@ -46,6 +49,7 @@ export function PageShell({
   showBack = false,
   rightAction,
   mobileAction,
+  mobileSubtitle,
   hideNav = false,
   wide = false,
   children,
@@ -60,6 +64,7 @@ export function PageShell({
           title={title}
           mobileTitle={mobileTitle}
           mobileAction={mobileAction}
+          mobileSubtitle={mobileSubtitle}
           subtitle={subtitle}
           wide={wide}
           showBack={showBack}

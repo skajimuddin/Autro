@@ -15,22 +15,16 @@ export type UpdateTenant = z.infer<typeof UpdateTenantSchema>
 // ── Vehicle ──────────────────────────────────────────────────────────────────
 import type {
   CreateVehicleSchema,
-  UpdateVehicleSchema,
-  CreateVisitSchema,
   UpdateVisitStatusSchema,
   AddVehicleImageSchema,
 } from '../schemas/vehicle'
 
+/** Post-parse shape: `registration_number` is upper-cased and `image_urls`
+ *  defaulted, so this is what a handler receives, not what a client sends. */
 export type CreateVehicle = z.infer<typeof CreateVehicleSchema>
-export type UpdateVehicle = z.infer<typeof UpdateVehicleSchema>
-export type CreateVisit = z.infer<typeof CreateVisitSchema>
+export type CreateVehicleInput = z.input<typeof CreateVehicleSchema>
 export type UpdateVisitStatus = z.infer<typeof UpdateVisitStatusSchema>
 export type AddVehicleImage = z.infer<typeof AddVehicleImageSchema>
-
-// ── Customer ─────────────────────────────────────────────────────────────────
-import type { CustomerSearchSchema } from '../schemas/customer'
-
-export type CustomerSearch = z.infer<typeof CustomerSearchSchema>
 
 // ── Estimate ─────────────────────────────────────────────────────────────────
 import type {

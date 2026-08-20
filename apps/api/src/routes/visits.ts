@@ -1,33 +1,11 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { UpdateVisitStatusSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { service_visits } from '@/db/schema'
 
 const visitsRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
-
-// GET /?vehicle_id=X
-visitsRouter.get('/', async (c) => {
-  const tenantId = c.get('tenantId')
-  const vehicleId = c.req.query('vehicle_id')
-  
-  if (!vehicleId) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: 'vehicle_id is required' } }, 400)
-  }
-  
-  const db = drizzle(c.env.DB)
-  
-  const visits = await db.select().from(service_visits)
-    .where(and(
-      eq(service_visits.tenant_id, tenantId),
-      eq(service_visits.vehicle_id, vehicleId),
-      isNull(service_visits.deleted_at)
-    ))
-    .orderBy(desc(service_visits.created_at))
-    
-  return c.json({ visits })
-})
 
 // PATCH /:id/status
 visitsRouter.patch('/:id/status', async (c) => {

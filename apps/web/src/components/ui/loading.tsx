@@ -15,8 +15,8 @@ function Skeleton({ className = '' }: SkeletonProps): React.JSX.Element {
 
 // ── Preset skeleton layouts ──────────────────────────────────────────────────
 
-/** Rounded list-row skeleton — matches <ListItem>. */
-export function ListItemSkeleton(): React.JSX.Element {
+/** The row shape <Loading> repeats. Private: nothing needs one on its own. */
+function ListItemSkeleton(): React.JSX.Element {
   return (
     <div className="flex items-center gap-3 p-2.5 rounded-[14px] border border-divider bg-card">
       <Skeleton className="w-12 h-12 flex-shrink-0 rounded-tile" />
@@ -26,24 +26,6 @@ export function ListItemSkeleton(): React.JSX.Element {
       </div>
     </div>
   )
-}
-
-/** Desktop table-row skeleton — matches the vehicle table's column rhythm. */
-export function TableRowSkeleton(): React.JSX.Element {
-  return (
-    <div className="flex items-center gap-4 px-4 py-3 border-b border-divider last:border-b-0">
-      <Skeleton className="w-9 h-9 flex-shrink-0 rounded-tile" />
-      <Skeleton className="h-3.5 flex-[2]" />
-      <Skeleton className="h-3.5 flex-[1.5]" />
-      <Skeleton className="h-3.5 flex-[2] hidden lg:block" />
-      <Skeleton className="h-5 w-20 flex-shrink-0" />
-    </div>
-  )
-}
-
-/** Stat-strip pill skeleton — matches <StatPill>. */
-export function StatPillSkeleton(): React.JSX.Element {
-  return <Skeleton className="h-[42px] w-full md:w-[150px] rounded-tile" />
 }
 
 /** Stat card skeleton — matches <StatCard>. */

@@ -32,7 +32,8 @@ bucket_name = "autro-uploads"
 #   R2_ACCOUNT_ID           ┐
 #   R2_ACCESS_KEY_ID        │ upload only — validateR2Env() checks these in
 #   R2_SECRET_ACCESS_KEY    │ POST /upload/presign, so the rest of the API
-#   R2_BUCKET_NAME          ┘ still serves without them
+#   R2_BUCKET_NAME          │ still serves without them
+#   R2_PUBLIC_URL           ┘
 #
 # No fallback defaults anywhere by design (CLAUDE.md rule 4).
 # See .dev.vars.example for what each one is and where to get it.

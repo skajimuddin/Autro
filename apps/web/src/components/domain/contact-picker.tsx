@@ -1,13 +1,14 @@
-// Task 3.7 — Contact Picker button (progressive enhancement)
+// ContactPicker — fill the customer's name and number from the phone's
+// address book, on the browsers that can.
 //
-// Screen 5 spec: "Customer Name + contact picker icon (shown only on
-// supported browsers)". Renders null on any browser without the Contact
-// Picker API, so unsupported browsers see nothing — no dead button, no
-// layout shift from a disabled state.
-import { useState, useCallback } from 'react'
+// Renders null where the Contact Picker API doesn't exist (desktop, iOS
+// Safari, Firefox), so unsupported browsers see nothing rather than a button
+// that does nothing.
+import { useCallback, useState } from 'react'
 import type React from 'react'
+import { Button, CircularProgress } from '@mui/material'
+import ContactsIcon from '@mui/icons-material/ContactPhoneOutlined'
 
-import { Loader2, Smartphone } from '@/components/ui/icons'
 import { isContactPickerSupported, pickContact, type PickedContact } from '@/lib/contacts'
 
 interface ContactPickerProps {
@@ -15,34 +16,31 @@ interface ContactPickerProps {
 }
 
 export function ContactPicker({ onSelect }: ContactPickerProps): React.JSX.Element | null {
-  const [isPicking, setIsPicking] = useState(false)
+  const [picking, setPicking] = useState(false)
 
   const handleClick = useCallback(async () => {
-    setIsPicking(true)
+    setPicking(true)
     try {
       const contact = await pickContact()
       if (contact) onSelect(contact)
     } finally {
-      setIsPicking(false)
+      setPicking(false)
     }
   }, [onSelect])
 
   if (!isContactPickerSupported()) return null
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={isPicking}
-      aria-label="Fill from contacts"
-      title="Fill from contacts"
-      className="shrink-0 h-[54px] w-[54px] flex items-center justify-center rounded-input border border-border bg-card text-text-muted hover:text-primary hover:border-primary transition-colors disabled:opacity-50"
+    <Button
+      size="small"
+      disabled={picking}
+      onClick={() => void handleClick()}
+      startIcon={picking ? <CircularProgress size={13} /> : <ContactsIcon sx={{ fontSize: 15 }} />}
+      // Sits in a field's label row, so it has to be smaller than a real
+      // button and carry no weight of its own.
+      sx={{ height: 22, minWidth: 0, px: 0.5, fontSize: 12 }}
     >
-      {isPicking ? (
-        <Loader2 size={18} className="animate-spin-fast" />
-      ) : (
-        <Smartphone size={18} />
-      )}
-    </button>
+      Contacts
+    </Button>
   )
 }

@@ -44,7 +44,10 @@ uploadRouter.post('/presign', async (c) => {
   
   return c.json({
     upload_url: signedRequest.url,
-    file_key: `https://pub-3f013ceda72a4355bda7a9dde43b4a84.r2.dev/${fileKey}`
+    // Where the object will be readable once the PUT lands. This is what the
+    // client stores against the vehicle, so it comes from configuration —
+    // a bucket host baked into the source outlives the bucket.
+    public_url: `${c.env.R2_PUBLIC_URL.replace(/\/$/, '')}/${fileKey}`,
   })
 })
 
