@@ -159,6 +159,7 @@ export default function DashboardPage(): React.JSX.Element {
             id="dashboard-view-vehicles"
             variant="outline"
             fullWidth={false}
+            leftIcon={<Car size={16} />}
             onClick={() => navigate('/vehicles')}
           >
             View all vehicles
