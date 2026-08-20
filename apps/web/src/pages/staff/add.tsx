@@ -4,25 +4,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import {
-  User,
-  IndianRupee,
-  Link2,
-  Copy,
-  Share2,
-  Check,
-} from '@/components/ui/icons'
+import { User, IndianRupee, Link2, Copy, Share2, Check } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Button,
-  Input,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { Card, Button, Input, useToast, ToastContainer } from '@/components/ui'
 
 // ── Form Schema ───────────────────────────────────────────────────────────────
 
@@ -99,7 +86,7 @@ export default function StaffAddPage(): React.JSX.Element {
   const handleShare = async () => {
     if (!inviteUrl) return
     const text = `Join ${tenant?.name ?? 'our autro'} as staff:`
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -169,9 +156,7 @@ export default function StaffAddPage(): React.JSX.Element {
                   <Link2 size={22} className="text-success" />
                 </div>
                 <div>
-                  <p className="text-base font-bold text-text">
-                    Invite Link Ready
-                  </p>
+                  <p className="text-base font-bold text-text">Invite Link Ready</p>
                   <p className="text-xs text-text-muted mt-0.5">
                     Share this link with your staff member
                   </p>

@@ -60,18 +60,12 @@
       "indexes": {
         "idx_customers_phone": {
           "name": "idx_customers_phone",
-          "columns": [
-            "tenant_id",
-            "phone"
-          ],
+          "columns": ["tenant_id", "phone"],
           "isUnique": false
         },
         "unique_tenant_phone": {
           "name": "unique_tenant_phone",
-          "columns": [
-            "tenant_id",
-            "phone"
-          ],
+          "columns": ["tenant_id", "phone"],
           "isUnique": true
         }
       },
@@ -80,12 +74,8 @@
           "name": "customers_tenant_id_tenants_id_fk",
           "tableFrom": "customers",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -165,18 +155,12 @@
       "indexes": {
         "idx_visits_vehicle": {
           "name": "idx_visits_vehicle",
-          "columns": [
-            "tenant_id",
-            "vehicle_id"
-          ],
+          "columns": ["tenant_id", "vehicle_id"],
           "isUnique": false
         },
         "idx_visits_status": {
           "name": "idx_visits_status",
-          "columns": [
-            "tenant_id",
-            "status"
-          ],
+          "columns": ["tenant_id", "status"],
           "isUnique": false
         }
       },
@@ -185,12 +169,8 @@
           "name": "service_visits_tenant_id_tenants_id_fk",
           "tableFrom": "service_visits",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -198,12 +178,8 @@
           "name": "service_visits_vehicle_id_vehicles_id_fk",
           "tableFrom": "service_visits",
           "tableTo": "vehicles",
-          "columnsFrom": [
-            "vehicle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["vehicle_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -268,17 +244,12 @@
       "indexes": {
         "idx_members_user": {
           "name": "idx_members_user",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         },
         "unique_tenant_user": {
           "name": "unique_tenant_user",
-          "columns": [
-            "tenant_id",
-            "user_id"
-          ],
+          "columns": ["tenant_id", "user_id"],
           "isUnique": true
         }
       },
@@ -287,12 +258,8 @@
           "name": "tenant_members_tenant_id_tenants_id_fk",
           "tableFrom": "tenant_members",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -300,12 +267,8 @@
           "name": "tenant_members_user_id_users_id_fk",
           "tableFrom": "tenant_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -409,12 +372,8 @@
           "name": "tenants_owner_id_users_id_fk",
           "tableFrom": "tenants",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -479,16 +438,12 @@
       "indexes": {
         "users_google_id_unique": {
           "name": "users_google_id_unique",
-          "columns": [
-            "google_id"
-          ],
+          "columns": ["google_id"],
           "isUnique": true
         },
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -535,12 +490,8 @@
           "name": "vehicle_images_vehicle_id_vehicles_id_fk",
           "tableFrom": "vehicle_images",
           "tableTo": "vehicles",
-          "columnsFrom": [
-            "vehicle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["vehicle_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -612,18 +563,12 @@
       "indexes": {
         "idx_vehicles_reg": {
           "name": "idx_vehicles_reg",
-          "columns": [
-            "tenant_id",
-            "registration_number"
-          ],
+          "columns": ["tenant_id", "registration_number"],
           "isUnique": false
         },
         "unique_tenant_reg": {
           "name": "unique_tenant_reg",
-          "columns": [
-            "tenant_id",
-            "registration_number"
-          ],
+          "columns": ["tenant_id", "registration_number"],
           "isUnique": true
         }
       },
@@ -632,12 +577,8 @@
           "name": "vehicles_tenant_id_tenants_id_fk",
           "tableFrom": "vehicles",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -645,12 +586,8 @@
           "name": "vehicles_customer_id_customers_id_fk",
           "tableFrom": "vehicles",
           "tableTo": "customers",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

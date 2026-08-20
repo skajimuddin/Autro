@@ -14,34 +14,34 @@ export const publicStaffRouter = new Hono<{ Bindings: Env; Variables: Variables 
 publicStaffRouter.get('/invite/:token', async (c) => {
   const token = c.req.param('token')
   const db = drizzle(c.env.DB)
-  
-  const inviteData = await db.select({
-    id: staff_invites.id,
-    name: staff_invites.name,
-    role: staff_invites.role,
-    monthly_salary: staff_invites.monthly_salary,
-    status: staff_invites.status,
-    garage_name: tenants.name,
-    invited_by: users.name,
-  })
-  .from(staff_invites)
-  .innerJoin(tenants, eq(staff_invites.tenant_id, tenants.id))
-  .innerJoin(users, eq(staff_invites.invited_by, users.id))
-  .where(eq(staff_invites.token, token))
-  .get()
-  
+
+  const inviteData = await db
+    .select({
+      id: staff_invites.id,
+      name: staff_invites.name,
+      role: staff_invites.role,
+      monthly_salary: staff_invites.monthly_salary,
+      status: staff_invites.status,
+      garage_name: tenants.name,
+      invited_by: users.name,
+    })
+    .from(staff_invites)
+    .innerJoin(tenants, eq(staff_invites.tenant_id, tenants.id))
+    .innerJoin(users, eq(staff_invites.invited_by, users.id))
+    .where(eq(staff_invites.token, token))
+    .get()
+
   if (!inviteData) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invite not found' } }, 404)
   }
-  
+
   return c.json({
     garage_name: inviteData.garage_name,
     role: inviteData.role,
     invited_by: inviteData.invited_by,
-    status: inviteData.status
+    status: inviteData.status,
   })
 })
-
 
 export const staffRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -49,33 +49,32 @@ export const staffRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 staffRouter.get('/', async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
-  
-  const staffQuery = await db.select({
-    id: tenant_members.id,
-    user_id: tenant_members.user_id,
-    role: tenant_members.role,
-    monthly_salary: tenant_members.monthly_salary,
-    joined_at: tenant_members.joined_at,
-    user_name: users.name,
-    user_email: users.email,
-    avatar_url: users.avatar_url,
-  })
-  .from(tenant_members)
-  .innerJoin(users, eq(tenant_members.user_id, users.id))
-  .where(and(
-    eq(tenant_members.tenant_id, tenantId),
-    isNull(tenant_members.removed_at)
-  ))
-  .all()
-  
-  const today = new Date().toISOString().slice(0, 10)
-  const logs = await db.select().from(attendance_logs).where(and(
-    eq(attendance_logs.tenant_id, tenantId),
-    eq(attendance_logs.date, today)
-  )).all()
 
-  const staff = staffQuery.map(member => {
-    const log = logs.find(l => l.member_id === member.id)
+  const staffQuery = await db
+    .select({
+      id: tenant_members.id,
+      user_id: tenant_members.user_id,
+      role: tenant_members.role,
+      monthly_salary: tenant_members.monthly_salary,
+      joined_at: tenant_members.joined_at,
+      user_name: users.name,
+      user_email: users.email,
+      avatar_url: users.avatar_url,
+    })
+    .from(tenant_members)
+    .innerJoin(users, eq(tenant_members.user_id, users.id))
+    .where(and(eq(tenant_members.tenant_id, tenantId), isNull(tenant_members.removed_at)))
+    .all()
+
+  const today = new Date().toISOString().slice(0, 10)
+  const logs = await db
+    .select()
+    .from(attendance_logs)
+    .where(and(eq(attendance_logs.tenant_id, tenantId), eq(attendance_logs.date, today)))
+    .all()
+
+  const staff = staffQuery.map((member) => {
+    const log = logs.find((l) => l.member_id === member.id)
     return {
       id: member.id,
       user_id: member.user_id,
@@ -88,7 +87,7 @@ staffRouter.get('/', async (c) => {
       check_in_at: log ? log.check_in_at : null,
     }
   })
-  
+
   return c.json({ staff })
 })
 
@@ -96,18 +95,21 @@ staffRouter.get('/', async (c) => {
 staffRouter.post('/invite', async (c) => {
   const tenantId = c.get('tenantId')
   const userId = c.get('userId')
-  
+
   const body = await c.req.json().catch(() => null)
   const parsed = CreateStaffInviteSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   const token = crypto.randomUUID().replace(/-/g, '')
-  
+
   await db.insert(staff_invites).values({
     id: crypto.randomUUID(),
     tenant_id: tenantId,
@@ -120,7 +122,7 @@ staffRouter.post('/invite', async (c) => {
     created_at: now,
     updated_at: now,
   })
-  
+
   return c.json({ invite_url: `/invite/${token}` }, 201)
 })
 
@@ -131,39 +133,48 @@ staffRouter.get('/:id', async (c) => {
   const tenantId = c.get('tenantId')
   const memberId = c.req.param('id')
   const db = drizzle(c.env.DB)
-  
-  const member = await db.select({
-    id: tenant_members.id,
-    user_id: tenant_members.user_id,
-    role: tenant_members.role,
-    monthly_salary: tenant_members.monthly_salary,
-    joined_at: tenant_members.joined_at,
-    user_name: users.name,
-    user_email: users.email,
-    avatar_url: users.avatar_url,
-  })
-  .from(tenant_members)
-  .innerJoin(users, eq(tenant_members.user_id, users.id))
-  .where(and(
-    eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.id, memberId),
-    isNull(tenant_members.removed_at)
-  ))
-  .get()
-  
+
+  const member = await db
+    .select({
+      id: tenant_members.id,
+      user_id: tenant_members.user_id,
+      role: tenant_members.role,
+      monthly_salary: tenant_members.monthly_salary,
+      joined_at: tenant_members.joined_at,
+      user_name: users.name,
+      user_email: users.email,
+      avatar_url: users.avatar_url,
+    })
+    .from(tenant_members)
+    .innerJoin(users, eq(tenant_members.user_id, users.id))
+    .where(
+      and(
+        eq(tenant_members.tenant_id, tenantId),
+        eq(tenant_members.id, memberId),
+        isNull(tenant_members.removed_at),
+      ),
+    )
+    .get()
+
   if (!member) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Staff not found' } }, 404)
   }
-  
+
   const today = new Date()
   const todayStr = today.toISOString().slice(0, 10)
   const currentMonth = todayStr.slice(0, 7) // YYYY-MM
-  
-  const logs = await db.select().from(attendance_logs).where(and(
-    eq(attendance_logs.tenant_id, tenantId),
-    eq(attendance_logs.member_id, memberId),
-    like(attendance_logs.date, `${currentMonth}-%`)
-  )).all()
+
+  const logs = await db
+    .select()
+    .from(attendance_logs)
+    .where(
+      and(
+        eq(attendance_logs.tenant_id, tenantId),
+        eq(attendance_logs.member_id, memberId),
+        like(attendance_logs.date, `${currentMonth}-%`),
+      ),
+    )
+    .all()
 
   let present_days = 0
   let absent_days = 0
@@ -204,30 +215,42 @@ staffRouter.get('/:id', async (c) => {
 staffRouter.patch('/:id', async (c) => {
   const tenantId = c.get('tenantId')
   const memberId = c.req.param('id')
-  
+
   const body = await c.req.json().catch(() => null)
   const parsed = UpdateStaffSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
-  
-  const member = await db.select().from(tenant_members).where(and(
-    eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.id, memberId),
-    isNull(tenant_members.removed_at)
-  )).get()
-  
+
+  const member = await db
+    .select()
+    .from(tenant_members)
+    .where(
+      and(
+        eq(tenant_members.tenant_id, tenantId),
+        eq(tenant_members.id, memberId),
+        isNull(tenant_members.removed_at),
+      ),
+    )
+    .get()
+
   if (!member) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Staff not found' } }, 404)
   }
-  
-  await db.update(tenant_members).set({
-    monthly_salary: parsed.data.monthly_salary
-  }).where(eq(tenant_members.id, memberId))
-  
+
+  await db
+    .update(tenant_members)
+    .set({
+      monthly_salary: parsed.data.monthly_salary,
+    })
+    .where(eq(tenant_members.id, memberId))
+
   return c.json({ success: true })
 })
 
@@ -235,28 +258,37 @@ staffRouter.patch('/:id', async (c) => {
 staffRouter.delete('/:id', async (c) => {
   const tenantId = c.get('tenantId')
   const memberId = c.req.param('id')
-  
+
   const db = drizzle(c.env.DB)
-  
-  const member = await db.select().from(tenant_members).where(and(
-    eq(tenant_members.tenant_id, tenantId),
-    eq(tenant_members.id, memberId),
-    isNull(tenant_members.removed_at)
-  )).get()
-  
+
+  const member = await db
+    .select()
+    .from(tenant_members)
+    .where(
+      and(
+        eq(tenant_members.tenant_id, tenantId),
+        eq(tenant_members.id, memberId),
+        isNull(tenant_members.removed_at),
+      ),
+    )
+    .get()
+
   if (!member) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Staff not found' } }, 404)
   }
-  
+
   // Can't remove the owner
   if (member.role === 'OWNER') {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Cannot remove the owner' } }, 403)
   }
-  
-  await db.update(tenant_members).set({
-    removed_at: new Date().toISOString()
-  }).where(eq(tenant_members.id, memberId))
-  
+
+  await db
+    .update(tenant_members)
+    .set({
+      removed_at: new Date().toISOString(),
+    })
+    .where(eq(tenant_members.id, memberId))
+
   return c.json({ success: true })
 })
 
@@ -264,23 +296,27 @@ staffRouter.delete('/:id', async (c) => {
 staffRouter.patch('/invite/:id/revoke', async (c) => {
   const tenantId = c.get('tenantId')
   const inviteId = c.req.param('id')
-  
+
   const db = drizzle(c.env.DB)
-  
-  const invite = await db.select().from(staff_invites).where(and(
-    eq(staff_invites.tenant_id, tenantId),
-    eq(staff_invites.id, inviteId)
-  )).get()
-  
+
+  const invite = await db
+    .select()
+    .from(staff_invites)
+    .where(and(eq(staff_invites.tenant_id, tenantId), eq(staff_invites.id, inviteId)))
+    .get()
+
   if (!invite) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invite not found' } }, 404)
   }
-  
-  await db.update(staff_invites).set({
-    status: 'REVOKED',
-    updated_at: new Date().toISOString()
-  }).where(eq(staff_invites.id, inviteId))
-  
+
+  await db
+    .update(staff_invites)
+    .set({
+      status: 'REVOKED',
+      updated_at: new Date().toISOString(),
+    })
+    .where(eq(staff_invites.id, inviteId))
+
   return c.json({ success: true })
 })
 
@@ -291,25 +327,26 @@ export const acceptInviteRouter = new Hono<{ Bindings: Env; Variables: Variables
 acceptInviteRouter.post('/invite/:token/accept', async (c) => {
   const userId = c.get('userId')
   const token = c.req.param('token')
-  
+
   const db = drizzle(c.env.DB)
-  
+
   const invite = await db.select().from(staff_invites).where(eq(staff_invites.token, token)).get()
-  
+
   if (!invite) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invite not found' } }, 404)
   }
-  
+
   if (invite.status !== 'PENDING') {
     return c.json({ error: { code: 'BAD_REQUEST', message: 'Invite is no longer pending' } }, 400)
   }
-  
+
   // Check if already a member
-  const existing = await db.select().from(tenant_members).where(and(
-    eq(tenant_members.tenant_id, invite.tenant_id),
-    eq(tenant_members.user_id, userId)
-  )).get()
-  
+  const existing = await db
+    .select()
+    .from(tenant_members)
+    .where(and(eq(tenant_members.tenant_id, invite.tenant_id), eq(tenant_members.user_id, userId)))
+    .get()
+
   const now = new Date().toISOString()
 
   // D1 rejects SQL BEGIN/SAVEPOINT, so drizzle's db.transaction() fails at

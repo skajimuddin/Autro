@@ -38,7 +38,7 @@
 | ---------------- | ---------------------------------------------------- |
 | Frontend hosting | **Cloudflare Pages**                                 |
 | API hosting      | **Cloudflare Workers**                               |
-| Domain           | `autro.zeonweb.com`                               |
+| Domain           | `autro.zeonweb.com`                                  |
 | CI/CD            | **GitHub Actions** → Wrangler deploy on push to main |
 
 ## Shared (Monorepo)

@@ -26,10 +26,7 @@ app.use('*', corsMiddleware)
 // parses. Internal messages are logged, never returned.
 app.onError((err, c) => {
   console.error(`[${c.req.method} ${c.req.path}]`, err)
-  return c.json(
-    { error: { code: 'SERVER_ERROR', message: 'An unexpected error occurred' } },
-    500,
-  )
+  return c.json({ error: { code: 'SERVER_ERROR', message: 'An unexpected error occurred' } }, 500)
 })
 
 app.notFound((c) => {

@@ -24,13 +24,27 @@ export const BRAND = { light: '#3560c0', dark: '#8dabf0' } as const
 // it would stop meaning "action". Muted to sit beside the calmed brand.
 const SEMANTIC = {
   light: { success: '#3f7a5a', warning: '#8a6a2f', error: '#a8443c' },
-  dark:  { success: '#7fb79a', warning: '#d0ae72', error: '#e0918a' },
+  dark: { success: '#7fb79a', warning: '#d0ae72', error: '#e0918a' },
 }
 
 // Cool-neutral greys. Warm greys under a blue brand read as two systems.
 const NEUTRAL = {
-  light: { canvas: '#f6f7f9', paper: '#ffffff', line: '#e4e7ec', ink: '#15181d', ink2: '#5b6473', ink3: '#8b93a1' },
-  dark:  { canvas: '#121417', paper: '#191c20', line: '#262a30', ink: '#e9ecf1', ink2: '#9aa3b2', ink3: '#6b7280' },
+  light: {
+    canvas: '#f6f7f9',
+    paper: '#ffffff',
+    line: '#e4e7ec',
+    ink: '#15181d',
+    ink2: '#5b6473',
+    ink3: '#8b93a1',
+  },
+  dark: {
+    canvas: '#121417',
+    paper: '#191c20',
+    line: '#262a30',
+    ink: '#e9ecf1',
+    ink2: '#9aa3b2',
+    ink3: '#6b7280',
+  },
 }
 
 const scheme = (mode: 'light' | 'dark') => {
@@ -85,7 +99,9 @@ export const theme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: { root: { height: 40, paddingInline: 18 } },
     },
-    MuiChip: { styleOverrides: { root: { fontWeight: 600, fontSize: 12, height: 24, borderRadius: 6 } } },
+    MuiChip: {
+      styleOverrides: { root: { fontWeight: 600, fontSize: 12, height: 24, borderRadius: 6 } },
+    },
     // Fields match the buttons beside them: 40px tall, 8px radius, hairline
     // border, paper ground. Defined here rather than per form, so a field
     // added to any screen later is already right.
@@ -113,7 +129,9 @@ export const theme = createTheme({
         },
       },
     },
-    MuiTableCell: { styleOverrides: { root: ({ theme }) => ({ borderColor: theme.palette.divider }) } },
+    MuiTableCell: {
+      styleOverrides: { root: ({ theme }) => ({ borderColor: theme.palette.divider }) },
+    },
     MuiDrawer: { styleOverrides: { paper: { backgroundImage: 'none' } } },
     MuiAppBar: { styleOverrides: { root: { backgroundImage: 'none' } } },
     MuiListItemButton: {
@@ -133,9 +151,14 @@ export const theme = createTheme({
 /** Stage colours for a vehicle's latest visit.
  *  Only the states that need a decision carry a hue: most rows in a real
  *  workshop are REPAIRING, so colouring them all would make colour noise. */
-export const stageChipSx = (status: VisitStatus) => (t: Theme) => ({
-  NEW:       { bgcolor: alpha(t.palette.text.primary, 0.06), color: t.palette.text.secondary },
-  REPAIRING: { bgcolor: alpha(t.palette.text.primary, 0.08), color: t.palette.text.primary },
-  READY:     { bgcolor: alpha(t.palette.success.main, 0.16), color: t.palette.success.main },
-  DELIVERED: { bgcolor: 'transparent', color: t.palette.text.disabled, border: `1px solid ${t.palette.divider}` },
-}[status])
+export const stageChipSx = (status: VisitStatus) => (t: Theme) =>
+  ({
+    NEW: { bgcolor: alpha(t.palette.text.primary, 0.06), color: t.palette.text.secondary },
+    REPAIRING: { bgcolor: alpha(t.palette.text.primary, 0.08), color: t.palette.text.primary },
+    READY: { bgcolor: alpha(t.palette.success.main, 0.16), color: t.palette.success.main },
+    DELIVERED: {
+      bgcolor: 'transparent',
+      color: t.palette.text.disabled,
+      border: `1px solid ${t.palette.divider}`,
+    },
+  })[status]

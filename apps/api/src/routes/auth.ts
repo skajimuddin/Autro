@@ -64,10 +64,7 @@ auth.get('/google/callback', async (c) => {
   })
 
   if (!tokenRes.ok) {
-    return c.json(
-      { error: { code: 'OAUTH_ERROR', message: 'Failed to exchange OAuth code' } },
-      502,
-    )
+    return c.json({ error: { code: 'OAUTH_ERROR', message: 'Failed to exchange OAuth code' } }, 502)
   }
 
   const tokenData = (await tokenRes.json()) as {
@@ -110,11 +107,7 @@ auth.get('/google/callback', async (c) => {
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
 
-  let user = await db
-    .select()
-    .from(users)
-    .where(eq(users.google_id, googleUser.sub))
-    .get()
+  let user = await db.select().from(users).where(eq(users.google_id, googleUser.sub)).get()
 
   if (!user) {
     const newUser = {
@@ -161,10 +154,7 @@ auth.post('/refresh', async (c) => {
   const parsed = RefreshTokenSchema.safeParse(body)
 
   if (!parsed.success) {
-    return c.json(
-      { error: { code: 'VALIDATION_ERROR', message: 'Missing or invalid token' } },
-      400,
-    )
+    return c.json({ error: { code: 'VALIDATION_ERROR', message: 'Missing or invalid token' } }, 400)
   }
 
   const { JWT_SECRET } = c.env

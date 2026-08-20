@@ -25,11 +25,7 @@ interface QRScannerProps {
   onCancel: () => void
 }
 
-export function QRScanner({
-  onScan,
-  onError,
-  onCancel,
-}: QRScannerProps): React.JSX.Element {
+export function QRScanner({ onScan, onError, onCancel }: QRScannerProps): React.JSX.Element {
   const [isStarting, setIsStarting] = useState(true)
   // Latest callbacks without re-running the start effect
   const handlersRef = useRef({ onScan, onError })
@@ -99,15 +95,10 @@ export function QRScanner({
       aria-modal="true"
       aria-label="Scan attendance QR code"
     >
-      <div
-        id={SCANNER_ELEMENT_ID}
-        className="w-full max-w-sm overflow-hidden bg-black"
-      />
+      <div id={SCANNER_ELEMENT_ID} className="w-full max-w-sm overflow-hidden bg-black" />
 
       <p className="text-white text-sm font-medium text-center">
-        {isStarting
-          ? 'Starting camera…'
-          : 'Point your camera at the autro QR code'}
+        {isStarting ? 'Starting camera…' : 'Point your camera at the autro QR code'}
       </p>
 
       <Button

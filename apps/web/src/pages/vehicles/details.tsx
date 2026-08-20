@@ -238,7 +238,9 @@ export default function VehicleDetailsPage(): React.JSX.Element {
                 onSelect={(next) => statusMutation.mutate(next)}
               />
               {!vehicle.visit_id && (
-                <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 2, textAlign: 'center' }}>
+                <Typography
+                  sx={{ fontSize: 12, color: 'text.disabled', mt: 2, textAlign: 'center' }}
+                >
                   No open visit — add this vehicle again to start one.
                 </Typography>
               )}
@@ -301,7 +303,12 @@ export default function VehicleDetailsPage(): React.JSX.Element {
               {vehicle.customer_name}
             </Typography>
             <Typography
-              sx={{ fontSize: 13.5, color: 'text.secondary', mt: 0.375, fontVariantNumeric: 'tabular-nums' }}
+              sx={{
+                fontSize: 13.5,
+                color: 'text.secondary',
+                mt: 0.375,
+                fontVariantNumeric: 'tabular-nums',
+              }}
             >
               {vehicle.customer_phone}
             </Typography>
@@ -356,7 +363,12 @@ export default function VehicleDetailsPage(): React.JSX.Element {
         >
           Call
         </Button>
-        <Button variant="contained" startIcon={<DescIcon />} onClick={createEstimate} sx={{ flex: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<DescIcon />}
+          onClick={createEstimate}
+          sx={{ flex: 2 }}
+        >
           {vehicle.estimate_id ? 'View estimate' : 'Create estimate'}
         </Button>
       </Box>
@@ -401,7 +413,13 @@ function StatusStepper({ current, disabled, onSelect }: StatusStepperProps): Rea
         return (
           <Box
             key={stage}
-            sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+            }}
           >
             {!last && (
               <Box
@@ -434,7 +452,9 @@ function StatusStepper({ current, disabled, onSelect }: StatusStepperProps): Rea
                 bgcolor: done || active ? 'primary.main' : 'background.paper',
                 border: done || active ? 0 : 2,
                 borderColor: 'divider',
-                boxShadow: active ? (t) => `0 0 0 4px ${alpha(t.palette.primary.main, 0.15)}` : 'none',
+                boxShadow: active
+                  ? (t) => `0 0 0 4px ${alpha(t.palette.primary.main, 0.15)}`
+                  : 'none',
                 opacity: disabled ? 0.6 : 1,
               }}
             >
@@ -552,7 +572,15 @@ function MoneyRow({
   return (
     <ButtonBase
       onClick={onClick}
-      sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 1.5, px: 2.25, py: 1.75, textAlign: 'left' }}
+      sx={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        px: 2.25,
+        py: 1.75,
+        textAlign: 'left',
+      }}
     >
       <Box
         sx={{
@@ -598,10 +626,7 @@ function Spec({ label, value }: { label: string; value: string }): React.JSX.Ele
       sx={{ px: 2.25, py: 1.375 }}
     >
       <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>{label}</Typography>
-      <Typography
-        noWrap
-        sx={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
-      >
+      <Typography noWrap sx={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </Typography>
     </Stack>

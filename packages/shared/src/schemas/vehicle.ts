@@ -31,9 +31,7 @@ export const CreateVehicleSchema = z.object({
   // typed — so the value that reaches this regex is the value the owner sees.
   // Storing one normalised form is what lets POST /vehicles recognise a
   // returning customer by phone instead of creating a duplicate.
-  customer_phone: z
-    .string()
-    .regex(/^\d{10,15}$/, 'Enter a valid phone number (10–15 digits)'),
+  customer_phone: z.string().regex(/^\d{10,15}$/, 'Enter a valid phone number (10–15 digits)'),
   complaint: z.string().trim().max(1000, 'Complaint is too long').nullish(),
   image_urls: z.array(z.string().url()).max(10).default([]),
 })

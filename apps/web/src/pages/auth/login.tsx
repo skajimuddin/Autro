@@ -29,24 +29,16 @@ export default function LoginPage(): React.JSX.Element {
   return (
     <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
       <div className="w-full max-w-[380px] flex flex-col items-center text-center">
-        <img
-          src="/apple-touch-icon.png"
-          alt=""
-          className="w-16 h-16 mb-6"
-        />
+        <img src="/apple-touch-icon.png" alt="" className="w-16 h-16 mb-6" />
 
-        <h1 className="text-[2rem] font-bold text-text tracking-tight">
-          Autro
-        </h1>
+        <h1 className="text-[2rem] font-bold text-text tracking-tight">Autro</h1>
 
         <p className="text-row-title text-text-secondary leading-normal mt-2 mb-9 max-w-[32ch]">
           Garage management, simplified. Vehicles, estimates and invoices in one place.
         </p>
 
         {alreadyLoggedIn ? (
-          <p className="text-row-sub text-text-secondary">
-            Redirecting you to your dashboard…
-          </p>
+          <p className="text-row-sub text-text-secondary">Redirecting you to your dashboard…</p>
         ) : (
           <>
             <button
@@ -62,7 +54,13 @@ export default function LoginPage(): React.JSX.Element {
               ].join(' ')}
             >
               {/* Google brand mark — fixed brand colours, not design tokens */}
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className="flex-shrink-0">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="flex-shrink-0"
+              >
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#fff"

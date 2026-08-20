@@ -52,20 +52,20 @@ Global user table — not tenant-scoped.
 
 Each tenant = one garage/autro.
 
-| Column              | Type    | Constraints             | Notes                       |
-| ------------------- | ------- | ----------------------- | --------------------------- |
-| `id`                | TEXT    | PK                      | UUID                        |
-| `name`              | TEXT    | NOT NULL                | Garage name                 |
-| `owner_id`          | TEXT    | FK → users.id, NOT NULL |                             |
-| `phone`             | TEXT    | NOT NULL                |                             |
-| `address`           | TEXT    |                         |                             |
-| `logo_url`          | TEXT    |                         | R2 path                     |
+| Column              | Type    | Constraints             | Notes                    |
+| ------------------- | ------- | ----------------------- | ------------------------ |
+| `id`                | TEXT    | PK                      | UUID                     |
+| `name`              | TEXT    | NOT NULL                | Garage name              |
+| `owner_id`          | TEXT    | FK → users.id, NOT NULL |                          |
+| `phone`             | TEXT    | NOT NULL                |                          |
+| `address`           | TEXT    |                         |                          |
+| `logo_url`          | TEXT    |                         | R2 path                  |
 | `latitude`          | REAL    |                         | Autro GPS for attendance |
 | `longitude`         | REAL    |                         | Autro GPS for attendance |
-| `gps_radius_meters` | INTEGER | DEFAULT 100             | Allowed check-in radius     |
-| `created_at`        | TEXT    | NOT NULL                |                             |
-| `updated_at`        | TEXT    | NOT NULL                |                             |
-| `deleted_at`        | TEXT    |                         | Soft delete                 |
+| `gps_radius_meters` | INTEGER | DEFAULT 100             | Allowed check-in radius  |
+| `created_at`        | TEXT    | NOT NULL                |                          |
+| `updated_at`        | TEXT    | NOT NULL                |                          |
+| `deleted_at`        | TEXT    |                         | Soft delete              |
 
 ---
 

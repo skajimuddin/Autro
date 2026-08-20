@@ -80,9 +80,7 @@ function formatDate(iso: string): string {
  * Throws if PDF generation fails so the caller can surface a toast.
  */
 export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
-  const { pdf, Document, Page, Text, View, StyleSheet } = await import(
-    '@react-pdf/renderer'
-  )
+  const { pdf, Document, Page, Text, View, StyleSheet } = await import('@react-pdf/renderer')
 
   const s = StyleSheet.create({
     page: {
@@ -109,8 +107,18 @@ export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
       fontFamily: 'Helvetica-Bold',
       textAlign: 'right',
     },
-    statusPaid: { color: '#059669', fontFamily: 'Helvetica-Bold', marginTop: 4, textAlign: 'right' },
-    statusUnpaid: { color: '#dc2626', fontFamily: 'Helvetica-Bold', marginTop: 4, textAlign: 'right' },
+    statusPaid: {
+      color: '#059669',
+      fontFamily: 'Helvetica-Bold',
+      marginTop: 4,
+      textAlign: 'right',
+    },
+    statusUnpaid: {
+      color: '#dc2626',
+      fontFamily: 'Helvetica-Bold',
+      marginTop: 4,
+      textAlign: 'right',
+    },
     section: { marginBottom: 16 },
     sectionLabel: {
       fontSize: 8,
@@ -181,9 +189,7 @@ export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
           {},
           el(Text, { style: s.garageName }, data.garage.name),
           el(Text, { style: s.muted }, data.garage.phone),
-          data.garage.address
-            ? el(Text, { style: s.muted }, data.garage.address)
-            : null,
+          data.garage.address ? el(Text, { style: s.muted }, data.garage.address) : null,
         ),
         el(
           View,
@@ -194,8 +200,7 @@ export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
           el(
             Text,
             {
-              style:
-                data.paymentStatus === 'PAID' ? s.statusPaid : s.statusUnpaid,
+              style: data.paymentStatus === 'PAID' ? s.statusPaid : s.statusUnpaid,
             },
             data.paymentStatus,
           ),
@@ -261,12 +266,7 @@ export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
                 el(Text, {}, `- ${money(data.discountAmount)}`),
               )
             : null,
-          el(
-            View,
-            { style: s.grandRow },
-            el(Text, {}, 'Total'),
-            el(Text, {}, money(data.total)),
-          ),
+          el(View, { style: s.grandRow }, el(Text, {}, 'Total'), el(Text, {}, money(data.total))),
         ),
       ),
 
@@ -280,11 +280,7 @@ export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
           )
         : null,
 
-      el(
-        Text,
-        { style: s.footer, fixed: true },
-        `${data.garage.name} · ${data.garage.phone}`,
-      ),
+      el(Text, { style: s.footer, fixed: true }, `${data.garage.name} · ${data.garage.phone}`),
     ),
   )
 

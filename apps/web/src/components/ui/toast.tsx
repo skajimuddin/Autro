@@ -30,12 +30,14 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.JSX.Element {
       aria-live="polite"
       className={[
         'flex items-center gap-3 px-4 py-3 rounded-card text-sm font-medium shadow-lg animate-slide-in-top',
-        isSuccess
-          ? 'bg-success text-white'
-          : 'bg-danger text-white',
+        isSuccess ? 'bg-success text-white' : 'bg-danger text-white',
       ].join(' ')}
     >
-      {isSuccess ? <CheckCircle size={18} className="flex-shrink-0" /> : <XCircle size={18} className="flex-shrink-0" />}
+      {isSuccess ? (
+        <CheckCircle size={18} className="flex-shrink-0" />
+      ) : (
+        <XCircle size={18} className="flex-shrink-0" />
+      )}
       <span className="flex-1">{toast.message}</span>
       <button
         type="button"

@@ -135,41 +135,35 @@ export const service_visits = sqliteTable(
 )
 
 // ── 9. estimates ─────────────────────────────────────────────────────────────
-export const estimates = sqliteTable(
-  'estimates',
-  {
-    id: text('id').primaryKey(),
-    tenant_id: text('tenant_id')
-      .notNull()
-      .references(() => tenants.id),
-    visit_id: text('visit_id')
-      .notNull()
-      .references(() => service_visits.id),
-    discount_type: text('discount_type'), // 'FLAT' | 'PERCENT'
-    discount_value: real('discount_value').default(0),
-    tax_enabled: integer('tax_enabled').default(0), // 0 = false, 1 = true
-    tax_percent: real('tax_percent').default(0),
-    notes: text('notes'),
-    status: text('status').notNull().default('DRAFT'), // 'DRAFT', 'SENT', 'CONVERTED'
-    created_at: text('created_at').notNull(),
-    updated_at: text('updated_at').notNull(),
-  }
-)
+export const estimates = sqliteTable('estimates', {
+  id: text('id').primaryKey(),
+  tenant_id: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  visit_id: text('visit_id')
+    .notNull()
+    .references(() => service_visits.id),
+  discount_type: text('discount_type'), // 'FLAT' | 'PERCENT'
+  discount_value: real('discount_value').default(0),
+  tax_enabled: integer('tax_enabled').default(0), // 0 = false, 1 = true
+  tax_percent: real('tax_percent').default(0),
+  notes: text('notes'),
+  status: text('status').notNull().default('DRAFT'), // 'DRAFT', 'SENT', 'CONVERTED'
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+})
 
 // ── 10. estimate_items ───────────────────────────────────────────────────────
-export const estimate_items = sqliteTable(
-  'estimate_items',
-  {
-    id: text('id').primaryKey(),
-    estimate_id: text('estimate_id')
-      .notNull()
-      .references(() => estimates.id),
-    description: text('description').notNull(),
-    amount: real('amount').notNull(),
-    quantity: integer('quantity').notNull().default(1),
-    sort_order: integer('sort_order').notNull().default(0),
-  }
-)
+export const estimate_items = sqliteTable('estimate_items', {
+  id: text('id').primaryKey(),
+  estimate_id: text('estimate_id')
+    .notNull()
+    .references(() => estimates.id),
+  description: text('description').notNull(),
+  amount: real('amount').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  sort_order: integer('sort_order').notNull().default(0),
+})
 
 // ── 11. invoices ─────────────────────────────────────────────────────────────
 export const invoices = sqliteTable(
@@ -197,23 +191,20 @@ export const invoices = sqliteTable(
   },
   (table) => ({
     idx_invoices_payment: index('idx_invoices_payment').on(table.tenant_id, table.payment_status),
-  })
+  }),
 )
 
 // ── 12. invoice_items ────────────────────────────────────────────────────────
-export const invoice_items = sqliteTable(
-  'invoice_items',
-  {
-    id: text('id').primaryKey(),
-    invoice_id: text('invoice_id')
-      .notNull()
-      .references(() => invoices.id),
-    description: text('description').notNull(),
-    amount: real('amount').notNull(),
-    quantity: integer('quantity').notNull().default(1),
-    sort_order: integer('sort_order').notNull().default(0),
-  }
-)
+export const invoice_items = sqliteTable('invoice_items', {
+  id: text('id').primaryKey(),
+  invoice_id: text('invoice_id')
+    .notNull()
+    .references(() => invoices.id),
+  description: text('description').notNull(),
+  amount: real('amount').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  sort_order: integer('sort_order').notNull().default(0),
+})
 
 // ── 13. staff_invites ───────────────────────────────────────────────────────
 export const staff_invites = sqliteTable(
@@ -236,22 +227,19 @@ export const staff_invites = sqliteTable(
   },
   (table) => ({
     idx_staff_invites_token: index('idx_staff_invites_token').on(table.token),
-  })
+  }),
 )
 
 // ── 14. qr_codes ────────────────────────────────────────────────────────────
-export const qr_codes = sqliteTable(
-  'qr_codes',
-  {
-    id: text('id').primaryKey(),
-    tenant_id: text('tenant_id')
-      .notNull()
-      .unique()
-      .references(() => tenants.id),
-    token: text('token').notNull().unique(),
-    created_at: text('created_at').notNull(),
-  }
-)
+export const qr_codes = sqliteTable('qr_codes', {
+  id: text('id').primaryKey(),
+  tenant_id: text('tenant_id')
+    .notNull()
+    .unique()
+    .references(() => tenants.id),
+  token: text('token').notNull().unique(),
+  created_at: text('created_at').notNull(),
+})
 
 // ── 15. attendance_logs ─────────────────────────────────────────────────────
 export const attendance_logs = sqliteTable(
@@ -275,8 +263,10 @@ export const attendance_logs = sqliteTable(
   },
   (table) => ({
     unq_attendance: unique('unq_attendance').on(table.tenant_id, table.member_id, table.date),
-    idx_attendance_date: index('idx_attendance_date').on(table.tenant_id, table.member_id, table.date),
-  })
+    idx_attendance_date: index('idx_attendance_date').on(
+      table.tenant_id,
+      table.member_id,
+      table.date,
+    ),
+  }),
 )
-
-

@@ -19,8 +19,21 @@
 import type React from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router'
 import {
-  Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, ListSubheader,
-  Typography, Avatar, Stack, Divider, IconButton, Paper, ButtonBase, useTheme,
+  Box,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Typography,
+  Avatar,
+  Stack,
+  Divider,
+  IconButton,
+  Paper,
+  ButtonBase,
+  useTheme,
   alpha,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined'
@@ -90,7 +103,8 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
 
   const visible = (i: NavItem): boolean => !i.ownerOnly || role === 'OWNER'
   const tabs = MOBILE_TABS.filter(visible)
-  const isActive = (to: string): boolean => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  const isActive = (to: string): boolean =>
+    to === '/' ? pathname === '/' : pathname.startsWith(to)
 
   return (
     <>
@@ -110,13 +124,24 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
         }}
       >
         <Stack direction="row" spacing={1.25} alignItems="center" sx={{ px: 0.75, pb: 2.5 }}>
-          <Avatar variant="rounded" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 32, height: 32, borderRadius: 1.5 }}>
+          <Avatar
+            variant="rounded"
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+            }}
+          >
             <BuildIcon sx={{ fontSize: 17 }} />
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.2 }}>Autro</Typography>
             {tenant?.name && (
-              <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>{tenant.name}</Typography>
+              <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                {tenant.name}
+              </Typography>
             )}
           </Box>
         </Stack>
@@ -130,14 +155,25 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
               dense
               disablePadding
               sx={{ mb: 1.5 }}
-              subheader={heading ? (
-                <ListSubheader
-                  disableSticky
-                  sx={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'text.disabled', bgcolor: 'transparent', lineHeight: '30px', px: 0.75 }}
-                >
-                  {heading}
-                </ListSubheader>
-              ) : null}
+              subheader={
+                heading ? (
+                  <ListSubheader
+                    disableSticky
+                    sx={{
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: '.14em',
+                      textTransform: 'uppercase',
+                      color: 'text.disabled',
+                      bgcolor: 'transparent',
+                      lineHeight: '30px',
+                      px: 0.75,
+                    }}
+                  >
+                    {heading}
+                  </ListSubheader>
+                ) : null
+              }
             >
               {shown.map(({ to, label, icon: Icon }) => {
                 const active = isActive(to)
@@ -149,10 +185,14 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
                     selected={active}
                     sx={{ borderRadius: 1.5, mb: 0.25, py: 0.85 }}
                   >
-                    <ListItemIcon sx={{ minWidth: 30, color: active ? 'primary.main' : 'text.secondary' }}>
+                    <ListItemIcon
+                      sx={{ minWidth: 30, color: active ? 'primary.main' : 'text.secondary' }}
+                    >
                       <Icon sx={{ fontSize: 19 }} />
                     </ListItemIcon>
-                    <ListItemText primaryTypographyProps={{ fontSize: 13.5, fontWeight: active ? 600 : 500 }}>
+                    <ListItemText
+                      primaryTypographyProps={{ fontSize: 13.5, fontWeight: active ? 600 : 500 }}
+                    >
                       {label}
                     </ListItemText>
                   </ListItemButton>
@@ -168,7 +208,14 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
             <Avatar
               src={user?.avatar_url ?? undefined}
               imgProps={{ referrerPolicy: 'no-referrer' }}
-              sx={{ width: 32, height: 32, fontSize: 13, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }}
+              sx={{
+                width: 32,
+                height: 32,
+                fontSize: 13,
+                fontWeight: 700,
+                bgcolor: 'action.hover',
+                color: 'text.secondary',
+              }}
             >
               {user?.name?.charAt(0).toUpperCase() ?? '?'}
             </Avatar>
@@ -177,12 +224,21 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
                 {user?.name ?? 'Signed in'}
               </Typography>
               {role && (
-                <Typography sx={{ fontSize: 11, color: 'text.disabled', textTransform: 'capitalize' }}>
+                <Typography
+                  sx={{ fontSize: 11, color: 'text.disabled', textTransform: 'capitalize' }}
+                >
                   {role.toLowerCase()}
                 </Typography>
               )}
             </Box>
-            <IconButton id="sidebar-signout" size="small" onClick={logout} aria-label="Sign out" title="Sign out" sx={{ color: 'text.disabled' }}>
+            <IconButton
+              id="sidebar-signout"
+              size="small"
+              onClick={logout}
+              aria-label="Sign out"
+              title="Sign out"
+              sx={{ color: 'text.disabled' }}
+            >
               <LogoutIcon sx={{ fontSize: 17 }} />
             </IconButton>
           </Stack>
@@ -196,14 +252,21 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
         elevation={0}
         sx={{
           display: { xs: hideMobileBar ? 'none' : 'block', md: 'none' },
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
-          borderTop: 1, borderColor: 'divider',
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 40,
+          borderTop: 1,
+          borderColor: 'divider',
           pb: 'env(safe-area-inset-bottom, 0px)',
           bgcolor: 'background.paper',
         }}
       >
         <Stack direction="row" alignItems="stretch" sx={{ height: MOBILE_NAV_HEIGHT }}>
-          {tabs.slice(0, 2).map((t) => <Tab key={t.to} item={t} active={isActive(t.to)} />)}
+          {tabs.slice(0, 2).map((t) => (
+            <Tab key={t.to} item={t} active={isActive(t.to)} />
+          ))}
 
           {/* Centre action — the one thing an owner does all day. */}
           <Box sx={{ width: 76, display: 'grid', placeItems: 'center' }}>
@@ -212,8 +275,11 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
               aria-label="Add vehicle"
               onClick={() => navigate('/vehicles/add')}
               sx={{
-                width: 48, height: 48, borderRadius: '50%',
-                bgcolor: 'primary.main', color: 'primary.contrastText',
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
                 boxShadow: `0 2px 8px ${alpha(theme.palette.common.black, 0.18)}`,
                 transition: 'transform .12s ease',
                 '&:active': { transform: 'scale(.94)' },
@@ -223,7 +289,9 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
             </ButtonBase>
           </Box>
 
-          {tabs.slice(2).map((t) => <Tab key={t.to} item={t} active={isActive(t.to)} />)}
+          {tabs.slice(2).map((t) => (
+            <Tab key={t.to} item={t} active={isActive(t.to)} />
+          ))}
         </Stack>
       </Paper>
     </>
@@ -238,8 +306,13 @@ function Tab({ item, active }: { item: NavItem; active: boolean }): React.JSX.El
       to={to}
       aria-current={active ? 'page' : undefined}
       sx={{
-        flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 0.5,
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0.5,
         color: active ? 'primary.main' : 'text.disabled',
       }}
     >
@@ -247,8 +320,15 @@ function Tab({ item, active }: { item: NavItem; active: boolean }): React.JSX.El
           tinted 20px glyph alone was not. */}
       <Box
         sx={{
-          width: 44, height: 26, borderRadius: 13, display: 'grid', placeItems: 'center',
-          bgcolor: (t) => (active ? alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.22 : 0.12) : 'transparent'),
+          width: 44,
+          height: 26,
+          borderRadius: 13,
+          display: 'grid',
+          placeItems: 'center',
+          bgcolor: (t) =>
+            active
+              ? alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.22 : 0.12)
+              : 'transparent',
           transition: 'background-color .15s ease',
         }}
       >

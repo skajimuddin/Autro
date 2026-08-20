@@ -197,10 +197,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
         notes: existingInvoice?.notes ?? null,
       })
     } catch (err: unknown) {
-      showToast(
-        'error',
-        err instanceof Error ? err.message : 'Could not generate the PDF',
-      )
+      showToast('error', err instanceof Error ? err.message : 'Could not generate the PDF')
     } finally {
       setIsGeneratingPdf(false)
     }
@@ -231,14 +228,9 @@ export default function InvoiceEditorPage(): React.JSX.Element {
     setItems((prev) => prev.filter((i) => i.tempId !== tempId))
   }, [])
 
-  const updateItem = useCallback(
-    (tempId: string, field: keyof NewItem, value: string) => {
-      setItems((prev) =>
-        prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)),
-      )
-    },
-    [],
-  )
+  const updateItem = useCallback((tempId: string, field: keyof NewItem, value: string) => {
+    setItems((prev) => prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)))
+  }, [])
 
   // Save mutation
   const saveMutation = useMutation({
@@ -311,7 +303,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
   // WhatsApp share
   const handleWhatsAppShare = useCallback(async () => {
     const text = `Invoice from ${tenant?.name ?? 'Autro'}:\nTotal: ₹${grandTotal.toLocaleString('en-IN')}\n\nThank you for your business!`
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -339,231 +331,221 @@ export default function InvoiceEditorPage(): React.JSX.Element {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <div className="p-4 md:p-6 md:grid md:grid-cols-[1fr_380px] md:gap-6 md:items-start">
-      <div className="flex flex-col gap-4">
-        {/* ── Left accent if from estimate ──────────────────────── */}
-        {fromEstimate && (
-          <div className="rounded-tile bg-primary-light/40 px-4 py-2.5">
-            <p className="text-row-sub font-semibold text-primary">
-              Imported from Estimate
-            </p>
-            <p className="text-row-sub text-text-secondary mt-0.5">
-              Items have been pre-filled. You can edit them before saving.
-            </p>
-          </div>
-        )}
-
-        {/* ── Items Section ────────────────────────────────────── */}
-        <section>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
-            <Receipt size={13} />
-            Items
-          </h3>
-
-          <Card className="!p-3 flex flex-col gap-2">
-            {items.map((item) => (
-              <div key={item.tempId} className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  value={item.description}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'description', e.target.value)
-                  }
-                  placeholder="Item description"
-                  className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
-                <input
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'quantity', e.target.value)
-                  }
-                  placeholder="Qty"
-                  aria-label="Quantity"
-                  className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
-                <input
-                  type="number"
-                  value={item.amount}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'amount', e.target.value)
-                  }
-                  placeholder="₹ Amount"
-                  aria-label="Amount"
-                  className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.tempId)}
-                  className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
-                  aria-label="Remove item"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))}
-
-            <Button
-              id="invoice-add-item"
-              variant="ghost"
-              size="sm"
-              fullWidth={false}
-              leftIcon={<Plus size={14} />}
-              onClick={addItem}
-              className="self-start !px-0 hover:!bg-transparent hover:!text-primary"
-            >
-              Add line item
-            </Button>
-          </Card>
-        </section>
-
-        {/* ── Tax Toggle ───────────────────────────────────────── */}
-        <Card>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-text">Add Tax</span>
-            <button
-              type="button"
-              onClick={() => setTaxEnabled(!taxEnabled)}
-              className="text-primary"
-            >
-              {taxEnabled ? <ToggleRight size={28} /> : <ToggleLeft size={28} className="text-text-muted" />}
-            </button>
-          </div>
-          {taxEnabled && (
-            <div className="mt-3">
-              <Input
-                label="Tax %"
-                type="number"
-                value={taxPercent}
-                onChange={(e) => setTaxPercent(e.target.value)}
-                leftIcon={<Percent size={14} />}
-                placeholder="18"
-              />
+        <div className="flex flex-col gap-4">
+          {/* ── Left accent if from estimate ──────────────────────── */}
+          {fromEstimate && (
+            <div className="rounded-tile bg-primary-light/40 px-4 py-2.5">
+              <p className="text-row-sub font-semibold text-primary">Imported from Estimate</p>
+              <p className="text-row-sub text-text-secondary mt-0.5">
+                Items have been pre-filled. You can edit them before saving.
+              </p>
             </div>
           )}
-        </Card>
 
-        {/* ── Discount ─────────────────────────────────────────── */}
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-text">Discount</span>
-            <SegmentedControl
-              id="invoice-discount-type"
-              aria-label="Discount type"
-              value={discountType}
-              onChange={setDiscountType}
-              options={[
-                { value: 'FLAT', label: '₹ Flat' },
-                { value: 'PERCENT', label: '%' },
-              ]}
+          {/* ── Items Section ────────────────────────────────────── */}
+          <section>
+            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
+              <Receipt size={13} />
+              Items
+            </h3>
+
+            <Card className="!p-3 flex flex-col gap-2">
+              {items.map((item) => (
+                <div key={item.tempId} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={item.description}
+                    onChange={(e) => updateItem(item.tempId, 'description', e.target.value)}
+                    placeholder="Item description"
+                    className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.tempId, 'quantity', e.target.value)}
+                    placeholder="Qty"
+                    aria-label="Quantity"
+                    className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <input
+                    type="number"
+                    value={item.amount}
+                    onChange={(e) => updateItem(item.tempId, 'amount', e.target.value)}
+                    placeholder="₹ Amount"
+                    aria-label="Amount"
+                    className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.tempId)}
+                    className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
+                    aria-label="Remove item"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+
+              <Button
+                id="invoice-add-item"
+                variant="ghost"
+                size="sm"
+                fullWidth={false}
+                leftIcon={<Plus size={14} />}
+                onClick={addItem}
+                className="self-start !px-0 hover:!bg-transparent hover:!text-primary"
+              >
+                Add line item
+              </Button>
+            </Card>
+          </section>
+
+          {/* ── Tax Toggle ───────────────────────────────────────── */}
+          <Card>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-text">Add Tax</span>
+              <button
+                type="button"
+                onClick={() => setTaxEnabled(!taxEnabled)}
+                className="text-primary"
+              >
+                {taxEnabled ? (
+                  <ToggleRight size={28} />
+                ) : (
+                  <ToggleLeft size={28} className="text-text-muted" />
+                )}
+              </button>
+            </div>
+            {taxEnabled && (
+              <div className="mt-3">
+                <Input
+                  label="Tax %"
+                  type="number"
+                  value={taxPercent}
+                  onChange={(e) => setTaxPercent(e.target.value)}
+                  leftIcon={<Percent size={14} />}
+                  placeholder="18"
+                />
+              </div>
+            )}
+          </Card>
+
+          {/* ── Discount ─────────────────────────────────────────── */}
+          <Card>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-text">Discount</span>
+              <SegmentedControl
+                id="invoice-discount-type"
+                aria-label="Discount type"
+                value={discountType}
+                onChange={setDiscountType}
+                options={[
+                  { value: 'FLAT', label: '₹ Flat' },
+                  { value: 'PERCENT', label: '%' },
+                ]}
+              />
+            </div>
+            <Input
+              type="number"
+              value={discountValue}
+              onChange={(e) => setDiscountValue(e.target.value)}
+              leftIcon={discountType === 'FLAT' ? <IndianRupee size={14} /> : <Percent size={14} />}
+              placeholder="0"
             />
-          </div>
-          <Input
-            type="number"
-            value={discountValue}
-            onChange={(e) => setDiscountValue(e.target.value)}
-            leftIcon={
-              discountType === 'FLAT' ? (
-                <IndianRupee size={14} />
-              ) : (
-                <Percent size={14} />
-              )
-            }
-            placeholder="0"
-          />
-        </Card>
+          </Card>
 
-        {/* ── Line breakdown (subtotal/tax/discount) ────────────── */}
-        <Card>
-          <PriceRow name="Subtotal" price={subtotal} />
-          {taxEnabled && taxAmount > 0 && (
-            <PriceRow name={`Tax (${taxPercent}%)`} price={taxAmount} />
-          )}
-          {discountAmount > 0 && (
-            <PriceRow
-              name={`Discount${discountType === 'PERCENT' ? ` (${discountValue}%)` : ''}`}
-              price={-discountAmount}
-            />
-          )}
-        </Card>
-      </div>
-
-      {/* ── Total due + actions (right column at md:+) ───────────── */}
-      <div className="flex flex-col gap-3 mt-4 md:mt-0 pb-6">
-        <Card id="invoice-totals" elevated className="flex flex-col gap-1">
-          <span className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
-            Total due
-          </span>
-          <span className="text-value-xl font-bold text-primary tabular-nums">
-            ₹{grandTotal.toLocaleString('en-IN')}
-          </span>
-        </Card>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            id="invoice-pdf"
-            variant="outline"
-            size="sm"
-            leftIcon={<FileDown size={16} />}
-            isLoading={isGeneratingPdf}
-            onClick={handleDownloadPdf}
-          >
-            PDF
-          </Button>
-          <Button
-            id="invoice-print"
-            variant="outline"
-            size="sm"
-            leftIcon={<Printer size={16} />}
-            onClick={() => window.print()}
-          >
-            Print
-          </Button>
+          {/* ── Line breakdown (subtotal/tax/discount) ────────────── */}
+          <Card>
+            <PriceRow name="Subtotal" price={subtotal} />
+            {taxEnabled && taxAmount > 0 && (
+              <PriceRow name={`Tax (${taxPercent}%)`} price={taxAmount} />
+            )}
+            {discountAmount > 0 && (
+              <PriceRow
+                name={`Discount${discountType === 'PERCENT' ? ` (${discountValue}%)` : ''}`}
+                price={-discountAmount}
+              />
+            )}
+          </Card>
         </div>
 
-        <Button
-          id="invoice-share-whatsapp"
-          leftIcon={<Share2 size={16} />}
-          onClick={handleWhatsAppShare}
-        >
-          Share on WhatsApp
-        </Button>
+        {/* ── Total due + actions (right column at md:+) ───────────── */}
+        <div className="flex flex-col gap-3 mt-4 md:mt-0 pb-6">
+          <Card id="invoice-totals" elevated className="flex flex-col gap-1">
+            <span className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
+              Total due
+            </span>
+            <span className="text-value-xl font-bold text-primary tabular-nums">
+              ₹{grandTotal.toLocaleString('en-IN')}
+            </span>
+          </Card>
 
-        {!isPaid && (
-          <Button
-            id="invoice-mark-paid"
-            variant="success"
-            leftIcon={<CheckCircle2 size={18} />}
-            onClick={() => {
-              if (!isNew && id) {
-                setShowPaymentModal(true)
-              } else {
-                showToast('error', 'Save the invoice first')
-              }
-            }}
-          >
-            Mark as Paid
-          </Button>
-        )}
-
-        {isPaid && (
-          <div className="flex items-center justify-center gap-2 py-3 rounded-tile bg-success-light">
-            <CheckCircle2 size={18} className="text-success" />
-            <span className="text-row-title font-bold text-success">Paid</span>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              id="invoice-pdf"
+              variant="outline"
+              size="sm"
+              leftIcon={<FileDown size={16} />}
+              isLoading={isGeneratingPdf}
+              onClick={handleDownloadPdf}
+            >
+              PDF
+            </Button>
+            <Button
+              id="invoice-print"
+              variant="outline"
+              size="sm"
+              leftIcon={<Printer size={16} />}
+              onClick={() => window.print()}
+            >
+              Print
+            </Button>
           </div>
-        )}
 
-        {!isPaid && (
           <Button
-            id="invoice-save"
-            variant="ghost"
-            leftIcon={<Save size={16} />}
-            isLoading={saveMutation.isPending}
-            onClick={() => saveMutation.mutate()}
+            id="invoice-share-whatsapp"
+            leftIcon={<Share2 size={16} />}
+            onClick={handleWhatsAppShare}
           >
-            Save Draft
+            Share on WhatsApp
           </Button>
-        )}
-      </div>
+
+          {!isPaid && (
+            <Button
+              id="invoice-mark-paid"
+              variant="success"
+              leftIcon={<CheckCircle2 size={18} />}
+              onClick={() => {
+                if (!isNew && id) {
+                  setShowPaymentModal(true)
+                } else {
+                  showToast('error', 'Save the invoice first')
+                }
+              }}
+            >
+              Mark as Paid
+            </Button>
+          )}
+
+          {isPaid && (
+            <div className="flex items-center justify-center gap-2 py-3 rounded-tile bg-success-light">
+              <CheckCircle2 size={18} className="text-success" />
+              <span className="text-row-title font-bold text-success">Paid</span>
+            </div>
+          )}
+
+          {!isPaid && (
+            <Button
+              id="invoice-save"
+              variant="ghost"
+              leftIcon={<Save size={16} />}
+              isLoading={saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
+              Save Draft
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ── Payment Method Modal ───────────────────────────────── */}

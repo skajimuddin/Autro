@@ -146,14 +146,9 @@ export default function EstimateEditorPage(): React.JSX.Element {
   }, [])
 
   // Update item
-  const updateItem = useCallback(
-    (tempId: string, field: keyof NewItem, value: string) => {
-      setItems((prev) =>
-        prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)),
-      )
-    },
-    [],
-  )
+  const updateItem = useCallback((tempId: string, field: keyof NewItem, value: string) => {
+    setItems((prev) => prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)))
+  }, [])
 
   // Save mutation
   const saveMutation = useMutation({
@@ -217,18 +212,14 @@ export default function EstimateEditorPage(): React.JSX.Element {
                 <input
                   type="text"
                   value={item.description}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'description', e.target.value)
-                  }
+                  onChange={(e) => updateItem(item.tempId, 'description', e.target.value)}
                   placeholder="Item description"
                   className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <input
                   type="number"
                   value={item.quantity}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'quantity', e.target.value)
-                  }
+                  onChange={(e) => updateItem(item.tempId, 'quantity', e.target.value)}
                   placeholder="Qty"
                   aria-label="Quantity"
                   className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -236,9 +227,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
                 <input
                   type="number"
                   value={item.amount}
-                  onChange={(e) =>
-                    updateItem(item.tempId, 'amount', e.target.value)
-                  }
+                  onChange={(e) => updateItem(item.tempId, 'amount', e.target.value)}
                   placeholder="₹ Amount"
                   aria-label="Amount"
                   className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -278,7 +267,11 @@ export default function EstimateEditorPage(): React.JSX.Element {
               className="text-primary"
               aria-label={taxEnabled ? 'Disable tax' : 'Enable tax'}
             >
-              {taxEnabled ? <ToggleRight size={28} /> : <ToggleLeft size={28} className="text-text-muted" />}
+              {taxEnabled ? (
+                <ToggleRight size={28} />
+              ) : (
+                <ToggleLeft size={28} className="text-text-muted" />
+              )}
             </button>
           </div>
           {taxEnabled && (
@@ -314,13 +307,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
             type="number"
             value={discountValue}
             onChange={(e) => setDiscountValue(e.target.value)}
-            leftIcon={
-              discountType === 'FLAT' ? (
-                <IndianRupee size={14} />
-              ) : (
-                <Percent size={14} />
-              )
-            }
+            leftIcon={discountType === 'FLAT' ? <IndianRupee size={14} /> : <Percent size={14} />}
             placeholder="0"
           />
         </Card>
@@ -329,10 +316,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
         <Card id="estimate-totals">
           <PriceRow name="Subtotal" price={subtotal} />
           {taxEnabled && taxAmount > 0 && (
-            <PriceRow
-              name={`Tax (${taxPercent}%)`}
-              price={taxAmount}
-            />
+            <PriceRow name={`Tax (${taxPercent}%)`} price={taxAmount} />
           )}
           {discountAmount > 0 && (
             <PriceRow

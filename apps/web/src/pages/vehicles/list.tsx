@@ -138,9 +138,7 @@ export default function VehicleListPage(): React.JSX.Element {
       // in a 62px app bar is noise.
       mobileAction={null}
     >
-      <Box
-        sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}
-      >
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* On a phone the toolbar sits on the page ground — inside the card it
             would push the first vehicle below the fold. */}
         {!desktop && toolbar}

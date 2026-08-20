@@ -70,7 +70,9 @@ export function TenantProvider({ children }: TenantProviderProps): React.JSX.Ele
       .catch((err: unknown) => {
         // 404 = no garage yet → not an error, just no tenant
         const isNotFound =
-          err instanceof Error && 'status' in err ? (err as { status?: number }).status === 404 : false
+          err instanceof Error && 'status' in err
+            ? (err as { status?: number }).status === 404
+            : false
         if (isNotFound) {
           setTenant(null)
           setRole(null)

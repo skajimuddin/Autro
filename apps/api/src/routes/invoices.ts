@@ -1,15 +1,19 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull } from 'drizzle-orm'
-import {
-  CreateInvoiceSchema,
-  UpdateInvoiceSchema,
-  MarkInvoicePaidSchema,
-} from '@autro/shared'
+import { CreateInvoiceSchema, UpdateInvoiceSchema, MarkInvoicePaidSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
-import { invoices, invoice_items, service_visits, vehicles, customers, estimates, estimate_items } from '@/db/schema'
+import {
+  invoices,
+  invoice_items,
+  service_visits,
+  vehicles,
+  customers,
+  estimates,
+  estimate_items,
+} from '@/db/schema'
 
 const invoicesRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -19,14 +23,14 @@ invoicesRouter.get('/', async (c) => {
   const status = c.req.query('status')
   const cursor = parseInt(c.req.query('cursor') || '0', 10)
   const limit = 20
-  
+
   const db = drizzle(c.env.DB)
-  
+
   let conditions = [eq(invoices.tenant_id, tenantId)]
   if (status && (status === 'UNPAID' || status === 'PAID')) {
     conditions.push(eq(invoices.payment_status, status))
   }
-  
+
   const results = await db
     .select({
       id: invoices.id,
@@ -45,13 +49,13 @@ invoicesRouter.get('/', async (c) => {
     .orderBy(desc(invoices.created_at))
     .limit(limit + 1)
     .offset(cursor)
-    
+
   const hasNextPage = results.length > limit
   const data = results.slice(0, limit)
-  
+
   return c.json({
     invoices: data,
-    cursor: hasNextPage ? (cursor + limit).toString() : null
+    cursor: hasNextPage ? (cursor + limit).toString() : null,
   })
 })
 
@@ -60,35 +64,38 @@ invoicesRouter.post('/', async (c) => {
   const tenantId = c.get('tenantId')
   const body = await c.req.json().catch(() => null)
   const parsed = CreateInvoiceSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
   const invoiceId = crypto.randomUUID()
   const data = parsed.data
-  
+
   // Calculate frozen_total
   let subtotal = 0
   for (const item of data.items) {
     subtotal += item.amount * item.quantity
   }
-  
+
   let discount = 0
   if (data.discount_type === 'FLAT' && data.discount_value) {
     discount = data.discount_value
   } else if (data.discount_type === 'PERCENT' && data.discount_value) {
     discount = subtotal * (data.discount_value / 100)
   }
-  
+
   let afterDiscount = Math.max(0, subtotal - discount)
   let tax = 0
   if (data.tax_enabled && data.tax_percent) {
     tax = afterDiscount * (data.tax_percent / 100)
   }
-  
+
   const frozen_total = afterDiscount + tax
 
   // Verify the visit belongs to this tenant — visit_id comes straight from the
@@ -152,38 +159,50 @@ invoicesRouter.post('/', async (c) => {
 invoicesRouter.get('/:id', async (c) => {
   const tenantId = c.get('tenantId')
   const invoiceId = c.req.param('id')
-  
+
   const db = drizzle(c.env.DB)
-  
-  const invoice = await db.select().from(invoices)
+
+  const invoice = await db
+    .select()
+    .from(invoices)
     .where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId)))
     .get()
-    
+
   if (!invoice) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
   }
-  
-  const items = await db.select().from(invoice_items)
+
+  const items = await db
+    .select()
+    .from(invoice_items)
     .where(eq(invoice_items.invoice_id, invoiceId))
     .orderBy(invoice_items.sort_order)
     .all()
-    
+
   // Get vehicle details
-  const visit = await db.select().from(service_visits).where(eq(service_visits.id, invoice.visit_id)).get()
+  const visit = await db
+    .select()
+    .from(service_visits)
+    .where(eq(service_visits.id, invoice.visit_id))
+    .get()
   let vehicle = null
   let customer = null
   if (visit) {
     vehicle = await db.select().from(vehicles).where(eq(vehicles.id, visit.vehicle_id)).get()
     if (vehicle) {
-      customer = await db.select().from(customers).where(eq(customers.id, vehicle.customer_id)).get()
+      customer = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.id, vehicle.customer_id))
+        .get()
     }
   }
-  
-  return c.json({ 
-    ...invoice, 
-    items, 
-    registration_number: vehicle?.registration_number, 
-    customer_name: customer?.name 
+
+  return c.json({
+    ...invoice,
+    items,
+    registration_number: vehicle?.registration_number,
+    customer_name: customer?.name,
   })
 })
 
@@ -193,19 +212,28 @@ invoicesRouter.patch('/:id', async (c) => {
   const invoiceId = c.req.param('id')
   const body = await c.req.json().catch(() => null)
   const parsed = UpdateInvoiceSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
-  
-  const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
-  if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
-  
+
+  const currentInvoice = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId)))
+    .get()
+  if (!currentInvoice)
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
+
   const dataToUpdate: Partial<typeof invoices.$inferInsert> = { updated_at: now }
-  if (parsed.data.discount_type !== undefined) dataToUpdate.discount_type = parsed.data.discount_type
+  if (parsed.data.discount_type !== undefined)
+    dataToUpdate.discount_type = parsed.data.discount_type
   if (parsed.data.discount_value !== undefined)
     dataToUpdate.discount_value = parsed.data.discount_value
   if (parsed.data.tax_enabled !== undefined)
@@ -272,9 +300,13 @@ invoicesRouter.patch('/:id', async (c) => {
   )
 
   await runBatch(db, writes)
-  
+
   const invoice = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).get()
-  const items = await db.select().from(invoice_items).where(eq(invoice_items.invoice_id, invoiceId)).all()
+  const items = await db
+    .select()
+    .from(invoice_items)
+    .where(eq(invoice_items.invoice_id, invoiceId))
+    .all()
   return c.json({ ...invoice, items })
 })
 
@@ -284,34 +316,47 @@ invoicesRouter.patch('/:id/pay', async (c) => {
   const invoiceId = c.req.param('id')
   const body = await c.req.json().catch(() => null)
   const parsed = MarkInvoicePaidSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
-  
-  const currentInvoice = await db.select().from(invoices).where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId))).get()
-  if (!currentInvoice) return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
-  
-  await db.update(invoices).set({
-    payment_status: 'PAID',
-    payment_method: parsed.data.payment_method,
-    paid_at: now,
-    updated_at: now,
-  }).where(eq(invoices.id, invoiceId))
-  
+
+  const currentInvoice = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.tenant_id, tenantId), eq(invoices.id, invoiceId)))
+    .get()
+  if (!currentInvoice)
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
+
+  await db
+    .update(invoices)
+    .set({
+      payment_status: 'PAID',
+      payment_method: parsed.data.payment_method,
+      paid_at: now,
+      updated_at: now,
+    })
+    .where(eq(invoices.id, invoiceId))
+
   // Automatically mark the associated service visit as DELIVERED if it isn't already
-  await db.update(service_visits).set({
-    status: 'DELIVERED',
-    delivered_at: now,
-    updated_at: now,
-  }).where(and(
-    eq(service_visits.id, currentInvoice.visit_id),
-    eq(service_visits.tenant_id, tenantId)
-  ))
-  
+  await db
+    .update(service_visits)
+    .set({
+      status: 'DELIVERED',
+      delivered_at: now,
+      updated_at: now,
+    })
+    .where(
+      and(eq(service_visits.id, currentInvoice.visit_id), eq(service_visits.tenant_id, tenantId)),
+    )
+
   const invoice = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).get()
   return c.json({ invoice })
 })
@@ -320,11 +365,15 @@ invoicesRouter.patch('/:id/pay', async (c) => {
 invoicesRouter.post('/from-estimate/:estimateId', async (c) => {
   const tenantId = c.get('tenantId')
   const estimateId = c.req.param('estimateId')
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
-  
-  const estimate = await db.select().from(estimates).where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId))).get()
+
+  const estimate = await db
+    .select()
+    .from(estimates)
+    .where(and(eq(estimates.tenant_id, tenantId), eq(estimates.id, estimateId)))
+    .get()
   if (!estimate) return c.json({ error: { code: 'NOT_FOUND', message: 'Estimate not found' } }, 404)
 
   // Without this guard, re-posting (double tap, retry, back-and-forward) mints
@@ -340,28 +389,32 @@ invoicesRouter.post('/from-estimate/:estimateId', async (c) => {
       return c.json({ invoice_id: already.id })
     }
   }
-  
-  const items = await db.select().from(estimate_items).where(eq(estimate_items.estimate_id, estimateId)).all()
-  
+
+  const items = await db
+    .select()
+    .from(estimate_items)
+    .where(eq(estimate_items.estimate_id, estimateId))
+    .all()
+
   // Calculate total
   let subtotal = 0
   for (const item of items) {
     subtotal += item.amount * item.quantity
   }
-  
+
   let discount = 0
   if (estimate.discount_type === 'FLAT' && estimate.discount_value) {
     discount = estimate.discount_value
   } else if (estimate.discount_type === 'PERCENT' && estimate.discount_value) {
     discount = subtotal * (estimate.discount_value / 100)
   }
-  
+
   let afterDiscount = Math.max(0, subtotal - discount)
   let tax = 0
   if (estimate.tax_enabled && estimate.tax_percent) {
     tax = afterDiscount * (estimate.tax_percent / 100)
   }
-  
+
   const frozen_total = afterDiscount + tax
   const invoiceId = crypto.randomUUID()
 

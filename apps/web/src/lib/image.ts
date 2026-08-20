@@ -40,7 +40,7 @@ export async function compressImage(file: File): Promise<File> {
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
                 type: 'image/webp',
                 lastModified: Date.now(),
               })
@@ -50,7 +50,7 @@ export async function compressImage(file: File): Promise<File> {
             }
           },
           'image/webp',
-          0.8
+          0.8,
         )
       }
       img.onerror = (error) => reject(error)

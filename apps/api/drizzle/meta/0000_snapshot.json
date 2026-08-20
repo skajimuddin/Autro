@@ -60,10 +60,7 @@
       "indexes": {
         "unique_tenant_user": {
           "name": "unique_tenant_user",
-          "columns": [
-            "tenant_id",
-            "user_id"
-          ],
+          "columns": ["tenant_id", "user_id"],
           "isUnique": true
         }
       },
@@ -72,12 +69,8 @@
           "name": "tenant_members_tenant_id_tenants_id_fk",
           "tableFrom": "tenant_members",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -85,12 +78,8 @@
           "name": "tenant_members_user_id_users_id_fk",
           "tableFrom": "tenant_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -194,12 +183,8 @@
           "name": "tenants_owner_id_users_id_fk",
           "tableFrom": "tenants",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -264,16 +249,12 @@
       "indexes": {
         "users_google_id_unique": {
           "name": "users_google_id_unique",
-          "columns": [
-            "google_id"
-          ],
+          "columns": ["google_id"],
           "isUnique": true
         },
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },

@@ -46,39 +46,39 @@ looked worse than `planning/demo-ui`. To stop it drifting again, each row above 
 has a named token in `apps/web/src/index.css`; use the token, not a raw
 Tailwind size:
 
-| Spec row | Token | Tailwind class |
-| -------- | ----- | -------------- |
-| Hero stat / Total | `--text-value-xl` | `text-value-xl` |
-| Stat tile value / greeting | `--text-value` | `text-value` |
-| Card title / List name | `--text-row-title` | `text-row-title` |
-| Detail row | `--text-detail` | `text-detail` |
-| Section header / form label | `--text-label` | `text-label` |
-| Row subtitle / tile label | `--text-row-sub` | `text-row-sub` |
+| Spec row                    | Token              | Tailwind class   |
+| --------------------------- | ------------------ | ---------------- |
+| Hero stat / Total           | `--text-value-xl`  | `text-value-xl`  |
+| Stat tile value / greeting  | `--text-value`     | `text-value`     |
+| Card title / List name      | `--text-row-title` | `text-row-title` |
+| Detail row                  | `--text-detail`    | `text-detail`    |
+| Section header / form label | `--text-label`     | `text-label`     |
+| Row subtitle / tile label   | `--text-row-sub`   | `text-row-sub`   |
 
 Also: do **not** set `-webkit-font-smoothing: antialiased`. It thins every glyph.
 The demo never set it and reads sturdier without it.
 
 ### Spacing & Radius
 
-| Element                    | Value                         |
-| -------------------------- | ----------------------------- |
-| Card radius                | `16px` (rounded-2xl)          |
-| Button radius              | `16px` (rounded-2xl)          |
-| Input radius               | `12px` (rounded-xl)           |
-| Page padding               | `16px`                        |
-| Bottom padding             | `100px` (to clear bottom nav) |
-| Content max-width          | see Responsive Layout below   |
+| Element           | Value                         |
+| ----------------- | ----------------------------- |
+| Card radius       | `16px` (rounded-2xl)          |
+| Button radius     | `16px` (rounded-2xl)          |
+| Input radius      | `12px` (rounded-xl)           |
+| Page padding      | `16px`                        |
+| Bottom padding    | `100px` (to clear bottom nav) |
+| Content max-width | see Responsive Layout below   |
 
 ### Responsive Layout (amended 2026-08-13 — supersedes the 414px cap)
 
 The original spec fixed the app at `max-width: 414px` on all screens. Owner
 approved full responsive support on 2026-08-13; that cap is removed.
 
-| Breakpoint | Width | Nav | Content | Modal |
-| ---------- | ----- | --- | ------- | ----- |
-| base | `< 640px` | Fixed bottom nav, 4 tabs, icon + label | Single column, full-bleed cards, `16px` page padding | Bottom sheet |
-| `md:` | `≥ 768px` | Left sidebar, icon + label always visible | 2-column grid, content `max-w-3xl` | Centered dialog |
-| `lg:` | `≥ 1024px` | Left sidebar | Sidebar + content + optional detail pane. **Lists become tables** (reg no. / vehicle / customer / status / amount) instead of stacked cards | Centered dialog |
+| Breakpoint | Width      | Nav                                       | Content                                                                                                                                     | Modal           |
+| ---------- | ---------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| base       | `< 640px`  | Fixed bottom nav, 4 tabs, icon + label    | Single column, full-bleed cards, `16px` page padding                                                                                        | Bottom sheet    |
+| `md:`      | `≥ 768px`  | Left sidebar, icon + label always visible | 2-column grid, content `max-w-3xl`                                                                                                          | Centered dialog |
+| `lg:`      | `≥ 1024px` | Left sidebar                              | Sidebar + content + optional detail pane. **Lists become tables** (reg no. / vehicle / customer / status / amount) instead of stacked cards | Centered dialog |
 
 Rules:
 
@@ -122,12 +122,12 @@ Rules:
 
 ### Layout Components
 
-| Component           | Description                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
+| Component           | Description                                                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `<MobileContainer>` | Responsive app shell. Full-width on phones; constrained + centered with slate outer bg at `md:`+. (Name is historical — it is no longer mobile-only. See Responsive Layout above.) |
-| `<PageShell>`       | Wraps topbar + scrollable content area + nav (bottom nav on mobile, sidebar at `md:`+) |
-| `<Topbar>`          | Sticky top bar: back button (or menu), title, optional right action icon |
-| `<BottomNav>`       | 4-tab navigation: Home, Vehicles, Staff, Settings. Fixed bottom on mobile, left sidebar at `md:`+ |
+| `<PageShell>`       | Wraps topbar + scrollable content area + nav (bottom nav on mobile, sidebar at `md:`+)                                                                                             |
+| `<Topbar>`          | Sticky top bar: back button (or menu), title, optional right action icon                                                                                                           |
+| `<BottomNav>`       | 4-tab navigation: Home, Vehicles, Staff, Settings. Fixed bottom on mobile, left sidebar at `md:`+                                                                                  |
 
 ### UI Components
 

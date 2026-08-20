@@ -19,9 +19,7 @@ export function MobileContainer({
 }: MobileContainerProps): React.JSX.Element {
   return (
     <div className="min-h-dvh bg-bg flex justify-center">
-      <div className={`w-full max-w-md md:max-w-lg relative ${className}`}>
-        {children}
-      </div>
+      <div className={`w-full max-w-md md:max-w-lg relative ${className}`}>{children}</div>
     </div>
   )
 }

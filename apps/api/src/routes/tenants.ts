@@ -151,11 +151,7 @@ tenantsRouter.patch('/:id', async (c) => {
     })
     .where(and(eq(tenants.id, tenantId), isNull(tenants.deleted_at)))
 
-  const updatedTenant = await db
-    .select()
-    .from(tenants)
-    .where(eq(tenants.id, tenantId))
-    .get()
+  const updatedTenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).get()
 
   if (!updatedTenant) {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Garage not found' } }, 404)

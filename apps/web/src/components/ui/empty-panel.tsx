@@ -23,11 +23,7 @@ export function EmptyPanel({
   dense = false,
 }: EmptyPanelProps): React.JSX.Element {
   return (
-    <Stack
-      alignItems="center"
-      spacing={1.5}
-      sx={{ py: dense ? 4 : 6, px: 3, textAlign: 'center' }}
-    >
+    <Stack alignItems="center" spacing={1.5} sx={{ py: dense ? 4 : 6, px: 3, textAlign: 'center' }}>
       {icon && (
         <Avatar sx={{ bgcolor: 'action.hover', color: 'text.disabled', width: 48, height: 48 }}>
           {icon}

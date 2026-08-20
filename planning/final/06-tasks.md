@@ -490,13 +490,13 @@ DONE WHEN: Can add a vehicle with photo, customer auto-fill works
 ```
 
 - [x] Completed — 2026-08-18: `lib/contacts.ts` wraps the Contact Picker API
-  (`navigator.contacts.select`), guarded by `isContactPickerSupported()` so it's
-  a true no-op on unsupported browsers. `components/domain/contact-picker.tsx`
-  renders `null` when unsupported, otherwise a button next to Customer Name that
-  fills `customer_name` + `customer_phone` via `setValue`. `typecheck`/`lint`/
-  `build` pass across all 3 workspaces. **Not verified on an actual Android
-  Chrome device** — the API has no desktop/iOS equivalent to test against
-  locally, so the picker's real device behavior is unconfirmed.
+      (`navigator.contacts.select`), guarded by `isContactPickerSupported()` so it's
+      a true no-op on unsupported browsers. `components/domain/contact-picker.tsx`
+      renders `null` when unsupported, otherwise a button next to Customer Name that
+      fills `customer_name` + `customer_phone` via `setValue`. `typecheck`/`lint`/
+      `build` pass across all 3 workspaces. **Not verified on an actual Android
+      Chrome device** — the API has no desktop/iOS equivalent to test against
+      locally, so the picker's real device behavior is unconfirmed.
   - **Correction, same day:** the first pass at this task left a second gap
     unfixed. Step 2 of this task's DO list (`vehicle-search.tsx`) and step 6
     ("reg number **with search**") were still an empty stub — the Registration
@@ -612,14 +612,14 @@ DONE WHEN: Can create estimate with items, tax, discount. Total calculates corre
 ```
 
 - [x] Completed — item add/remove logic is inlined in `estimates/editor.tsx`
-  (`addItem`/`removeItem`), so the `domain/estimate-items.tsx` stub is redundant,
-  not missing work.
+      (`addItem`/`removeItem`), so the `domain/estimate-items.tsx` stub is redundant,
+      not missing work.
   - **Correction 2026-08-18:** "Total calculates correctly" was false whenever
     both tax and a discount were active. The editor computed
     `subtotal + tax(subtotal) − discount`; `routes/estimates.ts` (the value
     shown everywhere else — vehicle details' financial summary, the estimates
     list) computes `afterDiscount = subtotal − discount; total = afterDiscount +
-    tax(afterDiscount)` — discount applied before tax, not after. Example:
+tax(afterDiscount)` — discount applied before tax, not after. Example:
     ₹1000 subtotal, 10% discount, 18% tax → editor showed ₹1080, backend/
     everywhere-else total was ₹1062. Reordered the editor's calc to match the
     backend exactly (discount → tax on the remainder), confirmed against
@@ -643,8 +643,8 @@ DO:
 DONE WHEN: Invoice editor works, estimate import pre-fills items, payment flow works
 ```
 
-- [x] Completed — the PDF/Print buttons are placeholders *by design* here (step 5
-  says so); real PDF generation is Task 4.6 below, which is not done.
+- [x] Completed — the PDF/Print buttons are placeholders _by design_ here (step 5
+      says so); real PDF generation is Task 4.6 below, which is not done.
   - **Correction 2026-08-18:** same tax/discount-order bug as Task 4.4, and here
     it's customer-facing: the on-screen Grand Total, the "Share on WhatsApp"
     text, and the PDF (Task 4.6) all read from the same locally-computed
@@ -674,12 +674,12 @@ DONE WHEN: Clicking PDF downloads a properly formatted invoice PDF
 ```
 
 - [x] Completed — built 2026-08-13. `lib/pdf.ts` exports `downloadInvoicePdf()`;
-  the PDF button in `invoices/editor.tsx` was an error toast reading
-  "PDF generation coming soon". Template: garage name/phone/address, INVOICE +
-  reference + date + PAID/UNPAID, billed-to block with vehicle reg, items table
-  (description / qty / rate / amount), subtotal + optional tax + optional
-  discount + grand total, notes, fixed footer.
-  Three notes:
+      the PDF button in `invoices/editor.tsx` was an error toast reading
+      "PDF generation coming soon". Template: garage name/phone/address, INVOICE +
+      reference + date + PAID/UNPAID, billed-to block with vehicle reg, items table
+      (description / qty / rate / amount), subtotal + optional tax + optional
+      discount + grand total, notes, fixed footer.
+      Three notes:
   - `@react-pdf/renderer` is ~1.3 MB, so it sits behind a dynamic `import()`
     inside `lib/pdf.ts`. Vite emits it as its own chunk; the initial bundle grew
     only ~5 KB. The build's "chunk larger than 500 kB" warning refers to that
@@ -690,8 +690,8 @@ DONE WHEN: Clicking PDF downloads a properly formatted invoice PDF
     which @react-pdf cannot read). The UI still uses ₹ everywhere.
   - Kept as `.ts` (not `.tsx`) because 02-folder-structure.md:53 names `pdf.ts`,
     so the template is built with `createElement` instead of JSX.
-  Output PDF not yet opened and eyeballed — owner is doing the manual pass
-  (Task 7.5.1). Verified: exports match @react-pdf 4.6.0, typecheck, lint, build.
+    Output PDF not yet opened and eyeballed — owner is doing the manual pass
+    (Task 7.5.1). Verified: exports match @react-pdf 4.6.0, typecheck, lint, build.
 
 ### Task 4.7 — Estimate + Invoice List Pages
 
@@ -856,15 +856,15 @@ DONE WHEN: QR displays, regeneration works, today's list shows
 ```
 
 - [x] Completed — rebuilt 2026-08-13. `domain/qr-display.tsx` now renders a real
-  scannable code via `QRCodeSVG` from `qrcode.react`, encoding the **raw token**
-  (strict-equality match against `attendance.ts:89`; no deep link, because
-  `/checkin` is behind `RequireAuth`). Two bugs fixed:
+      scannable code via `QRCodeSVG` from `qrcode.react`, encoding the **raw token**
+      (strict-equality match against `attendance.ts:89`; no deep link, because
+      `/checkin` is behind `RequireAuth`). Two bugs fixed:
   1. the previous version drew a decorative Lucide `<QrCode>` icon, not a code;
   2. `QRData` declared `{ token }` but `GET /attendance/qr` returns `{ qr_token }`
      — `apiFetch<T>` only asserts types, so the mismatch was silent and the card
      always fell through to its empty state. Every other GET endpoint was swept
      for the same class of mismatch; this was the only one.
-  Not yet confirmed in a browser — owner is doing the visual pass (Task 7.5.1).
+     Not yet confirmed in a browser — owner is doing the visual pass (Task 7.5.1).
 
 ### Task 6.4 — Staff Check-In Page
 
@@ -885,9 +885,9 @@ DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-en
 ```
 
 - [x] Completed — rebuilt 2026-08-13. `domain/qr-scanner.tsx` is a real camera
-  scanner built on `html5-qrcode`, replacing
-  `window.prompt('Enter QR Token (Simulating scan):')` (staff had to type a
-  32-char token by hand). Notes:
+      scanner built on `html5-qrcode`, replacing
+      `window.prompt('Enter QR Token (Simulating scan):')` (staff had to type a
+      32-char token by hand). Notes:
   - html5-qrcode is ~369 KB, so it is loaded with a dynamic `import()` and Vite
     emits it as a **separate chunk** — the initial bundle grew only ~1.5 KB.
   - Flow follows step 5's order: scan → GPS → POST. Scanning first means we never
@@ -897,9 +897,9 @@ DONE WHEN: Staff can scan QR, GPS is verified, check-in/out flow works end-to-en
   - Step 3 (`lib/location.ts`) intentionally left unbuilt — `getCurrentPosition`
     is already inlined and working in three pages. Extracting it is a DRY
     cleanup, tracked in PROGRESS.md, not a missing feature.
-  Camera flow not yet confirmed on a device — owner is doing the visual/device
-  pass (Task 7.5.1). Camera needs a secure context: localhost is fine, but LAN
-  testing from a phone needs HTTPS.
+    Camera flow not yet confirmed on a device — owner is doing the visual/device
+    pass (Task 7.5.1). Camera needs a secure context: localhost is fine, but LAN
+    testing from a phone needs HTTPS.
 
 ---
 
@@ -1045,15 +1045,15 @@ DONE WHEN: App is live at autro.zeonweb.com
 ```
 
 - [x] Completed — **not independently verifiable, 2026-08-18 audit.** This
-  task's DONE WHEN is entirely about Cloudflare account state (D1/R2 created,
-  secrets set, domain live) that leaves no trace in the repo. This session has
-  no Cloudflare credentials and its outbound network is proxied/allowlisted —
-  `curl https://autro.zeonweb.com` returns a proxy 403, not a real answer. The
-  code-side prerequisites check out (`wrangler.toml` has real `d1_databases`/
-  `r2_buckets` bindings, not placeholders; `.dev.vars.example` documents all 8
-  required secrets), but whether the site is actually live is unconfirmed from
-  here. Left `[x]` on the owner's word, not on evidence — worth the owner
-  re-confirming directly rather than trusting this checkbox.
+      task's DONE WHEN is entirely about Cloudflare account state (D1/R2 created,
+      secrets set, domain live) that leaves no trace in the repo. This session has
+      no Cloudflare credentials and its outbound network is proxied/allowlisted —
+      `curl https://autro.zeonweb.com` returns a proxy 403, not a real answer. The
+      code-side prerequisites check out (`wrangler.toml` has real `d1_databases`/
+      `r2_buckets` bindings, not placeholders; `.dev.vars.example` documents all 8
+      required secrets), but whether the site is actually live is unconfirmed from
+      here. Left `[x]` on the owner's word, not on evidence — worth the owner
+      re-confirming directly rather than trusting this checkbox.
 
 ### Task 8.3 — Final Audit
 
@@ -1072,12 +1072,12 @@ DONE WHEN: All flows work, Lighthouse passes, no errors
 ```
 
 - [x] Completed — **not independently verifiable, 2026-08-18 audit.** Same
-  issue as 8.2: "test on a real Android phone," "Lighthouse 90+," and "PWA
-  install prompt" all require a browser/device this session doesn't have. No
-  Lighthouse report or device-test log exists anywhere in the repo to check
-  against. Left `[x]` on the owner's word. What *could* be checked from code —
-  no `any` types, no stray `console.log`, no hardcoded env fallbacks, no
-  emoji in UI — all came back clean in this audit (see PROGRESS.md).
+      issue as 8.2: "test on a real Android phone," "Lighthouse 90+," and "PWA
+      install prompt" all require a browser/device this session doesn't have. No
+      Lighthouse report or device-test log exists anywhere in the repo to check
+      against. Left `[x]` on the owner's word. What _could_ be checked from code —
+      no `any` types, no stray `console.log`, no hardcoded env fallbacks, no
+      emoji in UI — all came back clean in this audit (see PROGRESS.md).
 
 ---
 

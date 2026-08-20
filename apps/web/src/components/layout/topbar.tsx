@@ -67,10 +67,16 @@ export function Topbar({
         component="header"
         sx={{
           display: { xs: 'flex', md: 'none' },
-          position: 'sticky', top: 0, zIndex: 30,
-          alignItems: 'center', gap: 1.25, px: 2, minHeight: 62,
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          alignItems: 'center',
+          gap: 1.25,
+          px: 2,
+          minHeight: 62,
           bgcolor: 'background.default',
-          borderBottom: 1, borderColor: 'divider',
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
       >
         {showBack ? (
@@ -86,7 +92,14 @@ export function Topbar({
         ) : (
           <Avatar
             variant="rounded"
-            sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 30, height: 30, borderRadius: 1.25, flexShrink: 0 }}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              width: 30,
+              height: 30,
+              borderRadius: 1.25,
+              flexShrink: 0,
+            }}
           >
             <BuildIcon sx={{ fontSize: 16 }} />
           </Avatar>
@@ -110,15 +123,26 @@ export function Topbar({
       <Box
         id="topbar"
         component="header"
-        sx={{ display: { xs: 'none', md: 'block' }, position: 'sticky', top: 0, zIndex: 30, bgcolor: 'background.default' }}
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          bgcolor: 'background.default',
+        }}
       >
         {/* The bar spans the full width, but its CONTENT sits in the same
             max-width column as the page body — otherwise the title drifts left
             of the content on wide screens, where the body is centred. */}
         <Box
           sx={{
-            mx: 'auto', width: '100%', display: 'flex', alignItems: 'center', gap: 1.5,
-            px: 3.5, py: 2.5,
+            mx: 'auto',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 3.5,
+            py: 2.5,
             maxWidth: wide ? { md: 768, lg: 1152 } : 768,
           }}
         >
@@ -126,7 +150,13 @@ export function Topbar({
             <IconButton
               onClick={() => navigate(-1)}
               aria-label="Go back"
-              sx={{ flexShrink: 0, border: 1, borderColor: 'divider', borderRadius: 1.5, color: 'text.primary' }}
+              sx={{
+                flexShrink: 0,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 1.5,
+                color: 'text.primary',
+              }}
             >
               <ArrowBackIcon sx={{ fontSize: 19 }} />
             </IconButton>
@@ -136,15 +166,23 @@ export function Topbar({
             <Typography
               noWrap
               component="h1"
-              sx={{ fontWeight: 700, letterSpacing: '-.022em', lineHeight: 1.2, fontSize: showBack ? 20 : 27 }}
+              sx={{
+                fontWeight: 700,
+                letterSpacing: '-.022em',
+                lineHeight: 1.2,
+                fontSize: showBack ? 20 : 27,
+              }}
             >
               {title}
             </Typography>
-            {subtitle && (
-              typeof subtitle === 'string'
-                ? <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>{subtitle}</Typography>
-                : <Box sx={{ mt: 0.5, minWidth: 0 }}>{subtitle}</Box>
-            )}
+            {subtitle &&
+              (typeof subtitle === 'string' ? (
+                <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
+                  {subtitle}
+                </Typography>
+              ) : (
+                <Box sx={{ mt: 0.5, minWidth: 0 }}>{subtitle}</Box>
+              ))}
           </Box>
 
           {rightAction && <Box sx={{ flexShrink: 0 }}>{rightAction}</Box>}

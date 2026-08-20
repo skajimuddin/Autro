@@ -8,9 +8,16 @@ interface PriceRowProps {
   className?: string
 }
 
-export function PriceRow({ name, price, quantity, className = '' }: PriceRowProps): React.JSX.Element {
+export function PriceRow({
+  name,
+  price,
+  quantity,
+  className = '',
+}: PriceRowProps): React.JSX.Element {
   return (
-    <div className={`flex items-baseline justify-between py-1.5 border-b border-divider last:border-b-0 ${className}`}>
+    <div
+      className={`flex items-baseline justify-between py-1.5 border-b border-divider last:border-b-0 ${className}`}
+    >
       <div className="flex-1 min-w-0 truncate">
         <span className="text-detail text-text">{name}</span>
         {quantity != null && quantity > 1 && (

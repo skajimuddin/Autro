@@ -13,7 +13,7 @@ interface ContactAddress {
 interface ContactsManager {
   select: (
     properties: Array<'name' | 'tel' | 'email' | 'address' | 'icon'>,
-    options?: { multiple?: boolean }
+    options?: { multiple?: boolean },
   ) => Promise<ContactAddress[]>
 }
 

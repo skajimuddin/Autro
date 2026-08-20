@@ -23,11 +23,7 @@ interface QRDisplayProps {
   id?: string
 }
 
-export function QRDisplay({
-  token,
-  size = 208,
-  id,
-}: QRDisplayProps): React.JSX.Element {
+export function QRDisplay({ token, size = 208, id }: QRDisplayProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

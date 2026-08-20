@@ -50,8 +50,7 @@ export default function AuthCallbackPage(): React.JSX.Element {
         }
       })
       .catch((err: unknown) => {
-        const message =
-          err instanceof Error ? err.message : 'Login failed. Please try again.'
+        const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
         setError(message)
       })
   }, [navigate, onLoginSuccess])
@@ -63,9 +62,7 @@ export default function AuthCallbackPage(): React.JSX.Element {
           <div className="w-14 h-14 rounded-card bg-danger-light flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={24} strokeWidth={2.5} className="text-danger" />
           </div>
-          <h2 className="text-[1.1rem] font-semibold text-text mb-2">
-            Login Failed
-          </h2>
+          <h2 className="text-[1.1rem] font-semibold text-text mb-2">Login Failed</h2>
           <p className="text-sm text-text-secondary mb-6">{error}</p>
           <Button
             id="callback-back-to-login"

@@ -20,10 +20,10 @@ in progress.
 
 `theme.ts` exports `BRAND` and nothing else may define a brand hex.
 
-| Scheme | Value | Notes |
-| ------ | ----- | ----- |
-| light | `#3560C0` | Autro blue at **72%** saturation |
-| dark | `#8DABF0` | same hue, lightness inverted |
+| Scheme | Value     | Notes                            |
+| ------ | --------- | -------------------------------- |
+| light  | `#3560C0` | Autro blue at **72%** saturation |
+| dark   | `#8DABF0` | same hue, lightness inverted     |
 
 The app's original `#2563EB` is **84%** saturation, and that is what made it
 glow: at that chroma every surface it touched shouted. The hue is unchanged,
@@ -34,7 +34,7 @@ on dark brand **8.03:1**.
 
 **The brand is not a status colour.** It appears on the primary action, the
 active nav item and the hero figure — three times per screen. Overdue jobs and
-late check-ins use `warning`, so blue keeps meaning *action*.
+late check-ins use `warning`, so blue keeps meaning _action_.
 
 **No coloured shadows.** `--shadow-primary` is neutral. A tinted halo under
 every button was a large part of what made the previous UI read as loud.
@@ -69,16 +69,16 @@ request was silently blocked and everything fell back to a system face.
 A screen must not re-implement something another screen already draws. Anything
 two screens show is one component, in one file:
 
-| Component | File | Rendered by |
-| --------- | ---- | ----------- |
-| `VehicleList` | `components/domain/vehicle-list.tsx` | dashboard panel, `/vehicles` |
-| `StageChip` | `components/ui/stage-chip.tsx` | anywhere a stage is shown |
-| `SectionCard` | `components/ui/section-card.tsx` | every titled panel |
-| `EmptyPanel` | `components/ui/empty-panel.tsx` | every "nothing here yet" body |
-| `Kicker` | `components/ui/kicker.tsx` | stat labels, card kickers |
-| `Field` | `components/ui/field.tsx` | every MUI form field |
-| format helpers | `lib/format.ts` | money, dates, day counts, stage labels |
-| photo upload | `lib/upload.ts` | Add Vehicle, vehicle detail |
+| Component      | File                                 | Rendered by                            |
+| -------------- | ------------------------------------ | -------------------------------------- |
+| `VehicleList`  | `components/domain/vehicle-list.tsx` | dashboard panel, `/vehicles`           |
+| `StageChip`    | `components/ui/stage-chip.tsx`       | anywhere a stage is shown              |
+| `SectionCard`  | `components/ui/section-card.tsx`     | every titled panel                     |
+| `EmptyPanel`   | `components/ui/empty-panel.tsx`      | every "nothing here yet" body          |
+| `Kicker`       | `components/ui/kicker.tsx`           | stat labels, card kickers              |
+| `Field`        | `components/ui/field.tsx`            | every MUI form field                   |
+| format helpers | `lib/format.ts`                      | money, dates, day counts, stage labels |
+| photo upload   | `lib/upload.ts`                      | Add Vehicle, vehicle detail            |
 
 This is not tidiness. The dashboard and `/vehicles` previously drew the same
 rows from two components and had already drifted: one painted `REPAIRING`

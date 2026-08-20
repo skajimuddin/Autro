@@ -19,29 +19,34 @@ uploadRouter.post('/presign', async (c) => {
   const tenantId = c.get('tenantId')
   const body = await c.req.json().catch(() => null)
   const parsed = PresignRequestSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const ext = parsed.data.filename.split('.').pop()
   const fileKey = `${tenantId}/${crypto.randomUUID()}.${ext}`
-  
+
   const aws = new AwsClient({
     accessKeyId: c.env.R2_ACCESS_KEY_ID,
     secretAccessKey: c.env.R2_SECRET_ACCESS_KEY,
   })
-  
-  const url = new URL(`https://${c.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${c.env.R2_BUCKET_NAME}/${fileKey}`)
-  
+
+  const url = new URL(
+    `https://${c.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${c.env.R2_BUCKET_NAME}/${fileKey}`,
+  )
+
   const signedRequest = await aws.sign(url.toString(), {
     method: 'PUT',
     headers: {
-      'Content-Type': parsed.data.content_type
+      'Content-Type': parsed.data.content_type,
     },
-    aws: { signQuery: true }
+    aws: { signQuery: true },
   })
-  
+
   return c.json({
     upload_url: signedRequest.url,
     // Where the object will be readable once the PUT lands. This is what the

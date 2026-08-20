@@ -151,7 +151,11 @@ function DesktopTable({ vehicles, onSelect }: VehicleListProps): React.JSX.Eleme
                 </Typography>
                 <Typography
                   noWrap
-                  sx={{ fontSize: 11.5, color: 'text.disabled', fontVariantNumeric: 'tabular-nums' }}
+                  sx={{
+                    fontSize: 11.5,
+                    color: 'text.disabled',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
                 >
                   {v.customer_phone}
                 </Typography>

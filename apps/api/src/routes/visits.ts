@@ -13,11 +13,14 @@ visitsRouter.patch('/:id/status', async (c) => {
   const visitId = c.req.param('id')
   const body = await c.req.json().catch(() => null)
   const parsed = UpdateVisitStatusSchema.safeParse(body)
-  
+
   if (!parsed.success) {
-    return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } }, 400)
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
   }
-  
+
   const db = drizzle(c.env.DB)
   const now = new Date().toISOString()
 

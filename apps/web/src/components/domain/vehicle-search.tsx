@@ -120,7 +120,9 @@ export function VehicleSearch({
               </Typography>
             </Stack>
 
-            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'primary.main', flexShrink: 0 }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 600, color: 'primary.main', flexShrink: 0 }}
+            >
               Use these
             </Typography>
           </ButtonBase>

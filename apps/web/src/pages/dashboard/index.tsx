@@ -20,8 +20,16 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Card, Typography, Stack, Button, Divider, Avatar, LinearProgress,
-  Skeleton, IconButton,
+  Box,
+  Card,
+  Typography,
+  Stack,
+  Button,
+  Divider,
+  Avatar,
+  LinearProgress,
+  Skeleton,
+  IconButton,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import SettingsIcon from '@mui/icons-material/SettingsOutlined'
@@ -99,7 +107,9 @@ export default function DashboardPage(): React.JSX.Element {
     refetchInterval: 30_000,
   })
 
-  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<{ vehicles: VehicleListItem[] }>({
+  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<{
+    vehicles: VehicleListItem[]
+  }>({
     queryKey: ['vehicles', 'recent', tenant?.id],
     queryFn: () => apiFetch<{ vehicles: VehicleListItem[] }>('/vehicles', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
@@ -137,25 +147,46 @@ export default function DashboardPage(): React.JSX.Element {
       // desktop-header flourish and would crowd a 390px bar.
       mobileTitle="Dashboard"
       subtitle={
-        <Typography sx={{ fontSize: 11.5, color: 'text.disabled', letterSpacing: '.09em', textTransform: 'uppercase' }}>
+        <Typography
+          sx={{
+            fontSize: 11.5,
+            color: 'text.disabled',
+            letterSpacing: '.09em',
+            textTransform: 'uppercase',
+          }}
+        >
           {tenant?.name ? `${today()} · ${tenant.name}` : today()}
         </Typography>
       }
       wide
       rightAction={
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/vehicles/add')}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/vehicles/add')}
+        >
           Add vehicle
         </Button>
       }
       mobileAction={
-        <IconButton aria-label="Settings" onClick={() => navigate('/settings')} sx={{ color: 'text.secondary' }}>
+        <IconButton
+          aria-label="Settings"
+          onClick={() => navigate('/settings')}
+          sx={{ color: 'text.secondary' }}
+        >
           <SettingsIcon sx={{ fontSize: 21 }} />
         </IconButton>
       }
     >
       <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* ── Stat row ───────────────────────────────────────────────── */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', md: 'repeat(4,1fr)' }, gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2,1fr)', md: 'repeat(4,1fr)' },
+            gap: 1.5,
+          }}
+        >
           {statsLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
@@ -179,13 +210,24 @@ export default function DashboardPage(): React.JSX.Element {
           )}
         </Box>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: isOwner ? '1.85fr 1fr' : '1fr' }, gap: 2.5, alignItems: 'start' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: isOwner ? '1.85fr 1fr' : '1fr' },
+            gap: 2.5,
+            alignItems: 'start',
+          }}
+        >
           {/* ── In the workshop ─────────────────────────────────────── */}
           {/* Same component the /vehicles page renders — see vehicle-list.tsx. */}
           <SectionCard
             title="In the workshop"
             action={
-              <Button size="small" onClick={() => navigate('/vehicles')} sx={{ minWidth: 0, height: 28, px: 1, fontSize: 12 }}>
+              <Button
+                size="small"
+                onClick={() => navigate('/vehicles')}
+                sx={{ minWidth: 0, height: 28, px: 1, fontSize: 12 }}
+              >
                 View all
               </Button>
             }
@@ -230,7 +272,12 @@ export default function DashboardPage(): React.JSX.Element {
                     <LinearProgress
                       variant="determinate"
                       value={(presentCount / staff.length) * 100}
-                      sx={{ height: 4, borderRadius: 2, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }}
+                      sx={{
+                        height: 4,
+                        borderRadius: 2,
+                        bgcolor: 'action.hover',
+                        '& .MuiLinearProgress-bar': { bgcolor: 'success.main' },
+                      }}
                     />
                   </Box>
                 ) : undefined
@@ -255,17 +302,37 @@ export default function DashboardPage(): React.JSX.Element {
                 staff.map((s, i) => (
                   <Box key={s.id}>
                     {i > 0 && <Divider />}
-                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2.25, py: 1.75 }}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={1.5}
+                      sx={{ px: 2.25, py: 1.75 }}
+                    >
                       <Avatar
                         src={s.avatar_url ?? undefined}
                         imgProps={{ referrerPolicy: 'no-referrer' }}
-                        sx={{ width: 34, height: 34, fontSize: 13.5, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }}
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          fontSize: 13.5,
+                          fontWeight: 600,
+                          bgcolor: 'action.hover',
+                          color: 'text.secondary',
+                        }}
                       >
                         {s.name.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>{s.name}</Typography>
-                        <Typography sx={{ fontSize: 11.5, color: 'text.disabled', textTransform: 'capitalize' }}>
+                        <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
+                          {s.name}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 11.5,
+                            color: 'text.disabled',
+                            textTransform: 'capitalize',
+                          }}
+                        >
                           {s.role.toLowerCase()}
                         </Typography>
                       </Box>
@@ -303,7 +370,17 @@ function Stat({ id, label, value, hero = false }: StatProps): React.JSX.Element 
   return (
     <Card id={id} sx={{ p: 2.25 }}>
       <Kicker>{label}</Kicker>
-      <Typography sx={{ fontSize: 30, fontWeight: 700, mt: 1, lineHeight: 1, letterSpacing: '-.025em', fontVariantNumeric: 'tabular-nums', color: hero ? 'primary.main' : 'text.primary' }}>
+      <Typography
+        sx={{
+          fontSize: 30,
+          fontWeight: 700,
+          mt: 1,
+          lineHeight: 1,
+          letterSpacing: '-.025em',
+          fontVariantNumeric: 'tabular-nums',
+          color: hero ? 'primary.main' : 'text.primary',
+        }}
+      >
         {value}
       </Typography>
     </Card>
