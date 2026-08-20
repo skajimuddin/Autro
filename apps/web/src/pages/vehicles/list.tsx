@@ -16,7 +16,6 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import {
   Box,
   Button,
-  ButtonBase,
   Card,
   Divider,
   InputAdornment,
@@ -37,6 +36,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { EmptyPanel } from '@/components/ui/empty-panel'
+import { FilterTabs } from '@/components/ui/filter-tabs'
 import { VehicleList } from '@/components/domain/vehicle-list'
 import type { VehicleListItem } from '@/components/domain/vehicle-list'
 
@@ -101,7 +101,13 @@ export default function VehicleListPage(): React.JSX.Element {
       spacing={1.5}
       sx={{ px: { xs: 0, md: 2 }, py: { xs: 0, md: 1.5 } }}
     >
-      <StatusFilters value={status} onChange={setStatus} desktop={desktop} />
+      <FilterTabs
+        value={status}
+        onChange={setStatus}
+        options={FILTERS}
+        label="Filter by stage"
+        desktop={desktop}
+      />
       <TextField
         id="vehicle-search"
         value={search}
@@ -206,105 +212,5 @@ export default function VehicleListPage(): React.JSX.Element {
         </Card>
       </Box>
     </PageShell>
-  )
-}
-
-// ── Stage filter ──────────────────────────────────────────────────────────────
-
-interface StatusFiltersProps {
-  value: StatusFilter
-  onChange: (next: StatusFilter) => void
-  desktop: boolean
-}
-
-/**
- * A segmented control on desktop; scrolling chips on a phone.
- *
- * Five segments need ~350px, which is the whole width of a 390px screen — so
- * the phone gets chips that scroll instead of segments squeezed to nothing.
- * Both are neutral: the selected filter is a change of surface, not a splash
- * of brand colour.
- */
-function StatusFilters({ value, onChange, desktop }: StatusFiltersProps): React.JSX.Element {
-  if (desktop) {
-    return (
-      <Stack
-        direction="row"
-        spacing={0.25}
-        role="radiogroup"
-        aria-label="Filter by stage"
-        sx={{ p: 0.375, borderRadius: 2, bgcolor: 'action.hover' }}
-      >
-        {FILTERS.map((filter) => {
-          const active = filter.value === value
-          return (
-            <ButtonBase
-              key={filter.value}
-              role="radio"
-              aria-checked={active}
-              onClick={() => onChange(filter.value)}
-              sx={{
-                height: 28,
-                px: 1.5,
-                borderRadius: 1.5,
-                fontSize: 12.5,
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-                color: active ? 'text.primary' : 'text.secondary',
-                bgcolor: active ? 'background.paper' : 'transparent',
-                boxShadow: active ? '0 1px 2px rgba(15,23,42,.06)' : 'none',
-              }}
-            >
-              {filter.label}
-            </ButtonBase>
-          )
-        })}
-      </Stack>
-    )
-  }
-
-  return (
-    <Stack
-      direction="row"
-      spacing={0.75}
-      role="radiogroup"
-      aria-label="Filter by stage"
-      sx={{
-        overflowX: 'auto',
-        // The row bleeds to the screen edges so the last chip doesn't look cut
-        // off mid-scroll, while its content still lines up with the page.
-        mx: -2,
-        px: 2,
-        pb: 0.5,
-        scrollbarWidth: 'none',
-        '&::-webkit-scrollbar': { display: 'none' },
-      }}
-    >
-      {FILTERS.map((filter) => {
-        const active = filter.value === value
-        return (
-          <ButtonBase
-            key={filter.value}
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(filter.value)}
-            sx={{
-              flexShrink: 0,
-              height: 32,
-              px: 1.75,
-              borderRadius: 2,
-              fontSize: 12.5,
-              fontWeight: 600,
-              border: 1,
-              borderColor: active ? 'text.primary' : 'divider',
-              bgcolor: active ? 'text.primary' : 'background.paper',
-              color: active ? 'background.paper' : 'text.secondary',
-            }}
-          >
-            {filter.label}
-          </ButtonBase>
-        )
-      })}
-    </Stack>
   )
 }
