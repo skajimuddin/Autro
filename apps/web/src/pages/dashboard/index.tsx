@@ -4,7 +4,6 @@
 //
 // Every figure on this page is backed by a real endpoint:
 //   stat row      → GET /dashboard/stats
-//   change figure → revenue_today vs revenue_yesterday from the same response
 //   workshop list → GET /vehicles (plate, model, customer, complaint, stage,
 //                   visit_started_at)
 //   attendance    → GET /staff, which returns every member with
@@ -23,11 +22,10 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Box, Card, Chip, Typography, Stack, Button, Divider, Table, TableBody,
   TableCell, TableHead, TableRow, Avatar, LinearProgress, Skeleton,
-  useMediaQuery, useTheme, ButtonBase,
+  useMediaQuery, useTheme, ButtonBase, IconButton,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import TrendUpIcon from '@mui/icons-material/NorthEast'
-import TrendDownIcon from '@mui/icons-material/SouthEast'
+import SettingsIcon from '@mui/icons-material/SettingsOutlined'
 import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 
 import { apiFetch } from '@/lib/api'
@@ -45,7 +43,6 @@ interface DashboardStats {
   repairing: number
   ready: number
   revenue_today: number
-  revenue_yesterday: number
   unpaid_invoices: number
 }
 
@@ -163,27 +160,28 @@ export default function DashboardPage(): React.JSX.Element {
 
   const firstName = user?.name?.trim().split(/\s+/)[0]
 
-  // Real change figure. With no paid invoices yesterday there is no percentage
-  // to state, so the line is omitted rather than showing a fabricated one.
-  const yesterday = stats?.revenue_yesterday ?? 0
-  const changePct = yesterday > 0 && stats
-    ? Math.round(((stats.revenue_today - yesterday) / yesterday) * 100)
-    : null
-
   return (
     <PageShell
       title={firstName ? `${greeting()}, ${firstName}` : greeting()}
+      // The app bar wants the page's name, not a greeting — the greeting is a
+      // desktop-header flourish and would crowd a 390px bar.
+      mobileTitle="Dashboard"
       subtitle={
         <Typography sx={{ fontSize: 11.5, color: 'text.disabled', letterSpacing: '.09em', textTransform: 'uppercase' }}>
           {tenant?.name ? `${today()} · ${tenant.name}` : today()}
         </Typography>
       }
       wide
-      rightAction={desktop ? (
+      rightAction={
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/vehicles/add')}>
           Add vehicle
         </Button>
-      ) : undefined}
+      }
+      mobileAction={
+        <IconButton aria-label="Settings" onClick={() => navigate('/settings')} sx={{ color: 'text.secondary' }}>
+          <SettingsIcon sx={{ fontSize: 21 }} />
+        </IconButton>
+      }
     >
       <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* ── Stat row ───────────────────────────────────────────────── */}
@@ -203,7 +201,6 @@ export default function DashboardPage(): React.JSX.Element {
                 label="Revenue today"
                 value={inr(stats?.revenue_today ?? 0)}
                 hero
-                change={changePct}
               />
               <Stat id="stat-repairing" label="In the bay" value={stats?.repairing ?? 0} />
               <Stat id="stat-ready" label="Ready" value={stats?.ready ?? 0} />
@@ -411,11 +408,9 @@ interface StatProps {
   label: string
   value: string | number
   hero?: boolean
-  change?: number | null
 }
 
-function Stat({ id, label, value, hero = false, change = null }: StatProps): React.JSX.Element {
-  const up = (change ?? 0) >= 0
+function Stat({ id, label, value, hero = false }: StatProps): React.JSX.Element {
   return (
     <Card id={id} sx={{ p: 2.25 }}>
       <Typography sx={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.13em', textTransform: 'uppercase', color: 'text.disabled' }}>
@@ -424,14 +419,6 @@ function Stat({ id, label, value, hero = false, change = null }: StatProps): Rea
       <Typography sx={{ fontSize: 30, fontWeight: 700, mt: 1, lineHeight: 1, letterSpacing: '-.025em', fontVariantNumeric: 'tabular-nums', color: hero ? 'primary.main' : 'text.primary' }}>
         {value}
       </Typography>
-      {change !== null && (
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
-          {up ? <TrendUpIcon sx={{ fontSize: 13, color: 'success.main' }} /> : <TrendDownIcon sx={{ fontSize: 13, color: 'text.disabled' }} />}
-          <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: up ? 'success.main' : 'text.disabled' }}>
-            {Math.abs(change)}% vs yesterday
-          </Typography>
-        </Stack>
-      )}
     </Card>
   )
 }

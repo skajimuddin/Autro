@@ -16,10 +16,14 @@ import { BottomNav } from './bottom-nav'
 
 interface PageShellProps {
   title: string
+  /** Shorter title for the mobile app bar. */
+  mobileTitle?: string
   /** Secondary line under the page title. */
   subtitle?: React.ReactNode
   showBack?: boolean
   rightAction?: React.ReactNode
+  /** Right-side action for the mobile app bar, when it differs. */
+  mobileAction?: React.ReactNode
   /**
    * Hide the MOBILE tab bar on this page — for sub-screens that carry their
    * own bottom action bar. The desktop sidebar always stays (2026-08-20):
@@ -37,9 +41,11 @@ interface PageShellProps {
 
 export function PageShell({
   title,
+  mobileTitle,
   subtitle,
   showBack = false,
   rightAction,
+  mobileAction,
   hideNav = false,
   wide = false,
   children,
@@ -52,6 +58,8 @@ export function PageShell({
       <div className="md:pl-[240px]">
         <Topbar
           title={title}
+          mobileTitle={mobileTitle}
+          mobileAction={mobileAction}
           subtitle={subtitle}
           wide={wide}
           showBack={showBack}

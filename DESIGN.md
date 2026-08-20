@@ -69,9 +69,7 @@ request was silently blocked and everything fell back to a system face.
   use the tokens in `index.css`. Both resolve to the same `--au-*` variables.
 - Money and counts use `fontVariantNumeric: 'tabular-nums'` so columns align.
 - Every figure must be backed by a real endpoint. If the data does not exist,
-  the element does not ship — see the dashboard's missing money column, and
-  `revenue_yesterday`, which was added to `GET /dashboard/stats` precisely so
-  the change figure could be real.
+  the element does not ship — see the dashboard's missing money column.
 - Check what an icon actually draws. `LuReceipt` contains a dollar sign; this
   app is ₹ only.
 
@@ -80,6 +78,10 @@ request was silently blocked and everything fell back to a system face.
 - `PageShell` wraps every page: sidebar at `md:`+, mobile tab bar below.
 - The mobile bar carries a centred **Add vehicle** action, an active-tab pill,
   and a 56px hit area per tab.
+- `Topbar` renders in two forms. Below `md` it is an **app bar**: brand tile,
+  page name (`mobileTitle`), garage name, action. At `md:`+ it is the page
+  header: large title, subtitle, action, no rule. Mobile needs the brand mark
+  and garage name because the sidebar that carries them is hidden there.
 - `Topbar` content sits in the same max-width column as the page body, so the
   title does not drift left of the content on wide screens.
 - `subtitle` takes a node, so a page can style its own second line.
