@@ -1,3 +1,7 @@
+> ⚠️ **OUT OF DATE — background reading only.** This describes the app as
+> scoped before the first build; the product has moved on. Decide from the
+> codebase, not from this document. See `CLAUDE.md`.
+
 # Autro — Product Overview
 
 > **App Name:** Autro  
