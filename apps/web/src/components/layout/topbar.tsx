@@ -12,8 +12,10 @@ interface TopbarProps {
   title: string
   /** Match the content column width so the title lines up with the page. */
   wide?: boolean
-  /** Secondary line under the title. */
-  subtitle?: string
+  /** Secondary line under the title. Accepts a node so a page can style it —
+   *  the dashboard uses an uppercase, letter-spaced line, while detail screens
+   *  want plain sentence case for a vehicle model. */
+  subtitle?: React.ReactNode
   /** If true, shows a back arrow that navigates -1 */
   showBack?: boolean
   /** Optional right-side action element */
@@ -65,7 +67,9 @@ export function Topbar({
             {title}
           </h1>
           {subtitle && (
-            <p className="text-row-sub text-text-secondary truncate mt-0.5">{subtitle}</p>
+            typeof subtitle === 'string'
+              ? <p className="text-row-sub text-text-secondary truncate mt-0.5">{subtitle}</p>
+              : <div className="mt-0.5 truncate">{subtitle}</div>
           )}
         </div>
 

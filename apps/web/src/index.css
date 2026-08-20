@@ -1,7 +1,16 @@
-/* Archivo font from Google Fonts — must be first @import. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap');
-
 @import "tailwindcss";
+
+/* Geist — self-hosted, one variable file covering 400–700.
+   Was Archivo pulled from fonts.googleapis.com via @import: a render-blocking
+   request to a third party on every load, which also meant no font at all
+   offline — and this app is a PWA. */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/geist-var.woff2') format('woff2-variations');
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Autro Design System — Tailwind v4 CSS Theme
@@ -16,41 +25,36 @@
 
 @theme {
   /* ── Colors ───────────────────────────────────────────────────────────── */
-  --color-primary:          #2563eb;
-  --color-primary-hover:    #1d4ed8;
-  --color-primary-light:    #dbeafe;
+  /* Every token resolves to a variable defined in the :root blocks below, so
+     Tailwind screens and MUI screens read from ONE palette and flip together
+     when the colour scheme changes. Never hard-code a hex at a call site. */
+  --color-primary:          var(--au-primary);
+  --color-primary-hover:    var(--au-primary-hover);
+  --color-primary-light:    var(--au-primary-light);
 
-  /* Ground + surfaces. `bg` is a touch cooler/lighter than the old #f1f5f9 so
-     white cards separate from it without needing a heavy border. */
-  --color-bg:               #f8f9fb;
-  --color-card:             #ffffff;
-  /* `divider` is the hairline on every surface; `border` is the stronger
-     stroke used by inputs and focus-adjacent affordances. */
-  --color-border:           #dfe3e9;
-  --color-divider:          #edf0f3;
-  /* Filled neutral — search fields, thumbnail slots, table header row. */
-  --color-subtle:           #f5f6f8;
+  --color-bg:               var(--au-canvas);
+  --color-card:             var(--au-paper);
+  --color-border:           var(--au-line-strong);
+  --color-divider:          var(--au-line);
+  --color-subtle:           var(--au-subtle);
 
-  --color-text:             #0f172a;
-  --color-text-secondary:   #64748b;
-  --color-text-muted:       #94a3b8;
-  /* Faintest ink — chevrons, empty cells, disabled glyphs. */
-  --color-text-faint:       #cbd5e1;
+  --color-text:             var(--au-ink);
+  --color-text-secondary:   var(--au-ink-2);
+  --color-text-muted:       var(--au-ink-3);
+  --color-text-faint:       var(--au-ink-4);
 
-  /* Status: `-light` is the chip fill, the base is the dot/graphic, and
-     `-deep` is chip *text* — the base hues fail contrast on their own tint. */
-  --color-success:          #10b981;
-  --color-success-light:    #d1fae5;
-  --color-success-deep:     #047857;
-  --color-warning:          #f59e0b;
-  --color-warning-light:    #fef3c7;
-  --color-warning-deep:     #b45309;
-  --color-danger:           #ef4444;
-  --color-danger-light:     #fee2e2;
-  --color-danger-deep:      #b91c1c;
+  --color-success:          var(--au-success);
+  --color-success-light:    var(--au-success-tint);
+  --color-success-deep:     var(--au-success);
+  --color-warning:          var(--au-warning);
+  --color-warning-light:    var(--au-warning-tint);
+  --color-warning-deep:     var(--au-warning);
+  --color-danger:           var(--au-danger);
+  --color-danger-light:     var(--au-danger-tint);
+  --color-danger-deep:      var(--au-danger);
 
   /* ── Typography ────────────────────────────────────────────────────────── */
-  --font-sans: 'Archivo', system-ui, sans-serif;
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
 
   --text-value-xl:   1.75rem;   /* 28px — hero numbers */
   --text-value:      1.375rem;  /* 22px — secondary numbers */
@@ -69,10 +73,11 @@
 
   /* ── Box shadows ────────────────────────────────────────────────────────── */
   /* One formula per level — never an ad-hoc shadow at a call site. */
-  --shadow-card:    0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-elev-md: 0 12px 28px rgba(15, 23, 42, 0.10);
-  /* Primary-tinted lift, for filled primary controls only. */
-  --shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.25);
+  --shadow-card:    0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-elev-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  /* Deliberately neutral, not primary-tinted: a coloured halo under every
+     button was a large part of what made the previous UI read as "glowing". */
+  --shadow-primary: 0 1px 2px rgba(15, 23, 42, 0.08);
 
   /* ── Animations ──────────────────────────────────────────────────────────── */
   --animate-spin: spin 0.8s linear infinite;
@@ -80,6 +85,46 @@
   --animate-slide-in-top: slide-in-top 0.25s ease-out;
   --animate-slide-up: slide-up 0.24s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-fade-in: fade-in 0.15s ease-out;
+}
+
+/* ── Palette values ─────────────────────────────────────────────────────────
+   Light is the default. MUI's CSS-variable provider stamps
+   data-mui-color-scheme on <html>, and the Tailwind tokens above read from
+   these, so a screen that has not been migrated to MUI yet still flips. */
+:root {
+  --au-primary:        #3560c0;   /* Autro blue at 72% saturation (was #2563eb, 84%) */
+  --au-primary-hover:  #2a4e9e;
+  --au-primary-light:  #e6ecf9;
+  --au-canvas:         #f6f7f9;
+  --au-paper:          #ffffff;
+  --au-subtle:         #f1f3f6;
+  --au-line:           #e4e7ec;
+  --au-line-strong:    #d3d8e0;
+  --au-ink:            #15181d;
+  --au-ink-2:          #5b6473;
+  --au-ink-3:          #8b93a1;
+  --au-ink-4:          #b6bcc7;
+  --au-success:        #3f7a5a;  --au-success-tint: #e7f0eb;
+  --au-warning:        #8a6a2f;  --au-warning-tint: #f5eee1;
+  --au-danger:         #a8443c;  --au-danger-tint:  #f7e9e8;
+}
+
+[data-mui-color-scheme="dark"] {
+  --au-primary:        #8dabf0;
+  --au-primary-hover:  #a6bff5;
+  --au-primary-light:  rgba(141, 171, 240, 0.16);
+  --au-canvas:         #121417;
+  --au-paper:          #191c20;
+  --au-subtle:         #1f2329;
+  --au-line:           #262a30;
+  --au-line-strong:    #333941;
+  --au-ink:            #e9ecf1;
+  --au-ink-2:          #9aa3b2;
+  --au-ink-3:          #6b7280;
+  --au-ink-4:          #4b525d;
+  --au-success:        #7fb79a;  --au-success-tint: rgba(127, 183, 154, 0.16);
+  --au-warning:        #d0ae72;  --au-warning-tint: rgba(208, 174, 114, 0.16);
+  --au-danger:         #e0918a;  --au-danger-tint:  rgba(224, 145, 138, 0.16);
 }
 
 /* ── Keyframes ──────────────────────────────────────────────────────────────── */

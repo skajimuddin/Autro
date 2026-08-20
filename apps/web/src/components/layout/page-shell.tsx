@@ -17,7 +17,7 @@ import { BottomNav } from './bottom-nav'
 interface PageShellProps {
   title: string
   /** Secondary line under the page title. */
-  subtitle?: string
+  subtitle?: React.ReactNode
   showBack?: boolean
   rightAction?: React.ReactNode
   /**
@@ -49,7 +49,7 @@ export function PageShell({
       <BottomNav hideMobileBar={hideNav} />
 
       {/* Offset for the md:+ sidebar */}
-      <div className="md:pl-[224px]">
+      <div className="md:pl-[240px]">
         <Topbar
           title={title}
           subtitle={subtitle}

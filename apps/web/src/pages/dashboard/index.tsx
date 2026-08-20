@@ -1,233 +1,437 @@
 // Dashboard — the garage owner's landing screen.
 //
-// Rebuilt 2026-08-20 for the rounded design system (see DESIGN.md):
-//   - a compact stat strip instead of a four-tile grid, so the vehicle list
-//     starts above the fold
-//   - recent vehicles as a table at md:+ and rounded cards on mobile, both
-//     from <VehicleListView>
+// Rebuilt 2026-08-20 on MUI, matching the approved design (see theme.ts).
 //
-// What is deliberately NOT here, because no endpoint backs it: a revenue
-// trend/delta (GET /dashboard/stats returns today's total only, with nothing
-// to compare against), a total vehicle count (GET /vehicles is cursor
-// paginated and returns no total), and status filter tabs (the dashboard
-// fetches one unfiltered page — filtering it client-side would silently
-// filter only the loaded page). Filtering lives on /vehicles, which filters
-// server-side.
+// Every figure on this page is backed by a real endpoint:
+//   stat row      → GET /dashboard/stats
+//   change figure → revenue_today vs revenue_yesterday from the same response
+//   workshop list → GET /vehicles (plate, model, customer, complaint, stage,
+//                   visit_started_at)
+//   attendance    → GET /staff, which returns every member with
+//                   attendance_status ('PRESENT' | 'ABSENT' | 'NOT_YET') and
+//                   check_in_at — so both the roster and the "x / y in" count
+//                   are real, not derived from a guess.
+//
+// Deliberately absent: a per-vehicle money column. Estimate and invoice totals
+// are computed per record in GET /vehicles/:id (item sum + discount + tax) and
+// are not on the list endpoint, so that column could only be faked.
+//
+// The attendance panel is OWNER-only: /staff is behind RequireOwner.
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Car, Settings, ChevronRight, Plus } from '@/components/ui/icons'
+import {
+  Box, Card, Chip, Typography, Stack, Button, Divider, Table, TableBody,
+  TableCell, TableHead, TableRow, Avatar, LinearProgress, Skeleton,
+  useMediaQuery, useTheme, ButtonBase,
+} from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
+import TrendUpIcon from '@mui/icons-material/NorthEast'
+import TrendDownIcon from '@mui/icons-material/SouthEast'
+import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import { Button, StatPill, StatPillSkeleton, ListItemSkeleton, EmptyState } from '@/components/ui'
-import { VehicleListView } from '@/components/domain/vehicle-list-view'
-import type { VehicleListItem } from '@/components/domain/vehicle-list-view'
+import { stageChipSx } from '@/theme'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+
+type VehicleStatus = 'NEW' | 'REPAIRING' | 'READY' | 'DELIVERED'
 
 interface DashboardStats {
   vehicles_today: number
   repairing: number
   ready: number
   revenue_today: number
+  revenue_yesterday: number
   unpaid_invoices: number
 }
 
-interface VehicleListResponse {
-  vehicles: VehicleListItem[]
-  cursor: string | null
+interface VehicleRow {
+  id: string
+  registration_number: string
+  name: string | null
+  customer_name: string
+  customer_phone: string
+  status: VehicleStatus
+  created_at: string
+  complaint: string | null
+  visit_started_at: string | null
 }
 
-const RECENT_LIMIT = 6
+interface StaffRow {
+  id: string
+  name: string
+  avatar_url: string | null
+  role: 'OWNER' | 'STAFF'
+  attendance_status: 'PRESENT' | 'ABSENT' | 'NOT_YET'
+  check_in_at: string | null
+}
+
+const STAGE_LABEL: Record<VehicleStatus, string> = {
+  NEW: 'New', REPAIRING: 'Repairing', READY: 'Ready', DELIVERED: 'Delivered',
+}
+
+/** A job sitting this long without handover is worth surfacing. */
+const STALE_AFTER_DAYS = 5
+const WORKSHOP_LIMIT = 6
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const inr = (n: number): string => `₹${n.toLocaleString('en-IN')}`
+
 function greeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  const h = new Date().getHours()
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
 }
 
-function formatToday(): string {
-  return new Date().toLocaleDateString('en-IN', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
+function today(): string {
+  const d = new Date()
+  // en-IN renders "Thursday 20 August"; the approved header reads
+  // "Thursday, 20 August", so the weekday is joined explicitly.
+  const weekday = d.toLocaleDateString('en-IN', { weekday: 'long' })
+  const rest = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
+  return `${weekday}, ${rest}`
 }
 
-// ── Dashboard Page ────────────────────────────────────────────────────────────
+function daysInShop(iso: string | null): number | null {
+  if (!iso) return null
+  const started = new Date(iso)
+  if (Number.isNaN(started.getTime())) return null
+  const midnight = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  return Math.max(0, Math.round((midnight(new Date()) - midnight(started)) / 86_400_000))
+}
+
+function durationLabel(d: number): string {
+  return d === 0 ? 'Today' : d === 1 ? '1 day' : `${d} days`
+}
+
+function checkInLabel(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { tenant } = useTenant()
+  const theme = useTheme()
+  const desktop = useMediaQuery(theme.breakpoints.up('md'))
+  const { tenant, role } = useTenant()
   const { user } = useAuth()
+  const isOwner = role === 'OWNER'
 
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['dashboard', 'stats'],
     queryFn: () => apiFetch<DashboardStats>('/dashboard/stats', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
-    // Refresh every 30 seconds for live feel
     refetchInterval: 30_000,
   })
 
-  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<VehicleListResponse>({
+  const { data: vehiclesData, isLoading: vehiclesLoading } = useQuery<{ vehicles: VehicleRow[] }>({
     queryKey: ['vehicles', 'recent', tenant?.id],
-    queryFn: () => apiFetch<VehicleListResponse>('/vehicles', { tenantId: tenant?.id }),
+    queryFn: () => apiFetch<{ vehicles: VehicleRow[] }>('/vehicles', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
   })
-  const recentVehicles = (vehiclesData?.vehicles ?? []).slice(0, RECENT_LIMIT)
+  const vehicles = (vehiclesData?.vehicles ?? []).slice(0, WORKSHOP_LIMIT)
 
-  // App Badging API integration
+  const { data: staffData, isLoading: staffLoading } = useQuery<{ staff: StaffRow[] }>({
+    queryKey: ['staff', 'today', tenant?.id],
+    queryFn: () => apiFetch<{ staff: StaffRow[] }>('/staff', { tenantId: tenant?.id }),
+    enabled: Boolean(tenant?.id) && isOwner,
+  })
+  const staff = staffData?.staff ?? []
+  const presentCount = staff.filter((s) => s.attendance_status === 'PRESENT').length
+
+  // App Badging API
   useEffect(() => {
-    if (stats) {
-      const pendingCount = stats.repairing + stats.unpaid_invoices
-      if ('setAppBadge' in navigator) {
-        if (pendingCount > 0) {
-          // @ts-ignore - TS might not know setAppBadge yet
-          navigator.setAppBadge(pendingCount).catch(console.error)
-        } else {
-          // @ts-ignore
-          navigator.clearAppBadge().catch(console.error)
-        }
+    if (!stats) return
+    const pending = stats.repairing + stats.unpaid_invoices
+    if ('setAppBadge' in navigator) {
+      const nav = navigator as Navigator & {
+        setAppBadge?: (n: number) => Promise<void>
+        clearAppBadge?: () => Promise<void>
       }
+      const run = pending > 0 ? nav.setAppBadge?.(pending) : nav.clearAppBadge?.()
+      run?.catch(console.error)
     }
   }, [stats])
 
   const firstName = user?.name?.trim().split(/\s+/)[0]
 
+  // Real change figure. With no paid invoices yesterday there is no percentage
+  // to state, so the line is omitted rather than showing a fabricated one.
+  const yesterday = stats?.revenue_yesterday ?? 0
+  const changePct = yesterday > 0 && stats
+    ? Math.round(((stats.revenue_today - yesterday) / yesterday) * 100)
+    : null
+
   return (
     <PageShell
       title={firstName ? `${greeting()}, ${firstName}` : greeting()}
-      subtitle={formatToday()}
-      wide
-      rightAction={
-        <button
-          id="dashboard-settings-btn"
-          type="button"
-          onClick={() => navigate('/settings')}
-          className="w-9 h-9 flex items-center justify-center rounded-tile bg-card border border-divider shadow-[var(--shadow-card)] md:hidden"
-          aria-label="Settings"
-        >
-          <Settings size={17} className="text-text-secondary" />
-        </button>
+      subtitle={
+        <Typography sx={{ fontSize: 11.5, color: 'text.disabled', letterSpacing: '.09em', textTransform: 'uppercase' }}>
+          {tenant?.name ? `${today()} · ${tenant.name}` : today()}
+        </Typography>
       }
+      wide
+      rightAction={desktop ? (
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/vehicles/add')}>
+          Add vehicle
+        </Button>
+      ) : undefined}
     >
-      <div className="px-4 md:px-7 pb-4 flex flex-col gap-5">
-        {/* ── Stat strip ──────────────────────────────────────────────── */}
-        {/* 2x2 on a phone: flex-wrap left a ragged 1/2/1 stagger because the
-            revenue pill is much wider than the counts. */}
-        <div className="grid grid-cols-2 gap-2.5 md:flex md:flex-wrap">
-          {isLoading ? (
-            <>
-              <StatPillSkeleton />
-              <StatPillSkeleton />
-              <StatPillSkeleton />
-              <StatPillSkeleton />
-            </>
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* ── Stat row ───────────────────────────────────────────────── */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', md: 'repeat(4,1fr)' }, gap: 1.5 }}>
+          {statsLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+              <Card key={i} sx={{ p: 2.25 }}>
+                <Skeleton width={90} height={12} />
+                <Skeleton width={110} height={34} sx={{ mt: 1 }} />
+              </Card>
+            ))
           ) : (
             <>
-              <StatPill
+              <Stat
                 id="stat-revenue"
-                featured
-                value={`₹${(stats?.revenue_today ?? 0).toLocaleString('en-IN')}`}
-                label="today's revenue"
+                label="Revenue today"
+                value={inr(stats?.revenue_today ?? 0)}
+                hero
+                change={changePct}
               />
-              <StatPill
-                id="stat-repairing"
-                tone="warning"
-                value={stats?.repairing ?? 0}
-                label="in the bay"
-              />
-              <StatPill
-                id="stat-ready"
-                tone="success"
-                value={stats?.ready ?? 0}
-                label="ready for pickup"
-              />
-              <StatPill
-                id="stat-unpaid"
-                tone="danger"
-                value={stats?.unpaid_invoices ?? 0}
-                label="unpaid invoices"
-              />
+              <Stat id="stat-repairing" label="In the bay" value={stats?.repairing ?? 0} />
+              <Stat id="stat-ready" label="Ready" value={stats?.ready ?? 0} />
+              <Stat id="stat-unpaid" label="Unpaid" value={stats?.unpaid_invoices ?? 0} />
             </>
           )}
-        </div>
+        </Box>
 
-        {/* ── Primary actions ─────────────────────────────────────────── */}
-        <div className="flex gap-2.5 flex-wrap">
-          <Button
-            id="dashboard-add-vehicle"
-            fullWidth={false}
-            leftIcon={<Plus size={16} />}
-            onClick={() => navigate('/vehicles/add')}
-          >
-            Add vehicle
-          </Button>
-          <Button
-            id="dashboard-view-vehicles"
-            variant="outline"
-            fullWidth={false}
-            leftIcon={<Car size={16} />}
-            onClick={() => navigate('/vehicles')}
-          >
-            All vehicles
-          </Button>
-        </div>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: isOwner ? '1.85fr 1fr' : '1fr' }, gap: 2.5, alignItems: 'start' }}>
+          {/* ── In the workshop ─────────────────────────────────────── */}
+          <Card>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.25, py: 1.75 }}>
+              <Typography variant="subtitle2">In the workshop</Typography>
+              <Button size="small" onClick={() => navigate('/vehicles')} sx={{ minWidth: 0, height: 28, px: 1, fontSize: 12 }}>
+                View all
+              </Button>
+            </Stack>
+            <Divider />
 
-        {/* ── Recent vehicles ─────────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-row-title font-bold text-text">Recent vehicles</h2>
-            <button
-              type="button"
-              onClick={() => navigate('/vehicles')}
-              className="inline-flex items-center gap-0.5 text-row-sub text-primary font-semibold hover:text-primary-hover"
-            >
-              See all
-              <ChevronRight size={14} />
-            </button>
-          </div>
+            {vehiclesLoading ? (
+              <Box sx={{ px: 2.25, py: 1 }}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+                  <Skeleton key={i} height={44} />
+                ))}
+              </Box>
+            ) : vehicles.length === 0 ? (
+              <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 3, textAlign: 'center' }}>
+                <Avatar sx={{ bgcolor: 'action.hover', color: 'text.disabled', width: 48, height: 48 }}>
+                  <CarIcon />
+                </Avatar>
+                <Typography sx={{ fontSize: 14, fontWeight: 600 }}>No vehicles yet</Typography>
+                <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>
+                  Add your first vehicle to start tracking repairs
+                </Typography>
+                <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => navigate('/vehicles/add')} sx={{ mt: 1 }}>
+                  Add vehicle
+                </Button>
+              </Stack>
+            ) : desktop ? (
+              <Table size="small" sx={{ tableLayout: 'fixed' }}>
+                <colgroup>
+                  {/* Stage needs room for a "Repairing" chip and In shop for
+                      "6 days" — at 14%/11% both truncated mid-word. */}
+                  <col width="24%" /><col width="21%" /><col width="27%" /><col width="16%" /><col width="12%" />
+                </colgroup>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover' }}>
+                    {['Vehicle', 'Customer', 'Job', 'Stage', 'In shop'].map((h) => (
+                      <TableCell key={h} sx={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'text.disabled', py: 1.25, whiteSpace: 'nowrap' }}>
+                        {h}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {vehicles.map((v) => {
+                    const d = daysInShop(v.visit_started_at)
+                    const stale = d !== null && d >= STALE_AFTER_DAYS && v.status !== 'DELIVERED'
+                    return (
+                      <TableRow
+                        key={v.id}
+                        hover
+                        onClick={() => navigate(`/vehicles/${v.id}`)}
+                        sx={{ cursor: 'pointer', '&:last-child td': { border: 0 } }}
+                      >
+                        <TableCell sx={{ py: 1.75 }}>
+                          <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>{v.registration_number}</Typography>
+                          {v.name && <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>{v.name}</Typography>}
+                        </TableCell>
+                        <TableCell>
+                          <Typography noWrap sx={{ fontSize: 13 }}>{v.customer_name}</Typography>
+                          <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>{v.customer_phone}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography noWrap title={v.complaint ?? undefined} sx={{ fontSize: 12.5, color: v.complaint ? 'text.secondary' : 'text.disabled' }}>
+                            {v.complaint ?? 'Not inspected'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip size="small" label={STAGE_LABEL[v.status]} sx={stageChipSx(v.status)} />
+                        </TableCell>
+                        <TableCell>
+                          <Typography sx={{ fontSize: 12.5, whiteSpace: 'nowrap', fontWeight: stale ? 700 : 400, color: stale ? 'warning.main' : 'text.secondary' }}>
+                            {v.status === 'DELIVERED' || d === null ? '—' : durationLabel(d)}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <Box>
+                {vehicles.map((v, i) => {
+                  const d = daysInShop(v.visit_started_at)
+                  const stale = d !== null && d >= STALE_AFTER_DAYS && v.status !== 'DELIVERED'
+                  return (
+                    <Box key={v.id}>
+                      {i > 0 && <Divider />}
+                      <ButtonBase
+                        onClick={() => navigate(`/vehicles/${v.id}`)}
+                        sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 1.5, px: 2.25, py: 1.75, textAlign: 'left' }}
+                      >
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>{v.registration_number}</Typography>
+                          <Typography noWrap sx={{ fontSize: 12, color: 'text.disabled' }}>
+                            {[v.customer_name, v.name].filter(Boolean).join(' · ')}
+                          </Typography>
+                          <Typography noWrap sx={{ fontSize: 12, color: v.complaint ? 'text.secondary' : 'text.disabled', mt: 0.5 }}>
+                            {v.complaint ?? 'Not inspected'}
+                          </Typography>
+                        </Box>
+                        <Stack alignItems="flex-end" spacing={0.75} sx={{ flexShrink: 0 }}>
+                          <Chip size="small" label={STAGE_LABEL[v.status]} sx={stageChipSx(v.status)} />
+                          <Typography sx={{ fontSize: 12, fontWeight: stale ? 700 : 400, color: stale ? 'warning.main' : 'text.disabled' }}>
+                            {v.status === 'DELIVERED' || d === null ? '—' : durationLabel(d)}
+                          </Typography>
+                        </Stack>
+                      </ButtonBase>
+                    </Box>
+                  )
+                })}
+              </Box>
+            )}
+          </Card>
 
-          {vehiclesLoading ? (
-            <div className="flex flex-col gap-2">
-              <ListItemSkeleton />
-              <ListItemSkeleton />
-              <ListItemSkeleton />
-            </div>
-          ) : recentVehicles.length === 0 ? (
-            <div className="rounded-card border border-divider bg-card shadow-[var(--shadow-card)]">
-              <EmptyState
-                icon={<Car size={24} />}
-                title="No vehicles yet"
-                description="Add your first vehicle to start tracking repairs"
-                action={
-                  <Button
-                    size="sm"
-                    fullWidth={false}
-                    leftIcon={<Plus size={16} />}
-                    onClick={() => navigate('/vehicles/add')}
-                  >
-                    Add vehicle
-                  </Button>
-                }
-              />
-            </div>
-          ) : (
-            <div className="md:rounded-card md:border md:border-divider md:bg-card md:shadow-[var(--shadow-card)] md:overflow-hidden">
-              <VehicleListView
-                vehicles={recentVehicles}
-                onSelect={(id) => navigate(`/vehicles/${id}`)}
-              />
-            </div>
+          {/* ── Attendance (owner only) ─────────────────────────────── */}
+          {isOwner && (
+            <Card>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.25, py: 1.75 }}>
+                <Typography variant="subtitle2">Attendance today</Typography>
+                {!staffLoading && staff.length > 0 && (
+                  <Typography sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                    {presentCount} / {staff.length} in
+                  </Typography>
+                )}
+              </Stack>
+              {!staffLoading && staff.length > 0 && (
+                <Box sx={{ px: 2.25, pb: 1.75 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(presentCount / staff.length) * 100}
+                    sx={{ height: 4, borderRadius: 2, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }}
+                  />
+                </Box>
+              )}
+              <Divider />
+
+              {staffLoading ? (
+                <Box sx={{ px: 2.25, py: 1.5 }}>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+                    <Skeleton key={i} height={40} />
+                  ))}
+                </Box>
+              ) : staff.length === 0 ? (
+                <Stack alignItems="center" spacing={1} sx={{ py: 4, px: 3, textAlign: 'center' }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>No team members yet</Typography>
+                  <Button size="small" onClick={() => navigate('/staff/add')}>Invite staff</Button>
+                </Stack>
+              ) : (
+                staff.map((s, i) => (
+                  <Box key={s.id}>
+                    {i > 0 && <Divider />}
+                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2.25, py: 1.75 }}>
+                      <Avatar
+                        src={s.avatar_url ?? undefined}
+                        imgProps={{ referrerPolicy: 'no-referrer' }}
+                        sx={{ width: 34, height: 34, fontSize: 13.5, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }}
+                      >
+                        {s.name.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>{s.name}</Typography>
+                        <Typography sx={{ fontSize: 11.5, color: 'text.disabled', textTransform: 'capitalize' }}>
+                          {s.role.toLowerCase()}
+                        </Typography>
+                      </Box>
+                      {s.attendance_status === 'PRESENT' ? (
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'success.main' }}>
+                          {checkInLabel(s.check_in_at)}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>
+                          {s.attendance_status === 'ABSENT' ? 'Absent' : 'Not in'}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Box>
+                ))
+              )}
+            </Card>
           )}
-        </section>
-      </div>
+        </Box>
+      </Box>
     </PageShell>
+  )
+}
+
+// ── Stat tile ─────────────────────────────────────────────────────────────────
+
+interface StatProps {
+  id: string
+  label: string
+  value: string | number
+  hero?: boolean
+  change?: number | null
+}
+
+function Stat({ id, label, value, hero = false, change = null }: StatProps): React.JSX.Element {
+  const up = (change ?? 0) >= 0
+  return (
+    <Card id={id} sx={{ p: 2.25 }}>
+      <Typography sx={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.13em', textTransform: 'uppercase', color: 'text.disabled' }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontSize: 30, fontWeight: 700, mt: 1, lineHeight: 1, letterSpacing: '-.025em', fontVariantNumeric: 'tabular-nums', color: hero ? 'primary.main' : 'text.primary' }}>
+        {value}
+      </Typography>
+      {change !== null && (
+        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
+          {up ? <TrendUpIcon sx={{ fontSize: 13, color: 'success.main' }} /> : <TrendDownIcon sx={{ fontSize: 13, color: 'text.disabled' }} />}
+          <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: up ? 'success.main' : 'text.disabled' }}>
+            {Math.abs(change)}% vs yesterday
+          </Typography>
+        </Stack>
+      )}
+    </Card>
   )
 }

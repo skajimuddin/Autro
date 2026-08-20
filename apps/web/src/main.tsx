@@ -1,7 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from '@mui/material/styles'
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
+import CssBaseline from '@mui/material/CssBaseline'
 import '@/index.css'
 import App from '@/App'
+import { theme } from '@/theme'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -19,6 +23,13 @@ if ('serviceWorker' in navigator) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    {/* Stamps data-mui-color-scheme on <html> before first paint, so the app
+        does not flash light before switching to the user's dark preference —
+        index.css keys the Tailwind tokens off the same attribute. */}
+    <InitColorSchemeScript attribute="data-mui-color-scheme" />
+    <ThemeProvider theme={theme} defaultMode="system">
+      <CssBaseline />
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )

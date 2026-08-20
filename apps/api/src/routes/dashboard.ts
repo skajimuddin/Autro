@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, eq, gte, isNull, sql } from 'drizzle-orm'
+import { and, eq, gte, isNull, lt, sql } from 'drizzle-orm'
 import type { Env, Variables } from '@/env'
 import { service_visits, invoices } from '@/db/schema'
 
@@ -58,7 +58,25 @@ dashboardRouter.get('/stats', async (c) => {
     ))
     .get()
     
+  // Yesterday's paid total, so the dashboard can show a real change figure
+  // instead of a decorative one. Mirrors the query above, bounded to
+  // [yesterday 00:00, today 00:00).
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const yesterdayStr = yesterday.toISOString()
+
+  const revenueYesterdayResult = await db.select({ sum: sql<number>`sum(frozen_total)` })
+    .from(invoices)
+    .where(and(
+      eq(invoices.tenant_id, tenantId),
+      eq(invoices.payment_status, 'PAID'),
+      gte(invoices.paid_at, yesterdayStr),
+      lt(invoices.paid_at, todayStr)
+    ))
+    .get()
+
   const revenue_today = revenueResult?.sum || 0
+  const revenue_yesterday = revenueYesterdayResult?.sum || 0
   const unpaid_invoices = unpaidResult?.count || 0
   
   return c.json({
@@ -66,6 +84,7 @@ dashboardRouter.get('/stats', async (c) => {
     repairing: repairingResult?.count || 0,
     ready: readyResult?.count || 0,
     revenue_today,
+    revenue_yesterday,
     unpaid_invoices
   })
 })
