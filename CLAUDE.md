@@ -10,6 +10,22 @@ npm run lint             # oxlint
 npm run build --workspace=apps/web
 ```
 
+## Branching: commit straight to `main`
+
+Single maintainer, no reviewers, no CI gate. Work directly on `main` and push
+there — do not open a feature branch or a PR unless asked. A fresh session may
+be handed a `claude/*` branch by its environment; that is a default, and this
+line is the standing instruction that overrides it.
+
+What replaces the review step, since nothing else will catch it:
+
+- `npm run typecheck && npm run lint && npm run build --workspace=apps/web`
+  must be green **before** each commit, not after.
+- Anything risky — a schema change, a deleted route, a new required env var,
+  a data migration — gets raised BEFORE it is pushed, not reported afterwards.
+  On `main` there is no unmerged branch to walk it back from; the only undo is
+  a revert commit, and by then it may already be deployed.
+
 ## `planning/` is HISTORY, not a specification
 
 **`planning/final/` and `planning/notes/` describe the app as it was scoped
