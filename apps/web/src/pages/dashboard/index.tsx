@@ -119,7 +119,9 @@ export default function DashboardPage(): React.JSX.Element {
     >
       <div className="px-4 md:px-7 pb-4 flex flex-col gap-5">
         {/* ── Stat strip ──────────────────────────────────────────────── */}
-        <div className="flex gap-2.5 flex-wrap">
+        {/* 2x2 on a phone: flex-wrap left a ragged 1/2/1 stagger because the
+            revenue pill is much wider than the counts. */}
+        <div className="grid grid-cols-2 gap-2.5 md:flex md:flex-wrap">
           {isLoading ? (
             <>
               <StatPillSkeleton />

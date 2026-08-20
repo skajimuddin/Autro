@@ -173,7 +173,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
           {/* ── Financial summary ─────────────────────────────── */}
           <Card id="vehicle-financial-card">
             <p className="text-row-sub font-bold text-text mb-3">Financial summary</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-x-10 gap-y-3">
               <FinancialBlock
                 label="Estimate"
                 value={vehicle.estimate_total}
@@ -188,6 +188,33 @@ export default function VehicleDetailsPage(): React.JSX.Element {
               />
             </div>
           </Card>
+
+          {/* ── Primary actions ──────────────────────────────────
+              Calling the customer and starting an estimate are what this
+              screen exists for, so they lead the column on desktop and are
+              pinned above the fold on mobile — both used to sit below a
+              scroll, under the secondary "Generate invoice". */}
+          <div className="fixed md:static bottom-0 left-0 right-0 z-30 flex gap-2.5 px-4 md:px-0 py-3 md:py-0 bg-bg/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none border-t md:border-t-0 border-divider pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] md:pb-0">
+            <Button
+              id="vehicle-call-customer"
+              variant="outline"
+              fullWidth={false}
+              leftIcon={<Phone size={16} />}
+              className="flex-1 !bg-card"
+              onClick={() => { window.location.href = `tel:${vehicle.customer_phone}` }}
+            >
+              Call
+            </Button>
+            <Button
+              id="vehicle-create-estimate"
+              fullWidth={false}
+              leftIcon={<FileText size={16} />}
+              className="flex-[2]"
+              onClick={() => navigate(`/estimates/new?visit=${vehicle.visit_id}`)}
+            >
+              Create estimate
+            </Button>
+          </div>
 
           {/* ── Generate invoice ───────────────────────────────── */}
           <Button
@@ -217,33 +244,6 @@ export default function VehicleDetailsPage(): React.JSX.Element {
         </Card>
       </div>
 
-      {/* ── Primary actions ──────────────────────────────────────
-          Pinned above the fold on mobile — calling the customer and starting
-          an estimate are what this screen exists for, and both sat below a
-          scroll on a phone before. */}
-      <div className="fixed md:static bottom-0 left-0 right-0 z-30 flex gap-2.5 px-4 md:px-7 py-3 md:pt-0 bg-bg/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none border-t md:border-t-0 border-divider pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] md:max-w-[calc(100%-0px)]">
-        <Button
-          id="vehicle-call-customer"
-          variant="outline"
-          fullWidth={false}
-          leftIcon={<Phone size={16} />}
-          className="flex-1 md:flex-none md:min-w-[160px] !bg-card"
-          onClick={() => {
-            window.location.href = `tel:${vehicle.customer_phone}`
-          }}
-        >
-          Call
-        </Button>
-        <Button
-          id="vehicle-create-estimate"
-          fullWidth={false}
-          leftIcon={<FileText size={16} />}
-          className="flex-[2] md:flex-none md:min-w-[200px]"
-          onClick={() => navigate(`/estimates/new?visit=${vehicle.visit_id}`)}
-        >
-          Create estimate
-        </Button>
-      </div>
     </PageShell>
   )
 }
@@ -260,51 +260,57 @@ function StatusStepper({ current, disabled, onSelect }: StatusStepperProps): Rea
   const currentIndex = STAGES.findIndex((s) => s.value === current)
 
   return (
-    <div role="radiogroup" aria-label="Job status" className="flex items-start">
+    // Equal-width grid columns, with each connector drawn from the centre of
+    // its own dot to the centre of the next. A flex row sized the columns to
+    // their LABEL widths ("Repairing" vs "New"), which spaced the dots
+    // unevenly — the stepper only reads as a track when the dots are on a
+    // regular rhythm.
+    <div role="radiogroup" aria-label="Job status" className="grid grid-cols-4">
       {STAGES.map((stage, index) => {
         const isDone = index < currentIndex
         const isCurrent = index === currentIndex
         const isLast = index === STAGES.length - 1
 
         return (
-          <div key={stage.value} className={['flex items-start', isLast ? '' : 'flex-1'].join(' ')}>
-            <div className="flex flex-col items-center gap-1.5">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={isCurrent}
-                aria-label={stage.label}
-                disabled={disabled}
-                onClick={() => onSelect(stage.value)}
-                className={[
-                  'w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                  disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-                  isDone || isCurrent ? 'bg-primary' : 'bg-card border-2 border-divider',
-                  isCurrent ? 'ring-4 ring-primary/15' : '',
-                  !disabled && !isDone && !isCurrent ? 'hover:border-primary' : '',
-                ].join(' ')}
-              >
-                {isDone && <Check size={12} className="text-white" strokeWidth={3} />}
-              </button>
-              <span
-                className={[
-                  'text-[0.6875rem] text-center whitespace-nowrap',
-                  isCurrent ? 'font-bold text-primary' : 'font-semibold text-text-muted',
-                ].join(' ')}
-              >
-                {stage.label}
-              </span>
-            </div>
-
+          <div key={stage.value} className="relative flex flex-col items-center gap-2">
             {!isLast && (
               <div
+                aria-hidden="true"
                 className={[
-                  'h-0.5 flex-1 mt-[11px] mx-1',
+                  // top-[11px] centres the 2px rule on the 24px dot.
+                  'absolute top-[11px] left-1/2 w-full h-0.5',
                   index < currentIndex ? 'bg-primary' : 'bg-divider',
                 ].join(' ')}
               />
             )}
+
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isCurrent}
+              aria-label={stage.label}
+              disabled={disabled}
+              onClick={() => onSelect(stage.value)}
+              className={[
+                'relative z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                isDone || isCurrent ? 'bg-primary' : 'bg-card border-2 border-divider',
+                isCurrent ? 'ring-4 ring-primary/15' : '',
+                !disabled && !isDone && !isCurrent ? 'hover:border-primary' : '',
+              ].join(' ')}
+            >
+              {isDone && <Check size={12} className="text-white" strokeWidth={3} />}
+            </button>
+
+            <span
+              className={[
+                'text-[0.6875rem] text-center whitespace-nowrap',
+                isCurrent ? 'font-bold text-primary' : 'font-semibold text-text-muted',
+              ].join(' ')}
+            >
+              {stage.label}
+            </span>
           </div>
         )
       })}
@@ -316,7 +322,10 @@ function StatusStepper({ current, disabled, onSelect }: StatusStepperProps): Rea
 
 function PhotoGrid({ images }: { images: VehicleImage[] }): React.JSX.Element {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    // Capped width: at md:+ the left column is ~900px, so an uncapped
+    // 3-column grid blew each square up to ~280px — an "Add photo"
+    // placeholder the size of a hero image.
+    <div className="grid grid-cols-3 gap-2 max-w-[420px]">
       {images.map((img) => (
         <div key={img.id} className="aspect-square overflow-hidden rounded-card bg-subtle">
           <img

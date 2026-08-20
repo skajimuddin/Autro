@@ -10,6 +10,8 @@ import { ArrowLeft } from '@/components/ui/icons'
 
 interface TopbarProps {
   title: string
+  /** Match the content column width so the title lines up with the page. */
+  wide?: boolean
   /** Secondary line under the title. */
   subtitle?: string
   /** If true, shows a back arrow that navigates -1 */
@@ -21,6 +23,7 @@ interface TopbarProps {
 export function Topbar({
   title,
   subtitle,
+  wide = false,
   showBack = false,
   rightAction,
 }: TopbarProps): React.JSX.Element {
@@ -28,7 +31,16 @@ export function Topbar({
 
   return (
     <header id="topbar" className="sticky top-0 z-30 bg-bg/90 backdrop-blur-sm">
-      <div className="flex items-center gap-3 px-4 md:px-7 py-4">
+      {/* The bar spans the full width so its blur covers everything scrolling
+          under it, but its CONTENT sits in the same max-width column as the
+          page body — otherwise the title drifts left of the content on wide
+          screens, where the body is centred and the title was not. */}
+      <div
+        className={[
+          'mx-auto w-full flex items-center gap-3 px-4 md:px-7 py-4',
+          wide ? 'max-w-3xl lg:max-w-6xl' : 'max-w-3xl',
+        ].join(' ')}
+      >
         {showBack && (
           <button
             id="topbar-back-btn"
@@ -45,7 +57,9 @@ export function Topbar({
           <h1
             className={[
               'font-extrabold text-text leading-tight truncate tracking-[-0.01em]',
-              showBack ? 'text-[1.25rem]' : 'text-[1.375rem]',
+              showBack
+                ? 'text-[1.0625rem] md:text-[1.25rem]'
+                : 'text-[1.125rem] md:text-[1.375rem]',
             ].join(' ')}
           >
             {title}

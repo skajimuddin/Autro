@@ -43,7 +43,7 @@ export function TableRowSkeleton(): React.JSX.Element {
 
 /** Stat-strip pill skeleton — matches <StatPill>. */
 export function StatPillSkeleton(): React.JSX.Element {
-  return <Skeleton className="h-[42px] w-[150px] rounded-tile" />
+  return <Skeleton className="h-[42px] w-full md:w-[150px] rounded-tile" />
 }
 
 /** Stat card skeleton — matches <StatCard>. */

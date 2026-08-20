@@ -50,7 +50,13 @@ export function PageShell({
 
       {/* Offset for the md:+ sidebar */}
       <div className="md:pl-[224px]">
-        <Topbar title={title} subtitle={subtitle} showBack={showBack} rightAction={rightAction} />
+        <Topbar
+          title={title}
+          subtitle={subtitle}
+          wide={wide}
+          showBack={showBack}
+          rightAction={rightAction}
+        />
 
         {/* pb clears the mobile bottom nav; not needed once nav is a sidebar */}
         <main

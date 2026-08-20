@@ -35,23 +35,25 @@ export function StatPill({
     <div
       id={id}
       className={[
-        'flex items-baseline gap-2 px-4 py-2.5 rounded-tile',
+        // Stacked on a phone, inline at md:+. Inline everywhere made the
+        // widest label ("today's revenue") wrap inside its pill, which made
+        // that grid cell taller than the one beside it.
+        'flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2',
+        'px-4 py-2.5 rounded-tile',
         featured
           ? 'bg-primary text-white shadow-[var(--shadow-primary)]'
           : 'bg-card border border-divider',
       ].join(' ')}
     >
-      {!featured && (
-        <span
-          className={['w-1.5 h-1.5 rounded-full flex-shrink-0 self-center', dotStyles[tone]].join(
-            ' ',
-          )}
-        />
-      )}
-      <span className="text-base font-extrabold leading-none tabular">{value}</span>
+      <span className="flex items-center gap-1.5">
+        {!featured && (
+          <span className={['w-1.5 h-1.5 rounded-full flex-shrink-0', dotStyles[tone]].join(' ')} />
+        )}
+        <span className="text-base font-extrabold leading-none tabular">{value}</span>
+      </span>
       <span
         className={[
-          'text-row-sub font-semibold leading-none',
+          'text-[0.6875rem] font-semibold leading-none',
           featured ? 'text-white/80' : 'text-text-secondary',
         ].join(' ')}
       >

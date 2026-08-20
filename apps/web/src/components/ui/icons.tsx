@@ -28,7 +28,11 @@ export {
   LuPlus as Plus,
   LuPrinter as Printer,
   LuQrCode as QrCode,
-  LuReceipt as Receipt,
+  // Lucide's `receipt` draws a literal dollar sign inside the receipt
+  // (path "M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" + a vertical stroke).
+  // Every amount in this app is ₹, so the rupee variant is the correct glyph —
+  // same export name, so no call site changes. Swapped 2026-08-20.
+  LuReceiptIndianRupee as Receipt,
   LuRotateCw as RefreshCw,
   LuTriangleAlert as AlertTriangle,
   LuUser as User,

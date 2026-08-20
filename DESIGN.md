@@ -79,6 +79,12 @@ tabular figures — `table` and `.tabular` both set `font-variant-numeric`.
 **Lucide** via `react-icons/lu`, always imported from `@/components/ui/icons` —
 never from `react-icons` directly. Need a new glyph? Add it there first.
 
+**Check what a glyph actually draws before mapping it.** `LuReceipt` contains a
+literal dollar sign; in an app where every amount is ₹ the correct glyph is
+`LuReceiptIndianRupee`. Because every call site imports the semantic name
+(`Receipt`), fixing that was a one-line change in `icons.tsx` — which is the
+whole reason the file exists.
+
 ### Motion
 
 Button press `active:scale-press`; row press `active:scale-[0.99]`; page enter
@@ -101,7 +107,16 @@ with `en-IN` grouping; this is an India-first garage tool.
   `PageShell` hides only the **mobile** bar (for sub-screens with their own
   bottom action bar). The desktop sidebar always stays — a detail screen on a
   1360px window still belongs inside the app shell.
-- Pass `wide` for table screens and the two-column vehicle detail.
+- Pass `wide` for table screens and the two-column vehicle detail. `PageShell`
+  forwards it to `Topbar`, whose **content** sits in the same max-width column
+  as the page body while the bar itself spans full width. Without that, the
+  page title drifts left of the content on wide screens, where the body is
+  centred and the title is not.
+- Anything that repeats on a track (the status stepper) is laid out on equal
+  grid columns, never a flex row: flex sizes columns to their label widths, so
+  "New" and "Repairing" produce visibly uneven spacing.
+- Cap decorative grids. An uncapped `grid-cols-3` of squares inside the ~900px
+  detail column renders a 280px "Add photo" placeholder.
 - Minimum supported width 360px, no horizontal scroll. The vehicle table sets
   `min-w-[720px]` and scrolls **inside its own card**, never the page.
 - Staff/Attendance are `RequireOwner` routes, so the nav hides them for STAFF
