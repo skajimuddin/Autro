@@ -126,9 +126,7 @@ export default function OnboardingPage(): React.JSX.Element {
       navigate('/', { replace: true })
     } catch (err: unknown) {
       setSubmitError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to create garage. Please try again.',
+        err instanceof Error ? err.message : 'Failed to create garage. Please try again.',
       )
     } finally {
       setIsSubmitting(false)
@@ -140,12 +138,10 @@ export default function OnboardingPage(): React.JSX.Element {
       <div className="w-full max-w-md md:max-w-lg mx-auto">
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="text-center mb-7">
-          <div className="w-14 h-14 bg-primary flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-tile bg-primary flex items-center justify-center mx-auto mb-4">
             <Building2 size={26} className="text-white" />
           </div>
-          <h1 className="text-[1.625rem] font-bold text-text mb-2">
-            Set Up Your Garage
-          </h1>
+          <h1 className="text-[1.625rem] font-bold text-text mb-2">Set Up Your Garage</h1>
           <p className="text-row-title text-text-secondary leading-normal">
             We need these details for your invoices and staff attendance.
           </p>
@@ -194,24 +190,19 @@ export default function OnboardingPage(): React.JSX.Element {
               <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-semibold text-text">
                   Autro Location{' '}
-                  <span className="font-normal text-text-muted">
-                    (for staff attendance)
-                  </span>
+                  <span className="font-normal text-text-muted">(for staff attendance)</span>
                 </span>
 
                 <div className="text-xs text-text-secondary leading-snug mb-1.5">
-                  <strong className="font-semibold">
-                    Important rules for accurate GPS:
-                  </strong>
+                  <strong className="font-semibold">Important rules for accurate GPS:</strong>
                   <ul className="list-disc ml-4 mt-1">
                     <li>
-                      Use a <strong className="font-semibold">mobile phone</strong>{' '}
-                      (PCs often give wrong locations).
+                      Use a <strong className="font-semibold">mobile phone</strong> (PCs often give
+                      wrong locations).
                     </li>
                     <li>
-                      Stand{' '}
-                      <strong className="font-semibold">inside the autro</strong>{' '}
-                      when tapping the button.
+                      Stand <strong className="font-semibold">inside the autro</strong> when tapping
+                      the button.
                     </li>
                   </ul>
                 </div>
@@ -231,14 +222,13 @@ export default function OnboardingPage(): React.JSX.Element {
                 >
                   {locationStatus === 'loading' && (
                     <>
-                      <Loader2 size={16} className="animate-spin-fast" /> Getting
-                      location…
+                      <Loader2 size={16} className="animate-spin-fast" /> Getting location…
                     </>
                   )}
                   {locationStatus === 'set' && (
                     <>
-                      <CheckCircle size={16} /> Location set (
-                      {latitude?.toFixed(4)}, {longitude?.toFixed(4)})
+                      <CheckCircle size={16} /> Location set ({latitude?.toFixed(4)},{' '}
+                      {longitude?.toFixed(4)})
                     </>
                   )}
                   {locationStatus === 'error' && (
@@ -264,12 +254,7 @@ export default function OnboardingPage(): React.JSX.Element {
             </div>
           )}
 
-          <Button
-            type="submit"
-            id="create-autro-btn"
-            size="lg"
-            isLoading={isSubmitting}
-          >
+          <Button type="submit" id="create-autro-btn" size="lg" isLoading={isSubmitting}>
             Create Autro
           </Button>
         </form>

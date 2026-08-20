@@ -1,13 +1,7 @@
-// SegmentedControl — the handoff's ".seg"/".seg-opt": a single flat, bordered
-// group split into equal-weight options (status, discount type, payment
-// method, tax mode, vehicle status). Extracted from copy-pasted inline
-// markup in estimates/editor.tsx and invoices/editor.tsx; now also used for
-// the vehicles list status filter and vehicle-detail status control to match
-// the handoff exactly — see DESIGN.md.
+// SegmentedControl — pill track with a filled active thumb.
 //
-// `fill` makes options split available width evenly (the handoff's status
-// filters and vehicle-status control); omit it for a compact inline group
-// that only takes as much width as its labels need (discount type, tax).
+// Rounded system (2026-08-20): an inset track (`bg-subtle`) with the selected
+// option lifted as a filled pill, replacing the flat bordered group.
 import type React from 'react'
 
 interface SegmentedOption<T extends string> {
@@ -38,7 +32,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={[
-        'inline-flex rounded-button border-[1.5px] border-border overflow-hidden flex-shrink-0',
+        'inline-flex gap-1 p-1 rounded-tile bg-subtle flex-shrink-0',
         fill ? 'w-full' : '',
       ].join(' ')}
     >
@@ -52,10 +46,12 @@ export function SegmentedControl<T extends string>({
             aria-checked={isActive}
             onClick={() => onChange(opt.value)}
             className={[
-              'px-3 py-2 text-row-sub font-semibold transition-colors whitespace-nowrap',
-              'border-r-[1.5px] border-border last:border-r-0',
+              'px-3 py-2 rounded-[8px] text-row-sub font-semibold transition-colors whitespace-nowrap',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
               fill ? 'flex-1' : '',
-              isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-bg',
+              isActive
+                ? 'bg-primary text-white shadow-[var(--shadow-primary)]'
+                : 'text-text-secondary hover:text-text',
             ].join(' ')}
           >
             {opt.label}

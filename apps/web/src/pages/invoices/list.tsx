@@ -5,7 +5,7 @@
 // a separate mobile-card / desktop-table pair. See DESIGN.md.
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { Receipt, ChevronRight } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
@@ -55,17 +55,26 @@ export default function InvoiceListPage(): React.JSX.Element {
   if (statusFilter !== 'ALL') queryParams.set('status', statusFilter)
   const queryString = queryParams.toString()
 
-  const { data, isLoading } = useQuery<InvoiceListResponse>({
-    queryKey: ['invoices', statusFilter, tenant?.id],
-    queryFn: () =>
-      apiFetch<InvoiceListResponse>(
-        `/invoices${queryString ? `?${queryString}` : ''}`,
-        { tenantId: tenant?.id },
-      ),
-    enabled: Boolean(tenant?.id),
-  })
+  // Paginated over the `cursor` the API returns. Was a single useQuery whose
+  // "Load More" button had no onClick — the list silently stopped at the
+  // first page. Fixed 2026-08-20.
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery<InvoiceListResponse>({
+      queryKey: ['invoices', statusFilter, tenant?.id],
+      queryFn: ({ pageParam }) => {
+        const params = new URLSearchParams(queryString)
+        if (pageParam) params.set('cursor', pageParam as string)
+        const qs = params.toString()
+        return apiFetch<InvoiceListResponse>(`/invoices${qs ? `?${qs}` : ''}`, {
+          tenantId: tenant?.id,
+        })
+      },
+      initialPageParam: null,
+      getNextPageParam: (lastPage) => lastPage.cursor,
+      enabled: Boolean(tenant?.id),
+    })
 
-  const invoices = data?.invoices ?? []
+  const invoices = data?.pages.flatMap((page) => page.invoices) ?? []
 
   return (
     <PageShell title="Invoices" showBack>
@@ -87,7 +96,7 @@ export default function InvoiceListPage(): React.JSX.Element {
             description="Generate your first invoice from a vehicle's details page"
           />
         ) : (
-          <div>
+          <div className="flex flex-col gap-2">
             {invoices.map((inv) => {
               const badge = PAYMENT_BADGE[inv.payment_status]
               return (
@@ -96,38 +105,45 @@ export default function InvoiceListPage(): React.JSX.Element {
                   id={`invoice-${inv.id}`}
                   type="button"
                   onClick={() => navigate(`/invoices/${inv.id}`)}
-                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
+                  className="w-full flex items-center gap-3 p-2.5 rounded-[14px] bg-card border border-divider shadow-[var(--shadow-card)] text-left cursor-pointer hover:border-border active:scale-[0.99] transition-all"
                 >
-                  <div className="w-11 h-11 bg-success-light flex items-center justify-center flex-shrink-0">
-                    <Receipt size={18} className="text-success" />
+                  <div className="w-12 h-12 rounded-tile bg-success-light flex items-center justify-center flex-shrink-0">
+                    <Receipt size={18} className="text-success-deep" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-row-title font-semibold text-text truncate">
                       {inv.registration_number}
                     </p>
-                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
+                    <p className="text-row-sub text-text-muted truncate mt-0.5">
                       {inv.customer_name}
                       {inv.payment_method ? ` · ${inv.payment_method}` : ''}
                     </p>
                   </div>
-                  <span className="text-row-title font-bold text-text flex-shrink-0">
+                  <span className="text-row-title font-bold text-text flex-shrink-0 tabular">
                     ₹{inv.frozen_total.toLocaleString('en-IN')}
                   </span>
                   <Badge variant={badge.variant}>{badge.label}</Badge>
-                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
+                  <ChevronRight
+                    size={16}
+                    className="text-text-muted flex-shrink-0 hidden md:block"
+                  />
                 </button>
               )
             })}
 
-            {data?.cursor && (
-              <div className="flex justify-center pt-4">
+            {hasNextPage && (
+              <div className="flex justify-center pt-2">
                 <Button
                   id="invoices-load-more"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   fullWidth={false}
+                  isLoading={isFetchingNextPage}
+                  onClick={() => {
+                    void fetchNextPage()
+                  }}
                 >
-                  Load More
+                  Load more
                 </Button>
               </div>
             )}

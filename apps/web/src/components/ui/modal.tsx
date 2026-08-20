@@ -14,7 +14,13 @@ interface ModalProps {
   id?: string
 }
 
-export function Modal({ isOpen, onClose, title, children, id }: ModalProps): React.JSX.Element | null {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  id,
+}: ModalProps): React.JSX.Element | null {
   // Lock body scroll while open
   useEffect(() => {
     if (isOpen) {
@@ -22,13 +28,17 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
     } else {
       document.body.style.overflow = ''
     }
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.overflow = ''
+    }
   }, [isOpen])
 
   // Dismiss on Escape key
   useEffect(() => {
     if (!isOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [isOpen, onClose])
@@ -53,15 +63,16 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
         aria-modal="true"
         aria-label={title}
         className={[
-          'fixed z-50 bg-card shadow-2xl border-t-2 border-divider md:border-2',
-          // Mobile: full-width sheet anchored to the bottom. Zero radius (the
-          // handoff's flat system), so no rounded-t utility needed.
-          'bottom-0 left-0 right-0 animate-slide-in-top',
+          'fixed z-50 bg-card shadow-[var(--shadow-elev-md)] border border-divider',
+          // Mobile: full-width sheet anchored to the bottom, rounded top only
+          // (2026-08-20 rounded system), sliding up from the edge it is
+          // attached to — slide-in-top animated it the wrong way.
+          'bottom-0 left-0 right-0 rounded-t-[20px] border-b-0 animate-slide-up',
           'pb-[env(safe-area-inset-bottom,16px)]',
           // md+: centred dialog
           'md:inset-auto md:top-1/2 md:left-1/2 md:right-auto md:bottom-auto',
           'md:-translate-x-1/2 md:-translate-y-1/2',
-          'md:w-full md:max-w-lg md:animate-fade-in',
+          'md:w-full md:max-w-lg md:rounded-card md:border-b md:animate-fade-in',
         ].join(' ')}
       >
         {/* Drag handle — mobile sheet affordance only */}
@@ -76,7 +87,7 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-text-muted hover:bg-bg transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:bg-subtle transition-colors"
               aria-label="Close"
             >
               <X size={18} />
@@ -85,9 +96,7 @@ export function Modal({ isOpen, onClose, title, children, id }: ModalProps): Rea
         )}
 
         {/* Content */}
-        <div className="px-5 py-4 overflow-y-auto max-h-[70dvh]">
-          {children}
-        </div>
+        <div className="px-5 py-4 overflow-y-auto max-h-[70dvh]">{children}</div>
       </div>
     </>
   )

@@ -21,7 +21,7 @@ export function Textarea({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
+        <label htmlFor={inputId} className="text-label font-semibold text-text">
           {label}
           {rest.required && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -31,9 +31,9 @@ export function Textarea({
         id={inputId}
         rows={rows}
         className={[
-          'w-full rounded-input border-[1.5px] bg-card text-text text-row-title font-normal px-3 py-3',
+          'w-full rounded-input border bg-card text-text text-row-title font-normal px-3 py-3',
           'placeholder:text-text-muted resize-none leading-normal',
-          'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+          'transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
           error ? 'border-danger' : 'border-border',
           className,
         ].join(' ')}

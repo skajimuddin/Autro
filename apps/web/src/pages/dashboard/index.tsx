@@ -1,23 +1,30 @@
-// Dashboard — main landing page for garage owners
+// Dashboard — the garage owner's landing screen.
 //
-// Rebuilt 2026-08-19 to match planning/design_handoff_autro_ui's actual
-// dashboard markup: a stat-card row, "+ Add vehicle" / "View all vehicles"
-// buttons, then a "Recent vehicles" list — no hero card, no quick-actions
-// grid (those belonged to an earlier, different spec, see git history if
-// needed). The handoff's own stat row only shows 3 cards (Active repairs /
-// Ready / This month); this app also has a real, backend-computed Unpaid
-// Invoices count the handoff never modeled — dropping it would be a
-// functional regression, so it stays as a 4th tile in the same flat style
-// rather than being invented copy. See DESIGN.md.
+// Rebuilt 2026-08-20 for the rounded design system (see DESIGN.md):
+//   - a compact stat strip instead of a four-tile grid, so the vehicle list
+//     starts above the fold
+//   - recent vehicles as a table at md:+ and rounded cards on mobile, both
+//     from <VehicleListView>
+//
+// What is deliberately NOT here, because no endpoint backs it: a revenue
+// trend/delta (GET /dashboard/stats returns today's total only, with nothing
+// to compare against), a total vehicle count (GET /vehicles is cursor
+// paginated and returns no total), and status filter tabs (the dashboard
+// fetches one unfiltered page — filtering it client-side would silently
+// filter only the loaded page). Filtering lives on /vehicles, which filters
+// server-side.
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Car, Settings, ChevronRight, Plus } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
+import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import { Button, StatCard, StatCardSkeleton, Badge, ListItemSkeleton } from '@/components/ui'
+import { Button, StatPill, StatPillSkeleton, ListItemSkeleton, EmptyState } from '@/components/ui'
+import { VehicleListView } from '@/components/domain/vehicle-list-view'
+import type { VehicleListItem } from '@/components/domain/vehicle-list-view'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,25 +36,28 @@ interface DashboardStats {
   unpaid_invoices: number
 }
 
-type VehicleStatus = 'NEW' | 'REPAIRING' | 'READY' | 'DELIVERED'
-
-interface RecentVehicle {
-  id: string
-  registration_number: string
-  name: string | null
-  customer_name: string
-  status: VehicleStatus
-}
-
 interface VehicleListResponse {
-  vehicles: RecentVehicle[]
+  vehicles: VehicleListItem[]
+  cursor: string | null
 }
 
-const STATUS_BADGE: Record<VehicleStatus, { variant: 'warning' | 'success' | 'default'; label: string }> = {
-  NEW: { variant: 'default', label: 'New' },
-  REPAIRING: { variant: 'warning', label: 'Repairing' },
-  READY: { variant: 'success', label: 'Ready' },
-  DELIVERED: { variant: 'default', label: 'Delivered' },
+const RECENT_LIMIT = 6
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function greeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+function formatToday(): string {
+  return new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
 }
 
 // ── Dashboard Page ────────────────────────────────────────────────────────────
@@ -55,13 +65,11 @@ const STATUS_BADGE: Record<VehicleStatus, { variant: 'warning' | 'success' | 'de
 export default function DashboardPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { tenant } = useTenant()
+  const { user } = useAuth()
 
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['dashboard', 'stats'],
-    queryFn: () =>
-      apiFetch<DashboardStats>('/dashboard/stats', {
-        tenantId: tenant?.id,
-      }),
+    queryFn: () => apiFetch<DashboardStats>('/dashboard/stats', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
     // Refresh every 30 seconds for live feel
     refetchInterval: 30_000,
@@ -72,7 +80,7 @@ export default function DashboardPage(): React.JSX.Element {
     queryFn: () => apiFetch<VehicleListResponse>('/vehicles', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
   })
-  const recentVehicles = (vehiclesData?.vehicles ?? []).slice(0, 3)
+  const recentVehicles = (vehiclesData?.vehicles ?? []).slice(0, RECENT_LIMIT)
 
   // App Badging API integration
   useEffect(() => {
@@ -90,63 +98,67 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }, [stats])
 
+  const firstName = user?.name?.trim().split(/\s+/)[0]
+
   return (
     <PageShell
-      title="Dashboard"
+      title={firstName ? `${greeting()}, ${firstName}` : greeting()}
+      subtitle={formatToday()}
+      wide
       rightAction={
         <button
           id="dashboard-settings-btn"
           type="button"
           onClick={() => navigate('/settings')}
-          className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors md:hidden"
+          className="w-9 h-9 flex items-center justify-center rounded-tile bg-card border border-divider shadow-[var(--shadow-card)] md:hidden"
           aria-label="Settings"
         >
-          <Settings size={18} className="text-text-secondary" />
+          <Settings size={17} className="text-text-secondary" />
         </button>
       }
     >
-      <div className="p-4 md:p-6 flex flex-col gap-6">
-        {/* ── Stats: Active repairs / Ready / Today's revenue / Unpaid ──── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="px-4 md:px-7 pb-4 flex flex-col gap-5">
+        {/* ── Stat strip ──────────────────────────────────────────────── */}
+        <div className="flex gap-2.5 flex-wrap">
           {isLoading ? (
             <>
-              <StatCardSkeleton />
-              <StatCardSkeleton />
-              <StatCardSkeleton />
-              <StatCardSkeleton />
+              <StatPillSkeleton />
+              <StatPillSkeleton />
+              <StatPillSkeleton />
+              <StatPillSkeleton />
             </>
           ) : (
             <>
-              <StatCard
+              <StatPill
+                id="stat-revenue"
+                featured
+                value={`₹${(stats?.revenue_today ?? 0).toLocaleString('en-IN')}`}
+                label="today's revenue"
+              />
+              <StatPill
                 id="stat-repairing"
                 tone="warning"
                 value={stats?.repairing ?? 0}
-                label="Active repairs"
+                label="in the bay"
               />
-              <StatCard
+              <StatPill
                 id="stat-ready"
                 tone="success"
                 value={stats?.ready ?? 0}
-                label="Ready"
+                label="ready for pickup"
               />
-              <StatCard
-                id="stat-revenue"
-                tone="primary"
-                value={`₹${(stats?.revenue_today ?? 0).toLocaleString('en-IN')}`}
-                label="Today's revenue"
-              />
-              <StatCard
+              <StatPill
                 id="stat-unpaid"
                 tone="danger"
                 value={stats?.unpaid_invoices ?? 0}
-                label="Unpaid invoices"
+                label="unpaid invoices"
               />
             </>
           )}
         </div>
 
-        {/* ── Primary actions ─────────────────────────────────── */}
-        <div className="flex gap-3 flex-wrap">
+        {/* ── Primary actions ─────────────────────────────────────────── */}
+        <div className="flex gap-2.5 flex-wrap">
           <Button
             id="dashboard-add-vehicle"
             fullWidth={false}
@@ -162,62 +174,55 @@ export default function DashboardPage(): React.JSX.Element {
             leftIcon={<Car size={16} />}
             onClick={() => navigate('/vehicles')}
           >
-            View all vehicles
+            All vehicles
           </Button>
         </div>
 
-        {/* ── Recent vehicles ─────────────────────────────────── */}
+        {/* ── Recent vehicles ─────────────────────────────────────────── */}
         <section>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em]">
-              Recent vehicles
-            </span>
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-row-title font-bold text-text">Recent vehicles</h2>
             <button
               type="button"
               onClick={() => navigate('/vehicles')}
-              className="text-row-sub text-primary font-medium hover:text-primary-hover"
+              className="inline-flex items-center gap-0.5 text-row-sub text-primary font-semibold hover:text-primary-hover"
             >
               See all
+              <ChevronRight size={14} />
             </button>
           </div>
-          <div className="border-t-2 border-divider" />
 
           {vehiclesLoading ? (
-            <>
+            <div className="flex flex-col gap-2">
               <ListItemSkeleton />
               <ListItemSkeleton />
               <ListItemSkeleton />
-            </>
+            </div>
           ) : recentVehicles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-              <Car size={24} className="text-text-muted" />
-              <p className="text-row-sub text-text-muted">No vehicles yet — add your first one above</p>
+            <div className="rounded-card border border-divider bg-card shadow-[var(--shadow-card)]">
+              <EmptyState
+                icon={<Car size={24} />}
+                title="No vehicles yet"
+                description="Add your first vehicle to start tracking repairs"
+                action={
+                  <Button
+                    size="sm"
+                    fullWidth={false}
+                    leftIcon={<Plus size={16} />}
+                    onClick={() => navigate('/vehicles/add')}
+                  >
+                    Add vehicle
+                  </Button>
+                }
+              />
             </div>
           ) : (
-            recentVehicles.map((v) => {
-              const badge = STATUS_BADGE[v.status]
-              return (
-                <button
-                  key={v.id}
-                  id={`recent-vehicle-${v.id}`}
-                  type="button"
-                  onClick={() => navigate(`/vehicles/${v.id}`)}
-                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
-                >
-                  <div className="w-14 h-14 flex-shrink-0 border-2 border-divider flex items-center justify-center text-text/30">
-                    <Car size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-row-title font-semibold text-text truncate">{v.registration_number}</p>
-                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
-                      {v.customer_name}{v.name ? ` · ${v.name}` : ''}
-                    </p>
-                  </div>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
-                </button>
-              )
-            })
+            <div className="md:rounded-card md:border md:border-divider md:bg-card md:shadow-[var(--shadow-card)] md:overflow-hidden">
+              <VehicleListView
+                vehicles={recentVehicles}
+                onSelect={(id) => navigate(`/vehicles/${id}`)}
+              />
+            </div>
           )}
         </section>
       </div>

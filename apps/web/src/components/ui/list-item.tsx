@@ -1,9 +1,9 @@
-// ListItem — flat divided row: square thumbnail slot + title + subtitle +
-// right content. Matches planning/design_handoff_autro_ui's repeated row
-// pattern (dashboard "Recent vehicles", vehicles list, attendance rows): a
-// 56px bordered square, `row-title` (14px/600) + `row-sub` (12px/55%
-// opacity), 1px bottom divider — not a per-row Card. Restyled 2026-08-19;
-// was a padded, individually-bordered card row.
+// ListItem — rounded row card: tinted thumbnail tile + title + subtitle +
+// right content.
+//
+// Rounded system (2026-08-20): each row is its own 14px-radius surface in a
+// gapped stack, replacing the divider-separated flat rows. Rows read as
+// tappable objects on a phone, which is where this component is used.
 import type React from 'react'
 import { ChevronRight } from '@/components/ui/icons'
 
@@ -32,31 +32,33 @@ export function ListItem({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
-      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick() } : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') onClick()
+            }
+          : undefined
+      }
       className={[
-        'flex items-center gap-3 bg-card px-3 py-3',
-        'border-b border-divider last:border-b-0',
-        onClick ? 'cursor-pointer active:bg-bg transition-colors' : '',
+        'flex items-center gap-3 bg-card p-2.5 rounded-[14px] border border-divider',
+        'shadow-[var(--shadow-card)]',
+        onClick ? 'cursor-pointer hover:border-border active:scale-[0.99] transition-all' : '',
       ].join(' ')}
     >
       {leftSlot && (
-        <div className="w-14 h-14 flex-shrink-0 border-2 border-divider flex items-center justify-center text-text/30">
+        <div className="w-12 h-12 flex-shrink-0 rounded-tile bg-subtle flex items-center justify-center text-text-muted">
           {leftSlot}
         </div>
       )}
 
       <div className="flex-1 min-w-0">
         <p className="text-row-title font-semibold text-text truncate">{title}</p>
-        {subtitle && (
-          <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
-            {subtitle}
-          </p>
-        )}
+        {subtitle && <p className="text-row-sub text-text-secondary truncate mt-0.5">{subtitle}</p>}
       </div>
 
       {rightSlot && <div className="flex-shrink-0">{rightSlot}</div>}
       {showChevron && !rightSlot && onClick && (
-        <ChevronRight size={16} className="text-text-muted flex-shrink-0" />
+        <ChevronRight size={16} className="text-text-faint flex-shrink-0" />
       )}
     </div>
   )

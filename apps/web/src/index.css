@@ -1,17 +1,17 @@
-/* Archivo font from Google Fonts — must be first @import.
-   Design system rebuilt 2026-08-19 against planning/design_handoff_autro_ui
-   (Blue variant) — see DESIGN.md. Was Inter; the handoff specifies Archivo
-   throughout, and it's now the app's only font. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap');
+/* Archivo font from Google Fonts — must be first @import. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Autro Design System — Tailwind v4 CSS Theme
-   Tokens from planning/design_handoff_autro_ui/README.md, reconciled with the
-   app's existing accent/status colors (already blue + green/amber/red — see
-   DESIGN.md "Color"). Flat "Modernist" surface system: zero radius, hairline
-   shadows, 2px section dividers, 1px row dividers.
+
+   Rebuilt 2026-08-20: rounded surfaces, pill controls, tinted status chips.
+   Replaces the previous flat/zero-radius "Modernist" system. See DESIGN.md.
+
+   The accent stays Autro's blue (#2563eb) — swapping palette is a change to
+   the three `--color-primary*` values plus the neutrals below, nothing else,
+   because no component hard-codes a hex.
 ───────────────────────────────────────────────────────────────────────────── */
 
 @theme {
@@ -20,77 +20,82 @@
   --color-primary-hover:    #1d4ed8;
   --color-primary-light:    #dbeafe;
 
-  --color-bg:               #f1f5f9;
+  /* Ground + surfaces. `bg` is a touch cooler/lighter than the old #f1f5f9 so
+     white cards separate from it without needing a heavy border. */
+  --color-bg:               #f8f9fb;
   --color-card:             #ffffff;
-  --color-border:           #cbd5e1;
-  --color-divider:          #e2e8f0;
+  /* `divider` is the hairline on every surface; `border` is the stronger
+     stroke used by inputs and focus-adjacent affordances. */
+  --color-border:           #dfe3e9;
+  --color-divider:          #edf0f3;
+  /* Filled neutral — search fields, thumbnail slots, table header row. */
+  --color-subtle:           #f5f6f8;
 
   --color-text:             #0f172a;
   --color-text-secondary:   #64748b;
   --color-text-muted:       #94a3b8;
+  /* Faintest ink — chevrons, empty cells, disabled glyphs. */
+  --color-text-faint:       #cbd5e1;
 
+  /* Status: `-light` is the chip fill, the base is the dot/graphic, and
+     `-deep` is chip *text* — the base hues fail contrast on their own tint. */
   --color-success:          #10b981;
   --color-success-light:    #d1fae5;
+  --color-success-deep:     #047857;
   --color-warning:          #f59e0b;
   --color-warning-light:    #fef3c7;
+  --color-warning-deep:     #b45309;
   --color-danger:           #ef4444;
   --color-danger-light:     #fee2e2;
+  --color-danger-deep:      #b91c1c;
 
   /* ── Typography ────────────────────────────────────────────────────────── */
   --font-sans: 'Archivo', system-ui, sans-serif;
 
-  /* Type scale matches the handoff's actual rendered sizes (README + markup):
-     row-title 14px/600, row-sub 12px @ 55% opacity, kicker 11px uppercase
-     0.08em, stat/total numbers 28px/700. Named tokens so call sites read as
-     intent. */
-  --text-value-xl:   1.75rem;   /* 28px — stat tiles, invoice/estimate grand total */
-  --text-value:      1.375rem;  /* 22px — secondary stat number, page greeting */
-  --text-row-title:  0.875rem;  /* 14px — list row titles (pair with font-semibold) */
-  --text-detail:     0.875rem;  /* 14px — line-item rows (estimate/invoice) */
+  --text-value-xl:   1.75rem;   /* 28px — hero numbers */
+  --text-value:      1.375rem;  /* 22px — secondary numbers */
+  --text-row-title:  0.875rem;  /* 14px — list/table row titles */
+  --text-detail:     0.875rem;  /* 14px — line-item rows */
   --text-label:      0.8125rem; /* 13px — form field labels */
-  --text-row-sub:    0.75rem;   /* 12px — row subtitles, stat tile labels */
-  --text-kicker:     0.6875rem; /* 11px — uppercase card kickers / section headers */
+  --text-row-sub:    0.75rem;   /* 12px — row subtitles, captions */
+  --text-kicker:     0.6875rem; /* 11px — uppercase kickers */
 
   /* ── Border radius ─────────────────────────────────────────────────────── */
-  /* Zero everywhere — the handoff's flat "Modernist" system, not this app's
-     previous rounded-2xl/rounded-xl surfaces. */
-  --radius-card:   0px;
-  --radius-button: 0px;
-  --radius-input:  0px;
+  /* Buttons and chips are pills; surfaces are 16px; inputs 10px. */
+  --radius-card:   16px;
+  --radius-button: 9999px;
+  --radius-input:  10px;
+  --radius-tile:   12px;   /* thumbnails, icon squares, nav items */
 
   /* ── Box shadows ────────────────────────────────────────────────────────── */
-  /* "Elevation: subtle card shadows only; nothing floats" — no button glow. */
-  --shadow-card:    0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-elev-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  /* One formula per level — never an ad-hoc shadow at a call site. */
+  --shadow-card:    0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-elev-md: 0 12px 28px rgba(15, 23, 42, 0.10);
+  /* Primary-tinted lift, for filled primary controls only. */
+  --shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.25);
 
   /* ── Animations ──────────────────────────────────────────────────────────── */
   --animate-spin: spin 0.8s linear infinite;
   --animate-page-enter: page-enter 0.2s ease-out;
   --animate-slide-in-top: slide-in-top 0.25s ease-out;
+  --animate-slide-up: slide-up 0.24s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-fade-in: fade-in 0.15s ease-out;
 }
 
 /* ── Keyframes ──────────────────────────────────────────────────────────────── */
 @keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-in-top {
-  from {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
 @keyframes fade-in {
@@ -110,10 +115,6 @@
 
   html {
     font-family: var(--font-sans);
-    /* No -webkit-font-smoothing: antialiased here on purpose. The first build set
-       it, which thins every glyph and was part of why production read as weaker
-       than planning/demo-ui — the demo never set it, so it renders with the
-       browser's default (subpixel) smoothing and looks appreciably sturdier. */
   }
 
   body {
@@ -127,33 +128,29 @@
   #root {
     min-height: 100dvh;
   }
+
+  /* Money and counts align in columns without per-call-site utilities. */
+  table, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* ── Utility classes ─────────────────────────────────────────────────────────── */
 @layer utilities {
-  /* Page enter animation — apply to page root divs */
-  .animate-page-enter {
-    animation: var(--animate-page-enter);
-  }
+  .animate-page-enter { animation: var(--animate-page-enter); }
+  .animate-slide-in-top { animation: var(--animate-slide-in-top); }
+  .animate-slide-up { animation: var(--animate-slide-up); }
 
-  /* Toast slide-in from top */
-  .animate-slide-in-top {
-    animation: var(--animate-slide-in-top);
-  }
+  .active\:scale-press:active { transform: scale(0.98); }
 
-  /* Button press micro-animation */
-  .active\:scale-press:active {
-    transform: scale(0.98);
-  }
-
-  /* Card hover lift (desktop) */
   .hover\:lift:hover {
     transform: translateY(-2px);
     transition: transform 0.15s ease;
   }
 
-  /* Spinner */
-  .animate-spin-fast {
-    animation: var(--animate-spin);
-  }
+  .animate-spin-fast { animation: var(--animate-spin); }
+
+  /* Horizontal scrollers (mobile filter rows) without a visible scrollbar. */
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }

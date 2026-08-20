@@ -9,7 +9,12 @@ interface SearchBarProps {
   id?: string
 }
 
-export function SearchBar({ value, onChange, placeholder = 'Search…', id }: SearchBarProps): React.JSX.Element {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = 'Search…',
+  id,
+}: SearchBarProps): React.JSX.Element {
   return (
     <div className="relative">
       <Search
@@ -22,7 +27,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search…', id }: Se
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-11 pl-10 pr-4 rounded-input border-[1.5px] border-border bg-card text-text text-row-title placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+        className="w-full h-11 pl-10 pr-4 rounded-button border border-transparent bg-subtle text-text text-row-title placeholder:text-text-muted focus:outline-none focus:bg-card focus:border-primary focus:ring-2 focus:ring-primary/30 transition-colors"
       />
     </div>
   )

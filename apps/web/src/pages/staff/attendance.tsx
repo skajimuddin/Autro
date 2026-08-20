@@ -1,13 +1,6 @@
 // Staff Attendance — QR display for owners
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  QrCode,
-  RefreshCw,
-  Users,
-  CheckCircle2,
-  XCircle,
-  Clock,
-} from '@/components/ui/icons'
+import { QrCode, RefreshCw, Users, CheckCircle2, XCircle, Clock } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -59,8 +52,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
   const { data: qr, isLoading: qrLoading } = useQuery<QRData>({
     queryKey: ['attendance', 'qr', tenant?.id],
-    queryFn: () =>
-      apiFetch<QRData>('/attendance/qr', { tenantId: tenant?.id }),
+    queryFn: () => apiFetch<QRData>('/attendance/qr', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
   })
 
@@ -96,107 +88,107 @@ export default function StaffAttendancePage(): React.JSX.Element {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <div className="p-4 md:p-6 md:grid md:grid-cols-[260px_1fr] md:gap-6 md:items-start">
-      <div className="flex flex-col gap-3">
-        {/* ── QR Code Card ─────────────────────────────────────── */}
-        <Card id="attendance-qr-card" elevated className="!p-6">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
-              Static QR — display at entrance
-            </p>
-            {qrLoading ? (
-              <div className="w-48 h-48 bg-divider animate-pulse" />
-            ) : qr?.qr_token ? (
-              <QRDisplay id="attendance-qr" token={qr.qr_token} />
-            ) : (
-              <div className="w-48 h-48 bg-bg flex items-center justify-center">
-                <QrCode size={48} className="text-text-muted" />
-              </div>
-            )}
+        <div className="flex flex-col gap-3">
+          {/* ── QR Code Card ─────────────────────────────────────── */}
+          <Card id="attendance-qr-card" elevated className="!p-6">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
+                Static QR — display at entrance
+              </p>
+              {qrLoading ? (
+                <div className="w-48 h-48 rounded-card bg-divider animate-pulse" />
+              ) : qr?.qr_token ? (
+                <QRDisplay id="attendance-qr" token={qr.qr_token} />
+              ) : (
+                <div className="w-48 h-48 bg-bg flex items-center justify-center">
+                  <QrCode size={48} className="text-text-muted" />
+                </div>
+              )}
 
-            <p className="text-row-sub text-text-muted">
-              Staff can scan this to check in — works only at the autro location
-            </p>
-          </div>
-        </Card>
+              <p className="text-row-sub text-text-muted">
+                Staff can scan this to check in — works only at the autro location
+              </p>
+            </div>
+          </Card>
 
-        <Button
-          id="attendance-regenerate-qr"
-          variant="outline"
-          leftIcon={<RefreshCw size={16} />}
-          isLoading={regenerateMutation.isPending}
-          onClick={() => regenerateMutation.mutate()}
-        >
-          Regenerate QR
-        </Button>
-      </div>
-
-      <div className="flex flex-col gap-5 mt-5 md:mt-0">
-        {/* ── Today's Stats ────────────────────────────────────── */}
-        <div>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            Today
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {todayLoading ? (
-              <>
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-              </>
-            ) : (
-              <>
-                <StatCard
-                  id="attendance-present"
-                  icon={<CheckCircle2 size={18} className="text-success" />}
-                  tone="success"
-                  value={today?.present ?? 0}
-                  label="Present"
-                />
-                <StatCard
-                  id="attendance-absent"
-                  icon={<XCircle size={18} className="text-danger" />}
-                  tone="danger"
-                  value={today?.absent ?? 0}
-                  label="Absent"
-                />
-              </>
-            )}
-          </div>
+          <Button
+            id="attendance-regenerate-qr"
+            variant="outline"
+            leftIcon={<RefreshCw size={16} />}
+            isLoading={regenerateMutation.isPending}
+            onClick={() => regenerateMutation.mutate()}
+          >
+            Regenerate QR
+          </Button>
         </div>
 
-        {/* ── Today's Attendance List ──────────────────────────── */}
-        <section>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            Attendance Log
-          </h3>
-          {todayLoading ? (
-            <Card className="!p-4">
-              <div className="space-y-3">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-divider animate-pulse" />
-                    <div className="flex-1 space-y-1.5">
-                      <div className="h-3 w-24 rounded bg-divider animate-pulse" />
-                      <div className="h-2.5 w-16 rounded bg-divider animate-pulse" />
+        <div className="flex flex-col gap-5 mt-5 md:mt-0">
+          {/* ── Today's Stats ────────────────────────────────────── */}
+          <div>
+            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
+              Today
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {todayLoading ? (
+                <>
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    id="attendance-present"
+                    icon={<CheckCircle2 size={18} className="text-success" />}
+                    tone="success"
+                    value={today?.present ?? 0}
+                    label="Present"
+                  />
+                  <StatCard
+                    id="attendance-absent"
+                    icon={<XCircle size={18} className="text-danger" />}
+                    tone="danger"
+                    value={today?.absent ?? 0}
+                    label="Absent"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── Today's Attendance List ──────────────────────────── */}
+          <section>
+            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
+              Attendance Log
+            </h3>
+            {todayLoading ? (
+              <Card className="!p-4">
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-divider animate-pulse" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 w-24 rounded bg-divider animate-pulse" />
+                        <div className="h-2.5 w-16 rounded bg-divider animate-pulse" />
+                      </div>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </Card>
+            ) : !today?.entries.length ? (
+              <EmptyState
+                icon={<Users size={24} />}
+                title="No attendance yet"
+                description="Staff attendance will appear here"
+              />
+            ) : (
+              <Card className="!p-0 overflow-hidden">
+                {today.entries.map((entry) => (
+                  <AttendanceRow key={entry.member_id} entry={entry} />
                 ))}
-              </div>
-            </Card>
-          ) : !today?.entries.length ? (
-            <EmptyState
-              icon={<Users size={24} />}
-              title="No attendance yet"
-              description="Staff attendance will appear here"
-            />
-          ) : (
-            <Card className="!p-0 overflow-hidden">
-              {today.entries.map((entry) => (
-                <AttendanceRow key={entry.member_id} entry={entry} />
-              ))}
-            </Card>
-          )}
-        </section>
-      </div>
+              </Card>
+            )}
+          </section>
+        </div>
       </div>
     </PageShell>
   )
@@ -204,11 +196,7 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
 // ── Attendance Row ────────────────────────────────────────────────────────────
 
-function AttendanceRow({
-  entry,
-}: {
-  entry: AttendanceEntry
-}): React.JSX.Element {
+function AttendanceRow({ entry }: { entry: AttendanceEntry }): React.JSX.Element {
   const isPresent = entry.status === 'PRESENT'
 
   return (
@@ -233,9 +221,7 @@ function AttendanceRow({
           )}
         </div>
       </div>
-      <Badge variant={isPresent ? 'success' : 'danger'}>
-        {isPresent ? 'Present' : 'Absent'}
-      </Badge>
+      <Badge variant={isPresent ? 'success' : 'danger'}>{isPresent ? 'Present' : 'Absent'}</Badge>
     </div>
   )
 }

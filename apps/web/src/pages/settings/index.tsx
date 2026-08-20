@@ -19,14 +19,7 @@ import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Button,
-  Input,
-  Textarea,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { Card, Button, Input, Textarea, useToast, ToastContainer } from '@/components/ui'
 
 // ── Form Schema ───────────────────────────────────────────────────────────────
 
@@ -130,24 +123,20 @@ export default function SettingsPage(): React.JSX.Element {
                 <img
                   src={user.avatar_url}
                   alt={user.name}
-                  className="w-14 h-14 object-cover flex-shrink-0"
+                  className="w-14 h-14 rounded-tile object-cover flex-shrink-0"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 bg-primary-light flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 rounded-tile bg-primary-light flex items-center justify-center flex-shrink-0">
                   <User size={24} className="text-primary" />
                 </div>
               )}
 
               <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-text truncate">
-                  {user?.name ?? 'User'}
-                </p>
+                <p className="text-base font-bold text-text truncate">{user?.name ?? 'User'}</p>
                 <div className="flex items-center gap-1.5 mt-1">
                   <Mail size={12} className="text-text-muted flex-shrink-0" />
-                  <p className="text-xs text-text-muted truncate">
-                    {user?.email ?? ''}
-                  </p>
+                  <p className="text-xs text-text-muted truncate">{user?.email ?? ''}</p>
                 </div>
               </div>
             </div>
@@ -190,9 +179,7 @@ export default function SettingsPage(): React.JSX.Element {
 
               {/* Location */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-semibold text-text">
-                  Autro Location
-                </span>
+                <span className="text-sm font-semibold text-text">Autro Location</span>
                 <div className="flex items-center gap-2">
                   {tenant?.latitude && tenant?.longitude ? (
                     <div className="flex items-center gap-1.5 text-xs text-success bg-success-light px-3 py-1.5 border border-success/30 flex-1 min-w-0">
@@ -202,9 +189,7 @@ export default function SettingsPage(): React.JSX.Element {
                       </span>
                     </div>
                   ) : (
-                    <span className="text-xs text-text-muted flex-1">
-                      Not set
-                    </span>
+                    <span className="text-xs text-text-muted flex-1">Not set</span>
                   )}
                   <Button
                     id="settings-update-location"
@@ -222,8 +207,12 @@ export default function SettingsPage(): React.JSX.Element {
                 <div className="text-[0.65rem] text-text-muted mt-1 leading-snug">
                   <p className="font-semibold text-text">Important rules for accuracy:</p>
                   <ul className="list-disc pl-4 mt-1 space-y-0.5">
-                    <li>Use a <strong>mobile phone</strong> (PCs give wrong locations).</li>
-                    <li>Stand <strong>inside the autro</strong> when updating.</li>
+                    <li>
+                      Use a <strong>mobile phone</strong> (PCs give wrong locations).
+                    </li>
+                    <li>
+                      Stand <strong>inside the autro</strong> when updating.
+                    </li>
                   </ul>
                 </div>
               </div>

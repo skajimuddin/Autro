@@ -1,13 +1,14 @@
-// Vehicle Details — single vehicle view with status management
+// Vehicle Details — one vehicle, its current visit, and the actions on it.
 //
-// Rebuilt 2026-08-19 to match planning/design_handoff_autro_ui: a free-choice
-// Repairing/Ready/Delivered segmented control (the visits API accepts any
-// status directly — verified in apps/api/src/routes/visits.ts — so this is
-// safe, not just a visual change), a 3-up photo grid, and a flat
-// kicker/card-title/card-body customer card. Complaint and financial-summary
-// cards are real app data the handoff never modeled (it has no complaint
-// field or estimate/invoice totals) — kept, restyled flat, not dropped. See
-// DESIGN.md.
+// Rebuilt 2026-08-20 for the rounded design system (see DESIGN.md). The status
+// control is a job-progress stepper (New → Repairing → Ready → Delivered)
+// rather than a segmented control: a repair moves through stages, and the
+// stepper shows where this job *is* as well as letting the owner move it.
+//
+// All four stages are clickable in any direction — verified against
+// UpdateVisitStatusSchema (packages/shared/src/schemas/vehicle.ts), which
+// accepts any of the four with no forward-only restriction. The stepper is a
+// presentation of that, not a workflow constraint the API doesn't have.
 import { useParams, useNavigate } from 'react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -18,19 +19,13 @@ import {
   Receipt,
   ChevronRight,
   ImagePlus,
+  Check,
 } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Button,
-  SegmentedControl,
-  EmptyState,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { Card, Button, EmptyState, useToast, ToastContainer } from '@/components/ui'
 import { FullPageSpinner } from '@/components/ui/loading'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -59,7 +54,9 @@ interface VehicleDetail {
   created_at: string
 }
 
-const STATUS_OPTIONS: { value: VehicleStatus; label: string }[] = [
+/** Display order == the real repair progression in shared/constants/status.ts */
+const STAGES: { value: VehicleStatus; label: string }[] = [
+  { value: 'NEW', label: 'New' },
   { value: 'REPAIRING', label: 'Repairing' },
   { value: 'READY', label: 'Ready' },
   { value: 'DELIVERED', label: 'Delivered' },
@@ -74,12 +71,13 @@ export default function VehicleDetailsPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { toasts, showToast, dismissToast } = useToast()
 
-  const { data: vehicle, isLoading, isError } = useQuery<VehicleDetail>({
+  const {
+    data: vehicle,
+    isLoading,
+    isError,
+  } = useQuery<VehicleDetail>({
     queryKey: ['vehicle', id],
-    queryFn: () =>
-      apiFetch<VehicleDetail>(`/vehicles/${id}`, {
-        tenantId: tenant?.id,
-      }),
+    queryFn: () => apiFetch<VehicleDetail>(`/vehicles/${id}`, { tenantId: tenant?.id }),
     enabled: Boolean(id && tenant?.id),
   })
 
@@ -93,6 +91,10 @@ export default function VehicleDetailsPage(): React.JSX.Element {
     onSuccess: () => {
       showToast('success', 'Status updated')
       queryClient.invalidateQueries({ queryKey: ['vehicle', id] })
+      // The list and dashboard both show this vehicle's stage and the stage
+      // counts, so they are stale the moment this succeeds.
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
     onError: (err: Error) => {
       showToast('error', err.message || 'Failed to update status')
@@ -105,16 +107,12 @@ export default function VehicleDetailsPage(): React.JSX.Element {
     return (
       <PageShell title="Vehicle" showBack hideNav>
         <EmptyState
-          icon={<Car size={28} />}
+          icon={<Car size={24} />}
           title="Vehicle not found"
           description="This vehicle may have been removed"
           action={
-            <Button
-              size="sm"
-              fullWidth={false}
-              onClick={() => navigate('/vehicles')}
-            >
-              Back to Vehicles
+            <Button size="sm" fullWidth={false} onClick={() => navigate('/vehicles')}>
+              Back to vehicles
             </Button>
           }
         />
@@ -123,29 +121,35 @@ export default function VehicleDetailsPage(): React.JSX.Element {
   }
 
   return (
-    <PageShell title={vehicle.registration_number} showBack hideNav>
+    <PageShell
+      title={vehicle.registration_number}
+      subtitle={vehicle.name ?? undefined}
+      showBack
+      hideNav
+      wide
+    >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 md:grid md:grid-cols-[1.4fr_1fr] md:gap-6 md:items-start">
-        <div className="flex flex-col gap-5">
-          {/* ── Status ─────────────────────────────────────────── */}
-          <SegmentedControl
-            id="vehicle-status"
-            aria-label="Status"
-            fill
-            // A fresh vehicle starts life as NEW (no option below matches, so
-            // nothing lights up) until the owner picks one — the cast is
-            // type-only, the runtime comparison against 'NEW' is still exact.
-            value={vehicle.status as 'REPAIRING' | 'READY' | 'DELIVERED'}
-            onChange={(next) => statusMutation.mutate(next)}
-            options={STATUS_OPTIONS}
-          />
+      <div className="px-4 md:px-7 pb-28 md:pb-8 md:grid md:grid-cols-[1.4fr_1fr] md:gap-6 md:items-start">
+        <div className="flex flex-col gap-4">
+          {/* ── Job status stepper ─────────────────────────────── */}
+          <Card id="vehicle-status" className="!p-4">
+            <p className="text-row-sub font-bold text-text mb-3.5">
+              Job status
+              {!vehicle.visit_id && (
+                <span className="font-normal text-text-muted"> — no open visit</span>
+              )}
+            </p>
+            <StatusStepper
+              current={vehicle.status}
+              disabled={!vehicle.visit_id || statusMutation.isPending}
+              onSelect={(next) => statusMutation.mutate(next)}
+            />
+          </Card>
 
           {/* ── Photos ─────────────────────────────────────────── */}
           <div>
-            <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em] mb-2">
-              Photos
-            </p>
+            <p className="text-row-sub font-bold text-text mb-2">Photos</p>
             <PhotoGrid images={vehicle.images} />
           </div>
 
@@ -153,14 +157,12 @@ export default function VehicleDetailsPage(): React.JSX.Element {
           {vehicle.complaint && (
             <Card id="vehicle-complaint-card">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-warning-light flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <AlertTriangle size={16} className="text-warning" />
+                <div className="w-9 h-9 rounded-full bg-warning-light flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={16} className="text-warning-deep" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em] mb-1">
-                    Complaint
-                  </p>
-                  <p className="text-row-title text-text leading-relaxed">
+                  <p className="text-row-sub font-bold text-text mb-1">Complaint</p>
+                  <p className="text-row-title text-text-secondary leading-relaxed">
                     {vehicle.complaint}
                   </p>
                 </div>
@@ -170,47 +172,24 @@ export default function VehicleDetailsPage(): React.JSX.Element {
 
           {/* ── Financial summary ─────────────────────────────── */}
           <Card id="vehicle-financial-card">
-            <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em] mb-3">
-              Financial Summary
-            </p>
+            <p className="text-row-sub font-bold text-text mb-3">Financial summary</p>
             <div className="grid grid-cols-2 gap-3">
               <FinancialBlock
                 label="Estimate"
                 value={vehicle.estimate_total}
-                icon={<FileText size={16} className="text-warning" />}
+                icon={<FileText size={16} className="text-warning-deep" />}
                 iconBg="bg-warning-light"
               />
               <FinancialBlock
                 label="Invoice"
                 value={vehicle.invoice_total}
-                icon={<Receipt size={16} className="text-success" />}
+                icon={<Receipt size={16} className="text-success-deep" />}
                 iconBg="bg-success-light"
               />
             </div>
           </Card>
 
-          {/* ── Actions ────────────────────────────────────────── */}
-          <div className="flex gap-3 flex-wrap">
-            <Button
-              id="vehicle-call-customer"
-              variant="outline"
-              fullWidth={false}
-              leftIcon={<Phone size={16} />}
-              className="flex-1 min-w-[140px]"
-              onClick={() => { window.location.href = `tel:${vehicle.customer_phone}` }}
-            >
-              Call customer
-            </Button>
-            <Button
-              id="vehicle-create-estimate"
-              fullWidth={false}
-              leftIcon={<FileText size={16} />}
-              className="flex-1 min-w-[140px]"
-              onClick={() => navigate(`/estimates/new?visit=${vehicle.visit_id}`)}
-            >
-              Create estimate
-            </Button>
-          </div>
+          {/* ── Generate invoice ───────────────────────────────── */}
           <Button
             id="vehicle-generate-invoice"
             variant="outline"
@@ -223,17 +202,113 @@ export default function VehicleDetailsPage(): React.JSX.Element {
         </div>
 
         {/* ── Customer card ────────────────────────────────────── */}
-        <Card id="vehicle-customer-card" elevated className="mt-5 md:mt-0 flex flex-col gap-1.5">
-          <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
+        <Card
+          id="vehicle-customer-card"
+          className="mt-4 md:mt-0 !bg-primary !border-primary flex flex-col gap-1.5 !p-5 shadow-[var(--shadow-primary)]"
+        >
+          <p className="text-kicker font-semibold text-white/75 uppercase tracking-[0.08em]">
             Customer
           </p>
-          <p className="text-value font-bold text-text truncate">{vehicle.customer_name}</p>
-          <p className="text-row-title text-text-secondary">
-            {vehicle.customer_phone} · Vehicle in since {formatDate(vehicle.created_at)}
+          <p className="text-value font-extrabold text-white truncate">{vehicle.customer_name}</p>
+          <p className="text-row-title text-white/85">{vehicle.customer_phone}</p>
+          <p className="text-row-sub text-white/65 mt-1.5">
+            In since {formatDate(vehicle.created_at)}
           </p>
         </Card>
       </div>
+
+      {/* ── Primary actions ──────────────────────────────────────
+          Pinned above the fold on mobile — calling the customer and starting
+          an estimate are what this screen exists for, and both sat below a
+          scroll on a phone before. */}
+      <div className="fixed md:static bottom-0 left-0 right-0 z-30 flex gap-2.5 px-4 md:px-7 py-3 md:pt-0 bg-bg/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none border-t md:border-t-0 border-divider pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] md:max-w-[calc(100%-0px)]">
+        <Button
+          id="vehicle-call-customer"
+          variant="outline"
+          fullWidth={false}
+          leftIcon={<Phone size={16} />}
+          className="flex-1 md:flex-none md:min-w-[160px] !bg-card"
+          onClick={() => {
+            window.location.href = `tel:${vehicle.customer_phone}`
+          }}
+        >
+          Call
+        </Button>
+        <Button
+          id="vehicle-create-estimate"
+          fullWidth={false}
+          leftIcon={<FileText size={16} />}
+          className="flex-[2] md:flex-none md:min-w-[200px]"
+          onClick={() => navigate(`/estimates/new?visit=${vehicle.visit_id}`)}
+        >
+          Create estimate
+        </Button>
+      </div>
     </PageShell>
+  )
+}
+
+// ── Status Stepper ────────────────────────────────────────────────────────────
+
+interface StatusStepperProps {
+  current: VehicleStatus
+  disabled: boolean
+  onSelect: (status: VehicleStatus) => void
+}
+
+function StatusStepper({ current, disabled, onSelect }: StatusStepperProps): React.JSX.Element {
+  const currentIndex = STAGES.findIndex((s) => s.value === current)
+
+  return (
+    <div role="radiogroup" aria-label="Job status" className="flex items-start">
+      {STAGES.map((stage, index) => {
+        const isDone = index < currentIndex
+        const isCurrent = index === currentIndex
+        const isLast = index === STAGES.length - 1
+
+        return (
+          <div key={stage.value} className={['flex items-start', isLast ? '' : 'flex-1'].join(' ')}>
+            <div className="flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={isCurrent}
+                aria-label={stage.label}
+                disabled={disabled}
+                onClick={() => onSelect(stage.value)}
+                className={[
+                  'w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                  disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                  isDone || isCurrent ? 'bg-primary' : 'bg-card border-2 border-divider',
+                  isCurrent ? 'ring-4 ring-primary/15' : '',
+                  !disabled && !isDone && !isCurrent ? 'hover:border-primary' : '',
+                ].join(' ')}
+              >
+                {isDone && <Check size={12} className="text-white" strokeWidth={3} />}
+              </button>
+              <span
+                className={[
+                  'text-[0.6875rem] text-center whitespace-nowrap',
+                  isCurrent ? 'font-bold text-primary' : 'font-semibold text-text-muted',
+                ].join(' ')}
+              >
+                {stage.label}
+              </span>
+            </div>
+
+            {!isLast && (
+              <div
+                className={[
+                  'h-0.5 flex-1 mt-[11px] mx-1',
+                  index < currentIndex ? 'bg-primary' : 'bg-divider',
+                ].join(' ')}
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -243,7 +318,7 @@ function PhotoGrid({ images }: { images: VehicleImage[] }): React.JSX.Element {
   return (
     <div className="grid grid-cols-3 gap-2">
       {images.map((img) => (
-        <div key={img.id} className="aspect-square overflow-hidden bg-bg border-2 border-divider">
+        <div key={img.id} className="aspect-square overflow-hidden rounded-card bg-subtle">
           <img
             src={img.image_url}
             alt="Vehicle"
@@ -255,7 +330,7 @@ function PhotoGrid({ images }: { images: VehicleImage[] }): React.JSX.Element {
       <button
         id="vehicle-add-photo"
         type="button"
-        className="aspect-square border-2 border-dashed border-divider flex flex-col items-center justify-center gap-1.5 text-text-muted hover:border-primary hover:text-primary transition-colors"
+        className="aspect-square rounded-card border-2 border-dashed border-divider flex flex-col items-center justify-center gap-1.5 text-text-muted hover:border-primary hover:text-primary transition-colors"
       >
         <ImagePlus size={20} />
         <span className="text-row-sub font-medium">Add photo</span>
@@ -276,12 +351,14 @@ interface FinancialBlockProps {
 function FinancialBlock({ label, value, icon, iconBg }: FinancialBlockProps): React.JSX.Element {
   return (
     <div className="flex items-center gap-2.5">
-      <div className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+      <div
+        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${iconBg}`}
+      >
         {icon}
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-row-sub text-text-muted">{label}</p>
-        <p className="text-row-title font-bold text-text">
+        <p className="text-row-title font-bold text-text tabular">
           {value != null ? `₹${value.toLocaleString('en-IN')}` : '—'}
         </p>
       </div>

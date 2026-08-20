@@ -15,13 +15,7 @@ import { useAuth } from '@/providers/auth-provider'
 import { MobileContainer } from '@/components/layout/mobile-container'
 import { Topbar } from '@/components/layout/topbar'
 import { QRScanner } from '@/components/domain/qr-scanner'
-import {
-  Card,
-  Button,
-  StatCard,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { Card, Button, StatCard, useToast, ToastContainer } from '@/components/ui'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -173,7 +167,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
             id="checkin-logout"
             type="button"
             onClick={logout}
-            className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors"
+            className="w-9 h-9 rounded-tile bg-card border border-divider flex items-center justify-center hover:border-border transition-colors"
             aria-label="Sign out"
           >
             <LogOut size={18} className="text-text-muted" />
@@ -194,12 +188,8 @@ export default function StaffCheckinPage(): React.JSX.Element {
       <main className="animate-page-enter p-4 md:p-6 flex flex-col gap-5 min-h-[calc(100dvh-3.5rem)]">
         {/* ── Greeting ──────────────────────────────────────────── */}
         <div id="checkin-greeting">
-          <h2 className="text-xl font-bold text-text">
-            Hi, {firstName}
-          </h2>
-          <p className="text-sm text-text-muted mt-0.5">
-            Welcome to your autro
-          </p>
+          <h2 className="text-xl font-bold text-text">Hi, {firstName}</h2>
+          <p className="text-sm text-text-muted mt-0.5">Welcome to your autro</p>
         </div>
 
         {/* ── Check-in/out Action ──────────────────────────────── */}
@@ -211,9 +201,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
               </div>
               <div>
                 <p className="text-base font-bold text-text">Ready to check in?</p>
-                <p className="text-xs text-text-muted mt-1">
-                  Scan the QR code at your autro
-                </p>
+                <p className="text-xs text-text-muted mt-1">Scan the QR code at your autro</p>
               </div>
               <Button
                 id="checkin-scan-btn"
@@ -234,9 +222,7 @@ export default function StaffCheckinPage(): React.JSX.Element {
               <div>
                 <p className="text-base font-bold text-text">Checked in</p>
                 <p className="text-sm text-success font-semibold mt-1">
-                  {myToday?.check_in_at
-                    ? formatTime(myToday.check_in_at)
-                    : '--:--'}
+                  {myToday?.check_in_at ? formatTime(myToday.check_in_at) : '--:--'}
                 </p>
               </div>
               <Button
@@ -260,24 +246,16 @@ export default function StaffCheckinPage(): React.JSX.Element {
                 <p className="text-base font-bold text-text">Done for today</p>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="text-center">
-                    <p className="text-[0.65rem] text-text-muted uppercase font-bold">
-                      IN
-                    </p>
+                    <p className="text-[0.65rem] text-text-muted uppercase font-bold">IN</p>
                     <p className="text-sm font-bold text-success">
-                      {myToday?.check_in_at
-                        ? formatTime(myToday.check_in_at)
-                        : '--:--'}
+                      {myToday?.check_in_at ? formatTime(myToday.check_in_at) : '--:--'}
                     </p>
                   </div>
                   <div className="w-px h-6 bg-divider" />
                   <div className="text-center">
-                    <p className="text-[0.65rem] text-text-muted uppercase font-bold">
-                      OUT
-                    </p>
+                    <p className="text-[0.65rem] text-text-muted uppercase font-bold">OUT</p>
                     <p className="text-sm font-bold text-text">
-                      {myToday?.check_out_at
-                        ? formatTime(myToday.check_out_at)
-                        : '--:--'}
+                      {myToday?.check_out_at ? formatTime(myToday.check_out_at) : '--:--'}
                     </p>
                   </div>
                 </div>

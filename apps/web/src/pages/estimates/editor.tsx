@@ -221,7 +221,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
                     updateItem(item.tempId, 'description', e.target.value)
                   }
                   placeholder="Item description"
-                  className="flex-1 min-w-0 h-10 border-[1.5px] border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <input
                   type="number"
@@ -231,7 +231,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
                   }
                   placeholder="Qty"
                   aria-label="Quantity"
-                  className="w-12 h-10 border-[1.5px] border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <input
                   type="number"
@@ -241,7 +241,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
                   }
                   placeholder="₹ Amount"
                   aria-label="Amount"
-                  className="w-24 h-10 border-[1.5px] border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <button
                   type="button"

@@ -59,7 +59,11 @@ export default function StaffProfilePage(): React.JSX.Element {
   const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [newSalary, setNewSalary] = useState('')
 
-  const { data: profile, isLoading, isError } = useQuery<StaffProfile>({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useQuery<StaffProfile>({
     queryKey: ['staff', id],
     queryFn: () =>
       apiFetch<StaffProfile>(`/staff/${id}`, {
@@ -109,11 +113,7 @@ export default function StaffProfilePage(): React.JSX.Element {
           icon={<User size={28} />}
           title="Staff member not found"
           action={
-            <Button
-              size="sm"
-              fullWidth={false}
-              onClick={() => navigate('/staff')}
-            >
+            <Button size="sm" fullWidth={false} onClick={() => navigate('/staff')}>
               Back to Staff
             </Button>
           }
@@ -125,10 +125,7 @@ export default function StaffProfilePage(): React.JSX.Element {
   // Calculate estimated salary
   const estimatedSalary =
     profile.monthly_salary && profile.total_working_days > 0
-      ? Math.round(
-          (profile.present_days / profile.total_working_days) *
-            profile.monthly_salary,
-        )
+      ? Math.round((profile.present_days / profile.total_working_days) * profile.monthly_salary)
       : null
 
   return (
@@ -143,18 +140,16 @@ export default function StaffProfilePage(): React.JSX.Element {
               <img
                 src={profile.avatar_url}
                 alt={profile.name}
-                className="w-16 h-16 object-cover flex-shrink-0"
+                className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-16 h-16 bg-primary-light flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
                 <User size={28} className="text-primary" />
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-lg font-bold text-text truncate">
-                {profile.name}
-              </p>
+              <p className="text-lg font-bold text-text truncate">{profile.name}</p>
               <p className="text-xs text-text-muted truncate">{profile.email}</p>
               <p className="text-xs text-text-secondary mt-0.5 capitalize">
                 {profile.role.toLowerCase()}
@@ -169,16 +164,8 @@ export default function StaffProfilePage(): React.JSX.Element {
             Today
           </h3>
           <div className="grid grid-cols-2 gap-3">
-            <TimeBlock
-              label="IN"
-              time={profile.check_in_at}
-              variant="success"
-            />
-            <TimeBlock
-              label="OUT"
-              time={profile.check_out_at}
-              variant="default"
-            />
+            <TimeBlock label="IN" time={profile.check_in_at} variant="success" />
+            <TimeBlock label="OUT" time={profile.check_out_at} variant="default" />
           </div>
         </Card>
 
@@ -220,8 +207,8 @@ export default function StaffProfilePage(): React.JSX.Element {
                   ₹{(estimatedSalary ?? 0).toLocaleString('en-IN')}
                 </p>
                 <p className="text-[0.65rem] text-text-muted mt-1">
-                  ({profile.present_days}/{profile.total_working_days} days) ×
-                  ₹{profile.monthly_salary.toLocaleString('en-IN')}
+                  ({profile.present_days}/{profile.total_working_days} days) × ₹
+                  {profile.monthly_salary.toLocaleString('en-IN')}
                 </p>
               </div>
             </div>
@@ -304,9 +291,8 @@ export default function StaffProfilePage(): React.JSX.Element {
       >
         <div className="flex flex-col gap-4">
           <p className="text-sm text-text-secondary">
-            Are you sure you want to remove{' '}
-            <strong className="text-text">{profile.name}</strong> from your
-            autro? They will no longer be able to check in.
+            Are you sure you want to remove <strong className="text-text">{profile.name}</strong>{' '}
+            from your autro? They will no longer be able to check in.
           </p>
           <div className="flex gap-3">
             <Button
@@ -345,10 +331,7 @@ function TimeBlock({ label, time, variant }: TimeBlockProps): React.JSX.Element 
 
   return (
     <div className="flex items-center gap-2.5 bg-bg px-3 py-2.5">
-      <Clock
-        size={16}
-        className={variant === 'success' ? 'text-success' : 'text-text-muted'}
-      />
+      <Clock size={16} className={variant === 'success' ? 'text-success' : 'text-text-muted'} />
       <div>
         <p className="text-[0.65rem] text-text-muted uppercase font-bold">{label}</p>
         <p

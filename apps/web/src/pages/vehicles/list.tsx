@@ -1,43 +1,28 @@
-// Vehicle List — paginated, filterable vehicle directory
+// Vehicle List — searchable, status-filtered vehicle directory.
 //
-// Rebuilt 2026-08-19 to match planning/design_handoff_autro_ui: search input
-// + a `.seg` status filter (not pill chips), then flat thin-divider rows
-// (56px bordered thumbnail + row-title/row-sub + status tag) — one markup
-// tree at every width, not a separate mobile-card / desktop-table pair. The
-// handoff is explicit about this: "One markup tree, CSS-driven — do not
-// build separate mobile and desktop screens." `Delivered` stays as a 4th
-// filter option (real status the API supports; the handoff's own filter
-// only shows 3 as a demo simplification). See DESIGN.md.
-import { useState, useCallback } from 'react'
+// Rebuilt 2026-08-20 for the rounded design system (see DESIGN.md): a toolbar
+// (status pills + search) above one shared <VehicleListView> — table at md:+,
+// rounded cards on mobile.
+//
+// Two fixes that came with the rebuild:
+//   - "Load more" was a button with no onClick — the `cursor` the API returns
+//     was never used, so the list was capped at the first 20 vehicles. It is
+//     now a real useInfiniteQuery over that cursor.
+//   - Search is debounced; it previously refetched on every keystroke.
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
-import { Plus, Car, ChevronRight } from '@/components/ui/icons'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { Plus, Car } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
+import { useDebounce } from '@/hooks/use-debounce'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Button,
-  Badge,
-  SegmentedControl,
-  SearchBar,
-  EmptyState,
-  Loading,
-} from '@/components/ui'
+import { Button, SearchBar, EmptyState, Loading, TableRowSkeleton } from '@/components/ui'
+import { VehicleListView } from '@/components/domain/vehicle-list-view'
+import type { VehicleListItem } from '@/components/domain/vehicle-list-view'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-type VehicleStatus = 'NEW' | 'REPAIRING' | 'READY' | 'DELIVERED'
-
-interface VehicleListItem {
-  id: string
-  registration_number: string
-  name: string | null
-  customer_name: string
-  customer_phone: string
-  status: VehicleStatus
-  created_at: string
-}
 
 interface VehicleListResponse {
   vehicles: VehicleListItem[]
@@ -48,153 +33,161 @@ interface VehicleListResponse {
 
 const STATUS_FILTERS = [
   { value: 'ALL', label: 'All' },
+  { value: 'NEW', label: 'New' },
   { value: 'REPAIRING', label: 'Repairing' },
   { value: 'READY', label: 'Ready' },
   { value: 'DELIVERED', label: 'Delivered' },
-]
-
-const STATUS_BADGE_MAP: Record<VehicleStatus, { variant: 'warning' | 'success' | 'default' | 'danger'; label: string }> = {
-  NEW: { variant: 'default', label: 'New' },
-  REPAIRING: { variant: 'warning', label: 'Repairing' },
-  READY: { variant: 'success', label: 'Ready' },
-  DELIVERED: { variant: 'default', label: 'Delivered' },
-}
+] as const
 
 // ── Vehicle List Page ─────────────────────────────────────────────────────────
 
 export default function VehicleListPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { tenant } = useTenant()
-  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
 
-  const queryParams = new URLSearchParams()
-  if (statusFilter !== 'ALL') queryParams.set('status', statusFilter)
-  if (search.trim()) queryParams.set('plate', search.trim())
-  const queryString = queryParams.toString()
+  const buildPath = (cursor: string | null): string => {
+    const params = new URLSearchParams()
+    if (statusFilter !== 'ALL') params.set('status', statusFilter)
+    if (debouncedSearch.trim()) params.set('plate', debouncedSearch.trim())
+    if (cursor) params.set('cursor', cursor)
+    const qs = params.toString()
+    return `/vehicles${qs ? `?${qs}` : ''}`
+  }
 
-  const { data, isLoading, isError } = useQuery<VehicleListResponse>({
-    queryKey: ['vehicles', statusFilter, search, tenant?.id],
-    queryFn: () =>
-      apiFetch<VehicleListResponse>(
-        `/vehicles${queryString ? `?${queryString}` : ''}`,
-        { tenantId: tenant?.id },
-      ),
-    enabled: Boolean(tenant?.id),
-  })
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery<VehicleListResponse>({
+      queryKey: ['vehicles', statusFilter, debouncedSearch, tenant?.id],
+      queryFn: ({ pageParam }) =>
+        apiFetch<VehicleListResponse>(buildPath(pageParam as string | null), {
+          tenantId: tenant?.id,
+        }),
+      initialPageParam: null,
+      getNextPageParam: (lastPage) => lastPage.cursor,
+      enabled: Boolean(tenant?.id),
+    })
 
-  const vehicles = data?.vehicles ?? []
-
-  const handleVehicleTap = useCallback(
-    (id: string) => {
-      navigate(`/vehicles/${id}`)
-    },
-    [navigate],
-  )
+  const vehicles = data?.pages.flatMap((page) => page.vehicles) ?? []
 
   return (
     <PageShell
       title="Vehicles"
-      showBack
+      wide
       rightAction={
-        <button
+        <Button
           id="vehicles-add-btn"
-          type="button"
+          size="sm"
+          fullWidth={false}
+          leftIcon={<Plus size={15} />}
           onClick={() => navigate('/vehicles/add')}
-          className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors"
-          aria-label="Add vehicle"
         >
-          <Plus size={18} className="text-primary" />
-        </button>
+          Add vehicle
+        </Button>
       }
     >
-      <div className="p-4 md:p-6 flex flex-col gap-4">
-        <SearchBar
-          id="vehicle-search"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search plate or owner"
-        />
-
-        <div className="max-w-[480px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <SegmentedControl
-            id="vehicle-status-filter"
-            aria-label="Status filter"
-            fill
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={STATUS_FILTERS}
-          />
-        </div>
-
-        {isLoading ? (
-          <Loading rows={5} />
-        ) : isError ? (
-          <ErrorState />
-        ) : vehicles.length === 0 ? (
-          <EmptyState
-            icon={<Car size={28} />}
-            title="No vehicles found"
-            description={
-              search
-                ? 'Try a different search term'
-                : 'Add your first vehicle to start tracking'
-            }
-            action={
-              !search ? (
-                <Button
-                  size="sm"
-                  fullWidth={false}
-                  leftIcon={<Plus size={16} />}
-                  onClick={() => navigate('/vehicles/add')}
-                >
-                  Add Vehicle
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div>
-            {vehicles.map((vehicle) => {
-              const badge = STATUS_BADGE_MAP[vehicle.status]
+      <div className="px-4 md:px-7 pb-4 flex flex-col gap-4">
+        {/* ── Toolbar ─────────────────────────────────────────────────── */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          {/* Status pills — horizontally scrollable on narrow phones */}
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
+            {STATUS_FILTERS.map((filter) => {
+              const isActive = statusFilter === filter.value
               return (
                 <button
-                  key={vehicle.id}
-                  id={`vehicle-${vehicle.id}`}
+                  key={filter.value}
                   type="button"
-                  onClick={() => handleVehicleTap(vehicle.id)}
-                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
+                  onClick={() => setStatusFilter(filter.value)}
+                  aria-pressed={isActive}
+                  className={[
+                    'flex-shrink-0 px-3.5 py-2 rounded-button text-row-sub font-semibold transition-colors',
+                    isActive
+                      ? 'bg-primary text-white shadow-[var(--shadow-primary)]'
+                      : 'bg-card border border-divider text-text-secondary hover:text-text',
+                  ].join(' ')}
                 >
-                  <div className="w-14 h-14 flex-shrink-0 border-2 border-divider flex items-center justify-center text-text/30">
-                    <Car size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-row-title font-semibold text-text truncate">
-                      {vehicle.registration_number}
-                    </p>
-                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5">
-                      {vehicle.customer_name}{vehicle.name ? ` · ${vehicle.name}` : ''}
-                    </p>
-                  </div>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
+                  {filter.label}
                 </button>
               )
             })}
+          </div>
 
-            {data?.cursor && (
-              <div className="flex justify-center pt-4">
+          <div className="md:w-[260px] md:flex-shrink-0">
+            <SearchBar
+              id="vehicle-search"
+              value={search}
+              onChange={setSearch}
+              placeholder="Search plate"
+            />
+          </div>
+        </div>
+
+        {/* ── Results ─────────────────────────────────────────────────── */}
+        {isLoading ? (
+          <>
+            <div className="md:hidden">
+              <Loading rows={5} />
+            </div>
+            <div className="hidden md:block rounded-card border border-divider bg-card overflow-hidden">
+              <TableRowSkeleton />
+              <TableRowSkeleton />
+              <TableRowSkeleton />
+              <TableRowSkeleton />
+              <TableRowSkeleton />
+            </div>
+          </>
+        ) : isError ? (
+          <ErrorState />
+        ) : vehicles.length === 0 ? (
+          <div className="md:rounded-card md:border md:border-divider md:bg-card">
+            <EmptyState
+              icon={<Car size={24} />}
+              title="No vehicles found"
+              description={
+                search
+                  ? 'No plate matches that search'
+                  : statusFilter !== 'ALL'
+                    ? 'No vehicles at this stage right now'
+                    : 'Add your first vehicle to start tracking repairs'
+              }
+              action={
+                !search && statusFilter === 'ALL' ? (
+                  <Button
+                    size="sm"
+                    fullWidth={false}
+                    leftIcon={<Plus size={16} />}
+                    onClick={() => navigate('/vehicles/add')}
+                  >
+                    Add vehicle
+                  </Button>
+                ) : undefined
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <div className="md:rounded-card md:border md:border-divider md:bg-card md:shadow-[var(--shadow-card)] md:overflow-hidden">
+              <VehicleListView vehicles={vehicles} onSelect={(id) => navigate(`/vehicles/${id}`)} />
+            </div>
+
+            {hasNextPage && (
+              <div className="flex justify-center pt-1">
                 <Button
                   id="vehicles-load-more"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   fullWidth={false}
+                  isLoading={isFetchingNextPage}
+                  onClick={() => {
+                    void fetchNextPage()
+                  }}
                 >
-                  Load More
+                  Load more
                 </Button>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </PageShell>
@@ -206,15 +199,11 @@ export default function VehicleListPage(): React.JSX.Element {
 function ErrorState(): React.JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      <div className="w-14 h-14 bg-danger-light flex items-center justify-center mb-3">
-        <Car size={24} className="text-danger" />
+      <div className="w-14 h-14 rounded-full bg-danger-light flex items-center justify-center mb-3">
+        <Car size={24} className="text-danger-deep" />
       </div>
-      <p className="text-row-title font-semibold text-text">
-        Failed to load vehicles
-      </p>
-      <p className="text-row-sub text-text-muted mt-1">
-        Check your connection and try again
-      </p>
+      <p className="text-row-title font-semibold text-text">Failed to load vehicles</p>
+      <p className="text-row-sub text-text-muted mt-1">Check your connection and try again</p>
     </div>
   )
 }

@@ -16,9 +16,15 @@ import { BottomNav } from './bottom-nav'
 
 interface PageShellProps {
   title: string
+  /** Secondary line under the page title. */
+  subtitle?: string
   showBack?: boolean
   rightAction?: React.ReactNode
-  /** Pass true to hide the nav on this page (e.g. modals, detail sheets) */
+  /**
+   * Hide the MOBILE tab bar on this page — for sub-screens that carry their
+   * own bottom action bar. The desktop sidebar always stays (2026-08-20):
+   * detail screens used to drop out of the app shell entirely at md:+.
+   */
   hideNav?: boolean
   /**
    * Opt into a wider content column at lg:+. For list/table pages only.
@@ -31,6 +37,7 @@ interface PageShellProps {
 
 export function PageShell({
   title,
+  subtitle,
   showBack = false,
   rightAction,
   hideNav = false,
@@ -39,11 +46,11 @@ export function PageShell({
 }: PageShellProps): React.JSX.Element {
   return (
     <div className="min-h-dvh bg-bg">
-      {!hideNav && <BottomNav />}
+      <BottomNav hideMobileBar={hideNav} />
 
       {/* Offset for the md:+ sidebar */}
-      <div className={hideNav ? '' : 'md:pl-[220px]'}>
-        <Topbar title={title} showBack={showBack} rightAction={rightAction} />
+      <div className="md:pl-[224px]">
+        <Topbar title={title} subtitle={subtitle} showBack={showBack} rightAction={rightAction} />
 
         {/* pb clears the mobile bottom nav; not needed once nav is a sidebar */}
         <main
@@ -53,10 +60,7 @@ export function PageShell({
           ].join(' ')}
         >
           <div
-            className={[
-              'mx-auto w-full',
-              wide ? 'max-w-3xl lg:max-w-6xl' : 'max-w-3xl',
-            ].join(' ')}
+            className={['mx-auto w-full', wide ? 'max-w-3xl lg:max-w-6xl' : 'max-w-3xl'].join(' ')}
           >
             {children}
           </div>

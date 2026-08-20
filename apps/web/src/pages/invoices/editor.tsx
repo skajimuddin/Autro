@@ -342,7 +342,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
       <div className="flex flex-col gap-4">
         {/* ── Left accent if from estimate ──────────────────────── */}
         {fromEstimate && (
-          <div className="border-l-4 border-primary bg-primary-light/30 px-4 py-2.5">
+          <div className="rounded-tile bg-primary-light/40 px-4 py-2.5">
             <p className="text-row-sub font-semibold text-primary">
               Imported from Estimate
             </p>
@@ -369,7 +369,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
                     updateItem(item.tempId, 'description', e.target.value)
                   }
                   placeholder="Item description"
-                  className="flex-1 min-w-0 h-10 border-[1.5px] border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <input
                   type="number"
@@ -379,7 +379,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
                   }
                   placeholder="Qty"
                   aria-label="Quantity"
-                  className="w-12 h-10 border-[1.5px] border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <input
                   type="number"
@@ -389,7 +389,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
                   }
                   placeholder="₹ Amount"
                   aria-label="Amount"
-                  className="w-24 h-10 border-[1.5px] border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
                 <button
                   type="button"
@@ -546,7 +546,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
         )}
 
         {isPaid && (
-          <div className="flex items-center justify-center gap-2 py-3 bg-success-light border border-success/30">
+          <div className="flex items-center justify-center gap-2 py-3 rounded-tile bg-success-light">
             <CheckCircle2 size={18} className="text-success" />
             <span className="text-row-title font-bold text-success">Paid</span>
           </div>

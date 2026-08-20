@@ -32,7 +32,10 @@ interface StaffListResponse {
   staff: StaffMember[]
 }
 
-const ATTENDANCE_BADGE: Record<AttendanceStatus, { variant: 'success' | 'danger' | 'default'; label: string }> = {
+const ATTENDANCE_BADGE: Record<
+  AttendanceStatus,
+  { variant: 'success' | 'danger' | 'default'; label: string }
+> = {
   PRESENT: { variant: 'success', label: 'Present' },
   ABSENT: { variant: 'danger', label: 'Absent' },
   NOT_YET: { variant: 'default', label: 'Not yet' },
@@ -56,9 +59,7 @@ export default function StaffListPage(): React.JSX.Element {
 
   const allStaff = data?.staff ?? []
   const filtered = search.trim()
-    ? allStaff.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase()),
-      )
+    ? allStaff.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
     : allStaff
 
   return (
@@ -70,7 +71,7 @@ export default function StaffListPage(): React.JSX.Element {
           id="staff-qr-btn"
           type="button"
           onClick={() => navigate('/staff/attendance')}
-          className="w-8 h-8 flex items-center justify-center hover:bg-divider transition-colors"
+          className="w-9 h-9 rounded-tile bg-card border border-divider flex items-center justify-center hover:border-border transition-colors"
           aria-label="QR Attendance"
         >
           <QrCode size={18} className="text-primary" />
@@ -91,14 +92,10 @@ export default function StaffListPage(): React.JSX.Element {
           <EmptyState
             icon={<Users size={28} />}
             title={search ? 'No matching staff' : 'No staff members'}
-            description={
-              search
-                ? 'Try a different name'
-                : 'Invite staff to join your autro'
-            }
+            description={search ? 'Try a different name' : 'Invite staff to join your autro'}
           />
         ) : (
-          <div>
+          <div className="flex flex-col gap-2">
             {filtered.map((member) => {
               const badge = ATTENDANCE_BADGE[member.attendance_status]
               return (
@@ -107,31 +104,32 @@ export default function StaffListPage(): React.JSX.Element {
                   id={`staff-${member.id}`}
                   type="button"
                   onClick={() => navigate(`/staff/${member.id}`)}
-                  className="w-full flex items-center gap-3 py-3 border-b border-divider last:border-b-0 text-left cursor-pointer hover:bg-bg/60 transition-colors"
+                  className="w-full flex items-center gap-3 p-2.5 rounded-[14px] bg-card border border-divider shadow-[var(--shadow-card)] text-left cursor-pointer hover:border-border active:scale-[0.99] transition-all"
                 >
                   {member.avatar_url ? (
                     <img
                       src={member.avatar_url}
                       alt={member.name}
-                      className="w-14 h-14 object-cover flex-shrink-0 border-2 border-divider"
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-14 h-14 bg-primary-light flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
                       <User size={20} className="text-primary" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-row-title font-semibold text-text truncate">
-                      {member.name}
-                    </p>
-                    <p className="text-row-sub text-text-secondary/70 truncate mt-0.5 capitalize">
+                    <p className="text-row-title font-semibold text-text truncate">{member.name}</p>
+                    <p className="text-row-sub text-text-muted truncate mt-0.5 capitalize">
                       {member.role.toLowerCase()}
                       {member.check_in_at ? ` · In ${formatTime(member.check_in_at)}` : ''}
                     </p>
                   </div>
                   <Badge variant={badge.variant}>{badge.label}</Badge>
-                  <ChevronRight size={16} className="text-text-muted flex-shrink-0 hidden md:block" />
+                  <ChevronRight
+                    size={16}
+                    className="text-text-muted flex-shrink-0 hidden md:block"
+                  />
                 </button>
               )
             })}

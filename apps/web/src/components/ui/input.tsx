@@ -26,7 +26,7 @@ export function Input({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-label font-semibold text-text-secondary">
+        <label htmlFor={inputId} className="text-label font-semibold text-text">
           {label}
           {rest.required && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -39,9 +39,9 @@ export function Input({
         <input
           id={inputId}
           className={[
-            'w-full h-11 rounded-input border-[1.5px] bg-card text-text text-row-title font-normal',
+            'w-full h-11 rounded-input border bg-card text-text text-row-title font-normal',
             'placeholder:text-text-muted',
-            'transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+            'transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
             error ? 'border-danger' : 'border-border',
             leftIcon ? 'pl-10' : 'pl-3',
             rightIcon ? 'pr-10' : 'pr-3',

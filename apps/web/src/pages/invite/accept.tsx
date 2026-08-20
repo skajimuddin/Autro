@@ -1,25 +1,13 @@
 // Accept Invitation — staff invite acceptance flow
 import { useParams, useNavigate } from 'react-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import {
-  Building2,
-  Users,
-  User,
-  Shield,
-  LogIn,
-} from '@/components/ui/icons'
+import { Building2, Users, User, Shield, LogIn } from '@/components/ui/icons'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { MobileContainer } from '@/components/layout/mobile-container'
-import {
-  Card,
-  Button,
-  EmptyState,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { Card, Button, EmptyState, useToast, ToastContainer } from '@/components/ui'
 import { FullPageSpinner } from '@/components/ui/loading'
 import { config } from '@/lib/config'
 
@@ -41,7 +29,11 @@ export default function InviteAcceptPage(): React.JSX.Element {
   const { refetch: refetchTenant } = useTenant()
   const { toasts, showToast, dismissToast } = useToast()
 
-  const { data: invite, isLoading, isError } = useQuery<InviteDetails>({
+  const {
+    data: invite,
+    isLoading,
+    isError,
+  } = useQuery<InviteDetails>({
     queryKey: ['invite', token],
     queryFn: () => apiFetch<InviteDetails>(`/staff/invite/${token}`),
     enabled: Boolean(token),
@@ -95,7 +87,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
         <div className="min-h-dvh flex items-center justify-center p-4">
           <Card className="!p-6 text-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 bg-success-light flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
                 <Users size={28} className="text-success" />
               </div>
               <div>
@@ -104,11 +96,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
                   You've already joined {invite.garage_name}
                 </p>
               </div>
-              <Button
-                size="sm"
-                fullWidth={false}
-                onClick={() => navigate('/checkin')}
-              >
+              <Button size="sm" fullWidth={false} onClick={() => navigate('/checkin')}>
                 Go to Check-In
               </Button>
             </div>
@@ -147,9 +135,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
             {/* Invite Info */}
             <div>
               <p className="text-sm text-text-muted">You've been invited to join</p>
-              <h2 className="text-xl font-bold text-text mt-1">
-                {invite.garage_name}
-              </h2>
+              <h2 className="text-xl font-bold text-text mt-1">{invite.garage_name}</h2>
             </div>
 
             {/* Details */}
@@ -157,9 +143,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
               <div className="flex items-center gap-3 bg-bg px-4 py-3">
                 <Shield size={16} className="text-text-secondary" />
                 <div className="text-left">
-                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">
-                    Role
-                  </p>
+                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">Role</p>
                   <p className="text-sm font-semibold text-text capitalize">
                     {invite.role.toLowerCase()}
                   </p>
@@ -168,12 +152,8 @@ export default function InviteAcceptPage(): React.JSX.Element {
               <div className="flex items-center gap-3 bg-bg px-4 py-3">
                 <User size={16} className="text-text-secondary" />
                 <div className="text-left">
-                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">
-                    Invited by
-                  </p>
-                  <p className="text-sm font-semibold text-text">
-                    {invite.invited_by}
-                  </p>
+                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">Invited by</p>
+                  <p className="text-sm font-semibold text-text">{invite.invited_by}</p>
                 </div>
               </div>
             </div>
@@ -195,12 +175,8 @@ export default function InviteAcceptPage(): React.JSX.Element {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text truncate">
-                      {user.name}
-                    </p>
-                    <p className="text-[0.6rem] text-text-muted truncate">
-                      {user.email}
-                    </p>
+                    <p className="text-xs font-semibold text-text truncate">{user.name}</p>
+                    <p className="text-[0.6rem] text-text-muted truncate">{user.email}</p>
                   </div>
                 </div>
 
@@ -213,11 +189,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
                 </Button>
               </div>
             ) : (
-              <Button
-                id="invite-signin-btn"
-                leftIcon={<LogIn size={18} />}
-                onClick={handleSignIn}
-              >
+              <Button id="invite-signin-btn" leftIcon={<LogIn size={18} />} onClick={handleSignIn}>
                 Sign in with Google to Accept
               </Button>
             )}
