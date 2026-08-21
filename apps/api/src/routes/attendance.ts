@@ -317,38 +317,31 @@ attendanceRouter.get('/my-today', async (c) => {
 })
 
 // GET /attendance/monthly
+// Always the caller's own summary — a STAFF member's monthly present/absent
+// counts are theirs to see, not any coworker's. (This used to accept an
+// optional `member_id` for any tenant member; nothing called it that way,
+// and it let any STAFF caller pull anyone else's attendance by id. The
+// owner-only staff detail screen gets its own numbers from GET /staff/:id.)
 attendanceRouter.get('/monthly', async (c) => {
   const tenantId = c.get('tenantId')
-
-  // Hono get query params as object for safeParse
-  const member_id = c.req.query('member_id')
-  const month = c.req.query('month')
-
-  // Note: if member_id is optional for current user, we should handle it
-  // Wait, frontend calls: `/attendance/monthly?month=${month}` without member_id in my-today.
-  // We need to extract member_id from auth if not provided!
   const userId = c.get('userId')
+  const month = c.req.query('month')
   const db = drizzle(c.env.DB)
 
-  let targetMemberId = member_id
-  if (!targetMemberId) {
-    const member = await db
-      .select()
-      .from(tenant_members)
-      .where(
-        and(
-          eq(tenant_members.tenant_id, tenantId),
-          eq(tenant_members.user_id, userId),
-          isNull(tenant_members.removed_at),
-        ),
-      )
-      .get()
-    if (!member) return c.json({ error: { code: 'FORBIDDEN', message: 'Not a member' } }, 403)
-    targetMemberId = member.id
-  }
+  const member = await db
+    .select()
+    .from(tenant_members)
+    .where(
+      and(
+        eq(tenant_members.tenant_id, tenantId),
+        eq(tenant_members.user_id, userId),
+        isNull(tenant_members.removed_at),
+      ),
+    )
+    .get()
+  if (!member) return c.json({ error: { code: 'FORBIDDEN', message: 'Not a member' } }, 403)
 
-  // we can manually validate or just use safeParse on what we have
-  const parsed = MonthlyAttendanceQuerySchema.safeParse({ member_id: targetMemberId, month })
+  const parsed = MonthlyAttendanceQuerySchema.safeParse({ member_id: member.id, month })
 
   if (!parsed.success) {
     return c.json(

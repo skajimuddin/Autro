@@ -231,6 +231,17 @@ invoicesRouter.patch('/:id', async (c) => {
   if (!currentInvoice)
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
 
+  // frozen_total is meant to freeze the moment the invoice is marked paid —
+  // the web editor already hides the Save button once paid, but that's a UI
+  // convenience, not the boundary. Without this check the API would happily
+  // recompute a "frozen" total after money has already changed hands.
+  if (currentInvoice.payment_status === 'PAID') {
+    return c.json(
+      { error: { code: 'BAD_REQUEST', message: 'Cannot edit an invoice that has already been paid' } },
+      400,
+    )
+  }
+
   const dataToUpdate: Partial<typeof invoices.$inferInsert> = { updated_at: now }
   if (parsed.data.discount_type !== undefined)
     dataToUpdate.discount_type = parsed.data.discount_type
