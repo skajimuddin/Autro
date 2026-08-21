@@ -8,26 +8,49 @@ gets recorded.
 
 ## ⚠️ Pending — do this before your next deploy
 
-### Set `R2_PUBLIC_URL` (new, one time)
+### Finish the custom-domain cutover (`autro.zeonweb.com` / `api.autro.zeonweb.com`)
 
-```bash
-cd apps/api
-wrangler secret put R2_PUBLIC_URL
-# paste exactly:
-# https://pub-3f013ceda72a4355bda7a9dde43b4a84.r2.dev
-```
+The API side is done — `api.autro.zeonweb.com` is live (declared in
+`wrangler.toml`, so every future `wrangler deploy`, including CI, keeps it).
+Four steps are left, **in this order** — doing them out of order breaks login
+or the site for however long the gap lasts:
 
-**Why:** that URL used to be hardcoded in `src/routes/upload.ts`. It is now
-configuration, so a bucket host baked into the source cannot outlive the
-bucket. Use the value above and not a different one — your existing vehicle
-photos are already stored against that host, so a different value would split
-old and new photos across two domains.
+1. **You, dashboard** — add the web custom domain:
+   Cloudflare dashboard → Workers & Pages → **autro-web** → **Custom domains**
+   tab → Set up a custom domain → enter `autro.zeonweb.com` → Activate. (Not
+   possible from the CLI — `wrangler pages` has no `domain` subcommand as of
+   4.122.0.) Wait for it to show **Active** (SSL usually issues within a few
+   minutes since the zone is already on this account).
 
-**If you skip it:** `POST /upload/presign` throws, so adding a vehicle photo
-fails. Everything else keeps working — `validateR2Env()` only runs on the
-upload route.
+2. **You, Google Cloud Console** — console.cloud.google.com/apis/credentials
+   → open the OAuth client (`790736114811-…`) → add:
+   - Authorized JavaScript origin: `https://autro.zeonweb.com`
+   - Authorized redirect URI: `https://autro.zeonweb.com/auth/callback`
 
-Your other four R2 secrets are unchanged. Nothing else to re-enter.
+   Leave the old entries in place for now — remove them only after step 4 is
+   confirmed working, so a mistake doesn't lock out login entirely.
+
+3. **Tell the agent/session** once 1 and 2 are done — it will then:
+   - `wrangler secret put GOOGLE_REDIRECT_URI` → `https://autro.zeonweb.com/auth/callback`
+   - update `apps/web/.env.production` → `VITE_API_BASE_URL=https://api.autro.zeonweb.com`
+   - drop the old `https://autro-web.pages.dev` entry from the CORS allow-list
+     in `apps/api/src/middleware/cors.ts`
+   - commit + push (CI builds and deploys the frontend on the new domain)
+
+4. **Verify end-to-end** on `https://autro.zeonweb.com` — load the app, log in
+   with Google, confirm API calls succeed. Then, and only then:
+   - Cloudflare Pages does not offer a way to disable the default
+     `*.pages.dev` URL — it stays reachable regardless of custom domains. Not
+     a problem; nothing will reference or advertise it any more.
+   - In `apps/api/wrangler.toml`, remove `workers_dev = true` (added
+     specifically as a bridge during this cutover) and redeploy — this
+     retires `autro-api.skazimuddin7786.workers.dev`.
+   - Remove the old origin/redirect URI from the Google OAuth client.
+
+**Why the two-URL bridge:** defining a `routes` entry in `wrangler.toml`
+silently disables the Worker's `*.workers.dev` URL — caught mid-setup because
+the live frontend still pointed at it. `workers_dev = true` was added back
+explicitly so nothing broke while the rest of the cutover is pending.
 
 ---
 
@@ -37,7 +60,7 @@ Your other four R2 secrets are unchanged. Nothing else to re-enter.
 npm run typecheck && npm run lint       # both must pass
 npm run build --workspace=apps/web
 
-cd apps/api && wrangler deploy          # API  → autro-api.<subdomain>.workers.dev
+cd apps/api && wrangler deploy          # API → api.autro.zeonweb.com (+ *.workers.dev, bridge — see Pending)
 ```
 
 The frontend build output is `apps/web/dist` — deploy it wherever you host it
@@ -115,6 +138,7 @@ and your `VITE_GOOGLE_CLIENT_ID`. It is gitignored.
 
 Newest first. Anything here needs an action from you that code alone cannot do.
 
-| Date       | Change                                                                   | Action                                 |
-| ---------- | ------------------------------------------------------------------------ | -------------------------------------- |
-| 2026-08-20 | `R2_PUBLIC_URL` added; the R2 host is no longer hardcoded in `upload.ts` | Set the secret — see **Pending** above |
+| Date       | Change                                                                    | Action                                      |
+| ---------- | -------------------------------------------------------------------------- | -------------------------------------------- |
+| 2026-08-21 | `api.autro.zeonweb.com` attached as the API's custom domain               | Finish the cutover — see **Pending** above |
+| 2026-08-20 | `R2_PUBLIC_URL` added; the R2 host is no longer hardcoded in `upload.ts`  | Done — secret is set                        |
