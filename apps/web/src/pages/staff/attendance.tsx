@@ -1,30 +1,36 @@
-// Staff Attendance — QR display for owners
+// Attendance — the QR an owner displays at the entrance, and who has come in.
+//
+// Migrated 2026-08-20 onto the MUI design system. Two columns at md:+: the QR
+// is the thing that gets printed and stuck on a wall, so it keeps its own
+// column rather than scrolling away above the log.
+//
+// Every figure comes from GET /attendance/today, which returns present, absent
+// and the entries. The endpoint only returns members who have a log row for
+// today, so "present + absent" is not the team size and is not presented as
+// one — there is no "x of y" here.
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { QrCode, RefreshCw, Users, CheckCircle2, XCircle, Clock } from '@/components/ui/icons'
+import { Avatar, Box, Button, Card, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import QrIcon from '@mui/icons-material/QrCode2Rounded'
+import RefreshIcon from '@mui/icons-material/RefreshRounded'
+import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
+import LoginIcon from '@mui/icons-material/LoginRounded'
+import LogoutIcon from '@mui/icons-material/LogoutRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { QRDisplay } from '@/components/domain/qr-display'
-import {
-  Card,
-  Button,
-  StatCard,
-  EmptyState,
-  Badge,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
-import { StatCardSkeleton } from '@/components/ui/loading'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { SectionCard } from '@/components/ui/section-card'
+import { EmptyPanel } from '@/components/ui/empty-panel'
+import { Kicker } from '@/components/ui/kicker'
+import { useToast, ToastContainer } from '@/components/ui/toast'
+import { formatTime } from '@/lib/format'
 
 interface QRData {
-  // Must match the API exactly: GET /attendance/qr returns { qr_token }, and
-  // `qr_token` is also the field name in the POST /attendance/checkin contract
-  // (04-api-routes.md). This was declared as `token` — apiFetch<T> only asserts
-  // the type and does no runtime validation, so the mismatch was silent and the
-  // QR card always fell through to its empty-state icon.
+  // Must match GET /attendance/qr exactly. apiFetch<T> only asserts the type
+  // and does no runtime validation, so a wrong field name here fails silently
+  // and the QR never renders — which is exactly what happened once already.
   qr_token: string
 }
 
@@ -43,8 +49,6 @@ interface TodayAttendance {
   entries: AttendanceEntry[]
 }
 
-// ── Attendance Page ───────────────────────────────────────────────────────────
-
 export default function StaffAttendancePage(): React.JSX.Element {
   const { tenant } = useTenant()
   const queryClient = useQueryClient()
@@ -58,184 +62,167 @@ export default function StaffAttendancePage(): React.JSX.Element {
 
   const { data: today, isLoading: todayLoading } = useQuery<TodayAttendance>({
     queryKey: ['attendance', 'today', tenant?.id],
-    queryFn: () =>
-      apiFetch<TodayAttendance>('/attendance/today', {
-        tenantId: tenant?.id,
-      }),
+    queryFn: () => apiFetch<TodayAttendance>('/attendance/today', { tenantId: tenant?.id }),
     enabled: Boolean(tenant?.id),
     refetchInterval: 30_000,
   })
 
-  const regenerateMutation = useMutation({
-    mutationFn: () =>
-      apiFetch('/attendance/qr/regenerate', {
-        method: 'POST',
-        tenantId: tenant?.id,
-      }),
+  const regenerate = useMutation({
+    mutationFn: () => apiFetch('/attendance/qr/regenerate', { method: 'POST', tenantId: tenant?.id }),
     onSuccess: () => {
       showToast('success', 'QR code regenerated')
-      queryClient.invalidateQueries({
-        queryKey: ['attendance', 'qr'],
-      })
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'qr'] })
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to regenerate QR')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to regenerate QR'),
   })
 
+  const entries = today?.entries ?? []
+
   return (
-    <PageShell title="Staff Attendance" showBack hideNav>
+    <PageShell title="Attendance" mobileTitle="Attendance" showBack hideNav wide>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 md:grid md:grid-cols-[260px_1fr] md:gap-6 md:items-start">
-        <div className="flex flex-col gap-3">
-          {/* ── QR Code Card ─────────────────────────────────────── */}
-          <Card id="attendance-qr-card" elevated className="!p-6">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-kicker font-semibold text-text-secondary uppercase tracking-[0.08em]">
-                Static QR — display at entrance
-              </p>
+      <Box
+        sx={{
+          px: { xs: 2, md: 3.5 },
+          pb: 4,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
+          gap: 2.5,
+          alignItems: 'start',
+        }}
+      >
+        {/* ── The QR ──────────────────────────────────────────── */}
+        <Stack spacing={1.5}>
+          <Card sx={{ p: 3 }}>
+            <Stack alignItems="center" spacing={2} textAlign="center">
+              <Kicker>Display at the entrance</Kicker>
+
               {qrLoading ? (
-                <div className="w-48 h-48 rounded-card bg-divider animate-pulse" />
+                <Skeleton variant="rounded" width={192} height={192} />
               ) : qr?.qr_token ? (
                 <QRDisplay id="attendance-qr" token={qr.qr_token} />
               ) : (
-                <div className="w-48 h-48 bg-bg flex items-center justify-center">
-                  <QrCode size={48} className="text-text-muted" />
-                </div>
+                <Box
+                  sx={{
+                    width: 192, height: 192, display: 'grid', placeItems: 'center',
+                    bgcolor: 'action.hover', borderRadius: 2, color: 'text.disabled',
+                  }}
+                >
+                  <QrIcon sx={{ fontSize: 44 }} />
+                </Box>
               )}
 
-              <p className="text-row-sub text-text-muted">
-                Staff can scan this to check in — works only at the autro location
-              </p>
-            </div>
+              <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.6 }}>
+                Staff scan this to check in. It only works within range of the workshop location.
+              </Typography>
+            </Stack>
           </Card>
 
           <Button
             id="attendance-regenerate-qr"
-            variant="outline"
-            leftIcon={<RefreshCw size={16} />}
-            isLoading={regenerateMutation.isPending}
-            onClick={() => regenerateMutation.mutate()}
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            disabled={regenerate.isPending}
+            onClick={() => regenerate.mutate()}
           >
-            Regenerate QR
+            {regenerate.isPending ? 'Regenerating…' : 'Regenerate QR'}
           </Button>
-        </div>
+        </Stack>
 
-        <div className="flex flex-col gap-5 mt-5 md:mt-0">
-          {/* ── Today's Stats ────────────────────────────────────── */}
-          <div>
-            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-              Today
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {todayLoading ? (
-                <>
-                  <StatCardSkeleton />
-                  <StatCardSkeleton />
-                </>
-              ) : (
-                <>
-                  <StatCard
-                    id="attendance-present"
-                    icon={<CheckCircle2 size={18} className="text-success" />}
-                    tone="success"
-                    value={today?.present ?? 0}
-                    label="Present"
+        {/* ── Who has come in ─────────────────────────────────── */}
+        <SectionCard
+          title="Today"
+          action={
+            todayLoading ? undefined : (
+              <Stack direction="row" spacing={1}>
+                <Chip
+                  size="small"
+                  label={`${today?.present ?? 0} present`}
+                  sx={(t) => ({ bgcolor: alpha(t.palette.success.main, 0.16), color: t.palette.success.main })}
+                />
+                {(today?.absent ?? 0) > 0 && (
+                  <Chip
+                    size="small"
+                    label={`${today?.absent} absent`}
+                    sx={(t) => ({ bgcolor: alpha(t.palette.error.main, 0.14), color: t.palette.error.main })}
                   />
-                  <StatCard
-                    id="attendance-absent"
-                    icon={<XCircle size={18} className="text-danger" />}
-                    tone="danger"
-                    value={today?.absent ?? 0}
-                    label="Absent"
-                  />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* ── Today's Attendance List ──────────────────────────── */}
-          <section>
-            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-              Attendance Log
-            </h3>
-            {todayLoading ? (
-              <Card className="!p-4">
-                <div className="space-y-3">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-divider animate-pulse" />
-                      <div className="flex-1 space-y-1.5">
-                        <div className="h-3 w-24 rounded bg-divider animate-pulse" />
-                        <div className="h-2.5 w-16 rounded bg-divider animate-pulse" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            ) : !today?.entries.length ? (
-              <EmptyState
-                icon={<Users size={24} />}
-                title="No attendance yet"
-                description="Staff attendance will appear here"
-              />
-            ) : (
-              <Card className="!p-0 overflow-hidden">
-                {today.entries.map((entry) => (
-                  <AttendanceRow key={entry.member_id} entry={entry} />
-                ))}
-              </Card>
-            )}
-          </section>
-        </div>
-      </div>
+                )}
+              </Stack>
+            )
+          }
+        >
+          {todayLoading ? (
+            <Box sx={{ px: 2.25, py: 1.5 }}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+                <Skeleton key={i} height={48} />
+              ))}
+            </Box>
+          ) : entries.length === 0 ? (
+            <EmptyPanel
+              icon={<PeopleIcon />}
+              title="Nobody has checked in yet"
+              description="Scans appear here as staff arrive"
+            />
+          ) : (
+            entries.map((entry, i) => (
+              <Box key={entry.member_id}>
+                {i > 0 && <Divider />}
+                <AttendanceRow entry={entry} />
+              </Box>
+            ))
+          )}
+        </SectionCard>
+      </Box>
     </PageShell>
   )
 }
-
-// ── Attendance Row ────────────────────────────────────────────────────────────
 
 function AttendanceRow({ entry }: { entry: AttendanceEntry }): React.JSX.Element {
   const isPresent = entry.status === 'PRESENT'
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-divider last:border-b-0">
-      <div className="w-9 h-9 bg-primary-light flex items-center justify-center flex-shrink-0">
-        <Users size={14} className="text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text truncate">{entry.name}</p>
-        <div className="flex items-center gap-2 mt-0.5">
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2.25, py: 1.75 }}>
+      <Avatar
+        src={entry.avatar_url ?? undefined}
+        imgProps={{ referrerPolicy: 'no-referrer' }}
+        sx={{ width: 36, height: 36, fontSize: 14, fontWeight: 600, bgcolor: 'action.hover', color: 'text.secondary' }}
+      >
+        {entry.name.charAt(0).toUpperCase()}
+      </Avatar>
+
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>{entry.name}</Typography>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 0.25 }}>
           {entry.check_in_at && (
-            <span className="flex items-center gap-0.5 text-[0.65rem] text-success">
-              <Clock size={10} />
-              {formatTime(entry.check_in_at)}
-            </span>
+            <Stack direction="row" alignItems="center" spacing={0.4}>
+              <LoginIcon sx={{ fontSize: 12, color: 'success.main' }} />
+              <Typography sx={{ fontSize: 11.5, color: 'success.main', fontVariantNumeric: 'tabular-nums' }}>
+                {formatTime(entry.check_in_at)}
+              </Typography>
+            </Stack>
           )}
           {entry.check_out_at && (
-            <span className="flex items-center gap-0.5 text-[0.65rem] text-text-muted">
-              <Clock size={10} />
-              {formatTime(entry.check_out_at)}
-            </span>
+            <Stack direction="row" alignItems="center" spacing={0.4}>
+              <LogoutIcon sx={{ fontSize: 12, color: 'text.disabled' }} />
+              <Typography sx={{ fontSize: 11.5, color: 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
+                {formatTime(entry.check_out_at)}
+              </Typography>
+            </Stack>
           )}
-        </div>
-      </div>
-      <Badge variant={isPresent ? 'success' : 'danger'}>{isPresent ? 'Present' : 'Absent'}</Badge>
-    </div>
+        </Stack>
+      </Box>
+
+      <Chip
+        size="small"
+        label={isPresent ? 'Present' : 'Absent'}
+        sx={(t) =>
+          isPresent
+            ? { bgcolor: alpha(t.palette.success.main, 0.16), color: t.palette.success.main }
+            : { bgcolor: alpha(t.palette.error.main, 0.14), color: t.palette.error.main }
+        }
+      />
+    </Stack>
   )
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    })
-  } catch {
-    return '--:--'
-  }
 }
