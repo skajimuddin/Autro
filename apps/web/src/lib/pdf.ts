@@ -11,7 +11,7 @@
 // 2. Amounts are prefixed "Rs." rather than "₹". @react-pdf's built-in Helvetica
 //    has no glyph for U+20B9, so a literal ₹ renders as a blank box in the
 //    output. Fixing that properly means Font.register()-ing a .ttf that covers
-//    the rupee sign (the app's Inter is served as woff2, which @react-pdf cannot
+//    the rupee sign (the app's Geist is served as woff2, which @react-pdf cannot
 //    read) and fetching it at runtime. "Rs." is unambiguous, offline-safe, and
 //    standard on Indian invoices. The ₹ glyph is still used everywhere in the UI.
 //
