@@ -74,10 +74,14 @@ export function PageShell({
 
         <InstallBanner />
 
-        {/* pb clears the mobile bottom nav; not needed once nav is a sidebar */}
+        {/* pt separates content from the header — every page's own content
+            Box only ever carries pb, never pt, and the md:+ Topbar deliberately
+            has no rule of its own (see topbar.tsx), so without this the first
+            card sits flush against the header with nothing between them.
+            pb clears the mobile bottom nav; not needed once nav is a sidebar. */}
         <main
           className={[
-            'animate-page-enter min-h-[calc(100dvh-3.5rem)]',
+            'animate-page-enter min-h-[calc(100dvh-3.5rem)] pt-4 md:pt-6',
             hideNav ? 'pb-4' : 'pb-20 md:pb-8',
           ].join(' ')}
         >
