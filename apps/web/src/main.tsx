@@ -12,12 +12,23 @@ if (!rootElement) {
   throw new Error('Root element #root not found in index.html')
 }
 
-// Register Service Worker
+// Register Service Worker. If a newer worker takes control while this page
+// is open — because a deploy shipped since it was loaded — reload once so
+// the fresh HTML shell (and its matching hashed assets) is picked up
+// automatically, instead of leaving the user on a stale, possibly-broken
+// page with no way to force-refresh (e.g. on mobile).
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload()
+  })
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.error('ServiceWorker registration failed:', error)
-    })
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => registration.update())
+      .catch((error) => {
+        console.error('ServiceWorker registration failed:', error)
+      })
   })
 }
 
