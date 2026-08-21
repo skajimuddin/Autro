@@ -13,6 +13,7 @@ import type React from 'react'
 
 import { Topbar } from './topbar'
 import { BottomNav } from './bottom-nav'
+import { InstallBanner } from './install-banner'
 
 interface PageShellProps {
   title: string
@@ -70,6 +71,8 @@ export function PageShell({
           showBack={showBack}
           rightAction={rightAction}
         />
+
+        <InstallBanner />
 
         {/* pb clears the mobile bottom nav; not needed once nav is a sidebar */}
         <main
