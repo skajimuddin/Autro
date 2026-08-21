@@ -1,37 +1,40 @@
-// Settings — garage profile and user settings
+// Settings — the owner's profile and the garage's details.
+//
+// Migrated 2026-08-20 onto the MUI design system. Three SectionCards: who you
+// are, the garage (the only editable part), and sign out.
+//
+// The GPS control is deliberately its own action rather than part of the form.
+// Coordinates are not typed, they are captured where you stand, and saving them
+// with the rest of the form would imply otherwise. Same standing note as
+// onboarding, for the same reason: an owner who updates this from a desk
+// elsewhere breaks every staff check-in until it is corrected.
 import { useState, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import {
-  User,
-  Mail,
-  Building2,
-  Phone,
-  MapPin,
-  Navigation,
-  LogOut,
-  Save,
-} from '@/components/ui/icons'
+import { Avatar, Box, Button, Chip, Stack, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import MailIcon from '@mui/icons-material/MailOutlineRounded'
+import PinIcon from '@mui/icons-material/MyLocationRounded'
+import PlaceIcon from '@mui/icons-material/PlaceOutlined'
+import LogoutIcon from '@mui/icons-material/LogoutRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import { Card, Button, Input, Textarea, useToast, ToastContainer } from '@/components/ui'
-
-// ── Form Schema ───────────────────────────────────────────────────────────────
+import { SectionCard } from '@/components/ui/section-card'
+import { Field } from '@/components/ui/field'
+import { useToast, ToastContainer } from '@/components/ui/toast'
 
 const settingsSchema = z.object({
-  name: z.string().min(1, 'Garage name is required').max(100),
-  phone: z.string().min(10, 'Enter a valid phone number').max(15),
-  address: z.string().max(200).optional(),
+  name: z.string().trim().min(1, 'Garage name is required').max(100, 'Name is too long'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Enter a valid phone number (10–15 digits)'),
+  address: z.string().trim().max(200, 'Address is too long').optional(),
 })
 
 type SettingsForm = z.infer<typeof settingsSchema>
-
-// ── Settings Page ─────────────────────────────────────────────────────────────
 
 export default function SettingsPage(): React.JSX.Element {
   const { user, logout } = useAuth()
@@ -39,11 +42,7 @@ export default function SettingsPage(): React.JSX.Element {
   const { toasts, showToast, dismissToast } = useToast()
   const [isLocating, setIsLocating] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isDirty },
-  } = useForm<SettingsForm>({
+  const { control, handleSubmit, formState: { isDirty } } = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       name: tenant?.name ?? '',
@@ -63,21 +62,17 @@ export default function SettingsPage(): React.JSX.Element {
       showToast('success', 'Settings saved')
       refetch()
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to save settings')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to save settings'),
   })
 
-  const handleUpdateLocation = useCallback(() => {
+  const updateLocation = useCallback(() => {
     if (!navigator.geolocation) {
       showToast('error', 'Geolocation is not supported by your browser')
       return
     }
-
     setIsLocating(true)
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setIsLocating(false)
         apiFetch(`/tenants/${tenant?.id}`, {
           method: 'PATCH',
           body: JSON.stringify({
@@ -90,160 +85,157 @@ export default function SettingsPage(): React.JSX.Element {
             showToast('success', 'Location updated')
             refetch()
           })
-          .catch(() => {
-            showToast('error', 'Failed to update location')
-          })
+          .catch(() => showToast('error', 'Failed to update location'))
+          .finally(() => setIsLocating(false))
       },
       () => {
         setIsLocating(false)
         showToast('error', 'Could not get your location')
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 10_000 },
     )
   }, [tenant?.id, showToast, refetch])
 
-  const onSubmit = handleSubmit((data) => {
-    mutation.mutate(data)
-  })
+  const hasLocation = tenant?.latitude != null && tenant?.longitude != null
 
   return (
     <PageShell title="Settings">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 flex flex-col gap-5">
-        {/* ── Profile Section ──────────────────────────────────── */}
-        <section>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            Your Profile
-          </h3>
-          <Card id="settings-profile-card">
-            <div className="flex items-center gap-4">
-              {/* Avatar */}
-              {user?.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.name}
-                  className="w-14 h-14 rounded-tile object-cover flex-shrink-0"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-tile bg-primary-light flex items-center justify-center flex-shrink-0">
-                  <User size={24} className="text-primary" />
-                </div>
-              )}
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        {/* ── Who you are ──────────────────────────────────────── */}
+        <SectionCard id="settings-profile-card" title="Your profile" padded>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar
+              src={user?.avatar_url ?? undefined}
+              imgProps={{ referrerPolicy: 'no-referrer' }}
+              variant="rounded"
+              sx={{ width: 56, height: 56, borderRadius: 2, fontSize: 20, fontWeight: 600 }}
+            >
+              {user?.name?.charAt(0).toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography noWrap sx={{ fontSize: 16, fontWeight: 700 }}>
+                {user?.name ?? 'Signed in'}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
+                <MailIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
+                <Typography noWrap sx={{ fontSize: 12.5, color: 'text.disabled' }}>
+                  {user?.email ?? ''}
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
+        </SectionCard>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-text truncate">{user?.name ?? 'User'}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Mail size={12} className="text-text-muted flex-shrink-0" />
-                  <p className="text-xs text-text-muted truncate">{user?.email ?? ''}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        {/* ── Garage Section ───────────────────────────────────── */}
-        <section>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            Garage Details
-          </h3>
-          <Card id="settings-garage-card">
-            <form onSubmit={onSubmit} className="flex flex-col gap-4">
-              <Input
-                label="Garage Name"
-                placeholder="Your autro name"
-                leftIcon={<Building2 size={16} />}
-                error={errors.name?.message}
-                required
-                {...register('name')}
+        {/* ── The garage ───────────────────────────────────────── */}
+        <SectionCard id="settings-garage-card" title="Garage details" padded>
+          <Box component="form" onSubmit={handleSubmit((d) => mutation.mutate(d))}>
+            <Stack spacing={2.5}>
+              <Controller
+                name="name"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field {...field} id="settings-name" label="Garage name" required error={fieldState.error?.message} />
+                )}
               />
 
-              <Input
-                label="Phone"
-                placeholder="Contact number"
-                type="tel"
-                leftIcon={<Phone size={16} />}
-                error={errors.phone?.message}
-                required
-                {...register('phone')}
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field
+                    {...field}
+                    id="settings-phone"
+                    label="Phone"
+                    required
+                    type="tel"
+                    inputMode="numeric"
+                    onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                    error={fieldState.error?.message}
+                  />
+                )}
               />
 
-              <Textarea
-                label="Address"
-                placeholder="Autro address"
-                rows={2}
-                error={errors.address?.message}
-                {...register('address')}
+              <Controller
+                name="address"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field
+                    {...field}
+                    id="settings-address"
+                    label="Address"
+                    helper="Appears on invoices"
+                    multiline
+                    rows={2}
+                    error={fieldState.error?.message}
+                  />
+                )}
               />
 
-              {/* Location */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-semibold text-text">Autro Location</span>
-                <div className="flex items-center gap-2">
-                  {tenant?.latitude && tenant?.longitude ? (
-                    <div className="flex items-center gap-1.5 text-xs text-success bg-success-light px-3 py-1.5 border border-success/30 flex-1 min-w-0">
-                      <MapPin size={12} className="flex-shrink-0" />
-                      <span className="truncate">
-                        {tenant.latitude.toFixed(4)}, {tenant.longitude.toFixed(4)}
-                      </span>
-                    </div>
+              <Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mb: 0.75 }}>
+                  Workshop location
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {hasLocation ? (
+                    <Chip
+                      size="small"
+                      icon={<PlaceIcon sx={{ fontSize: 14 }} />}
+                      label={`${tenant.latitude?.toFixed(4)}, ${tenant.longitude?.toFixed(4)}`}
+                      sx={(t) => ({
+                        flex: 1,
+                        justifyContent: 'flex-start',
+                        bgcolor: alpha(t.palette.success.main, 0.14),
+                        color: t.palette.success.main,
+                        fontVariantNumeric: 'tabular-nums',
+                      })}
+                    />
                   ) : (
-                    <span className="text-xs text-text-muted flex-1">Not set</span>
+                    <Typography sx={{ flex: 1, fontSize: 12.5, color: 'text.disabled' }}>Not set</Typography>
                   )}
                   <Button
                     id="settings-update-location"
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    fullWidth={false}
-                    leftIcon={<Navigation size={14} />}
-                    isLoading={isLocating}
-                    onClick={handleUpdateLocation}
+                    variant="outlined"
+                    size="small"
+                    startIcon={<PinIcon sx={{ fontSize: 16 }} />}
+                    disabled={isLocating}
+                    onClick={updateLocation}
+                    sx={{ height: 34, flexShrink: 0 }}
                   >
-                    Update
+                    {isLocating ? 'Locating…' : 'Update'}
                   </Button>
-                </div>
-                <div className="text-[0.65rem] text-text-muted mt-1 leading-snug">
-                  <p className="font-semibold text-text">Important rules for accuracy:</p>
-                  <ul className="list-disc pl-4 mt-1 space-y-0.5">
-                    <li>
-                      Use a <strong>mobile phone</strong> (PCs give wrong locations).
-                    </li>
-                    <li>
-                      Stand <strong>inside the autro</strong> when updating.
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                </Stack>
+                <Typography sx={{ fontSize: 11.5, color: 'text.disabled', lineHeight: 1.6, mt: 1 }}>
+                  Capture this <strong>on a phone</strong>, <strong>standing inside the workshop</strong>.
+                  A laptop reports the wrong place and staff check-ins will fail.
+                </Typography>
+              </Box>
 
-              {/* Save */}
               <Button
                 id="settings-save-btn"
                 type="submit"
-                isLoading={mutation.isPending}
-                disabled={!isDirty && !mutation.isPending}
-                leftIcon={<Save size={16} />}
+                variant="contained"
+                disabled={!isDirty || mutation.isPending}
+                sx={{ alignSelf: 'flex-start', minWidth: 150 }}
               >
-                Save Changes
+                {mutation.isPending ? 'Saving…' : 'Save changes'}
               </Button>
-            </form>
-          </Card>
-        </section>
+            </Stack>
+          </Box>
+        </SectionCard>
 
-        {/* ── Sign Out ─────────────────────────────────────────── */}
-        <div className="pt-2 pb-6">
-          <Button
-            id="settings-sign-out"
-            variant="ghost"
-            onClick={logout}
-            leftIcon={<LogOut size={16} />}
-            className="!text-danger hover:!bg-danger-light"
-          >
-            Sign Out
-          </Button>
-        </div>
-      </div>
+        <Button
+          id="settings-sign-out"
+          color="error"
+          startIcon={<LogoutIcon />}
+          onClick={logout}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Sign out
+        </Button>
+      </Box>
     </PageShell>
   )
 }
