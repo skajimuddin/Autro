@@ -8,6 +8,13 @@ gets recorded.
 
 ## ⚠️ Pending — do this before your next deploy
 
+### CI deploy is broken — production is stale
+
+GitHub Actions has failed the API deploy step on every push since
+`e59ca70` (2026-08-21) — a Cloudflare API token permission gap, not a code
+issue. **Production is frozen on commit `0d8b71c`; nothing since has gone
+live.** Full diagnosis and step-by-step fix: **[`CI_DEPLOY_FIX.md`](./CI_DEPLOY_FIX.md)**.
+
 ### One optional cleanup: old Google OAuth entries
 
 The `autro.zeonweb.com` domain cutover is **done and confirmed working**
@@ -114,5 +121,6 @@ Newest first. Anything here needs an action from you that code alone cannot do.
 
 | Date       | Change                                                                          | Action                             |
 | ---------- | -------------------------------------------------------------------------------- | ------------------------------------ |
+| 2026-08-21 | CI deploy started failing (zone permission gap on `CLOUDFLARE_API_TOKEN`) — see [`CI_DEPLOY_FIX.md`](./CI_DEPLOY_FIX.md) | **Pending** — see above |
 | 2026-08-21 | Custom domains live: `autro.zeonweb.com` (web), `api.autro.zeonweb.com` (API). `workers.dev` retired. | Done — see **Pending** above for the one optional cleanup |
 | 2026-08-20 | `R2_PUBLIC_URL` added; the R2 host is no longer hardcoded in `upload.ts`        | Done — secret is set                |
