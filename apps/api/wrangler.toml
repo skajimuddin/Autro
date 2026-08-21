@@ -3,6 +3,20 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# ── Custom domain ─────────────────────────────────────────────────────────────
+# `custom_domain = true` (not a plain route) makes `wrangler deploy` provision
+# and manage the DNS record + SSL cert itself — the zeonweb.com zone is
+# already on this Cloudflare account, so no separate dashboard step is needed.
+#
+# `workers_dev = true` is explicit here because Wrangler silently disables the
+# *.workers.dev URL the moment any `routes` entry exists. Keep it on until the
+# frontend, CORS and the Google OAuth redirect have all cut over to the new
+# domain — then flip it off deliberately (see SETUP.md).
+workers_dev = true
+routes = [
+  { pattern = "api.autro.zeonweb.com", custom_domain = true }
+]
+
 # ── Cloudflare D1 (SQLite database) ──────────────────────────────────────────
 # In local dev: wrangler simulates D1 in .wrangler/state/v3/d1/
 # In production: create with `wrangler d1 create autro-db`
