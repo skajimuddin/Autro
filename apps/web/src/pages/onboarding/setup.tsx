@@ -1,64 +1,39 @@
-// Task 1.7 — Onboarding Page (Create Garage)
+// Onboarding — create the garage. The first screen a new owner ever sees.
 //
-// Converted off inline styles 2026-08-13 (UI-6). This page was the worst offender
-// in the codebase: 31 inline `style={{ }}` props, 13 hardcoded hex colours and
-// zero uses of `className`, i.e. it did not touch the design system at all — while
-// being the first screen a new owner ever sees.
+// Migrated 2026-08-20 onto the MUI design system.
 //
-// Changes beyond the mechanical conversion:
-//   - hand-rolled <input>/<textarea> markup (absolute-positioned icons, a shared
-//     `inputStyle()` factory, manual error paragraphs) replaced with the existing
-//     <Input>/<Textarea> components, which already do labels, left icons, the
-//     required asterisk and error text
-//   - two `linear-gradient`s removed (logo tile, submit button). The design system
-//     has no gradients; 05-ui-screens.md prescribes solid primary + shadow
-//   - label colour was `#374151` (Tailwind gray-700), which is not a project token
-//     at all — now `text-text`
-//   - submit button replaced with <Button isLoading>
-//   - the address field loses its inline MapPin icon: <Textarea> has no leftIcon
-//     prop, and adding one just for this page would fork the component
+// The GPS capture is the one unusual control here. It is a button whose colour
+// carries its state, because the state is the whole point: an owner who taps it
+// from a desk in another city gets a wrong location and staff cannot check in.
+// Hence the standing note about standing inside the workshop, kept from the
+// previous version — it came from a real support problem, not from a designer.
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { z } from 'zod'
 import {
-  Building2,
-  Phone,
-  MapPinned,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-} from '@/components/ui/icons'
+  Alert, Box, Button, Card, CircularProgress, Stack, Typography,
+} from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import GarageIcon from '@mui/icons-material/StorefrontOutlined'
+import PinIcon from '@mui/icons-material/MyLocationRounded'
+import CheckIcon from '@mui/icons-material/CheckCircleRounded'
+import ErrorIcon from '@mui/icons-material/ErrorOutlineRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
-import { Card, Button, Input, Textarea } from '@/components/ui'
+import { Field } from '@/components/ui/field'
 
-// ── Validation schema ─────────────────────────────────────────────────────────
 const onboardingSchema = z.object({
   name: z.string().min(1, 'Garage name is required').max(100, 'Name too long'),
-  phone: z
-    .string()
-    .min(10, 'Phone must be at least 10 digits')
-    .max(15, 'Phone too long')
-    .regex(/^\d+$/, 'Phone must contain only digits'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Enter a valid phone number (10–15 digits)'),
   address: z.string().max(300, 'Address too long').optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 })
 
 type FormErrors = Partial<Record<keyof z.infer<typeof onboardingSchema>, string>>
-
 type LocationStatus = 'idle' | 'loading' | 'set' | 'error'
 
-// Colour here is semantic (success = captured, danger = failed), not decorative.
-const LOCATION_BUTTON_STYLES: Record<LocationStatus, string> = {
-  idle: 'border-[1.5px] border-dashed border-primary text-primary hover:bg-primary-light',
-  loading: 'border-[1.5px] border-dashed border-primary text-primary cursor-wait',
-  set: 'border-[1.5px] border-solid border-success bg-success-light text-success',
-  error: 'border-[1.5px] border-solid border-danger bg-danger-light text-danger',
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function OnboardingPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { refetch } = useTenant()
@@ -73,8 +48,7 @@ export default function OnboardingPage(): React.JSX.Element {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // ── Capture GPS location ──────────────────────────────────────────────────
-  const handleSetLocation = () => {
+  const captureLocation = (): void => {
     if (!navigator.geolocation) {
       setLocationStatus('error')
       return
@@ -87,12 +61,11 @@ export default function OnboardingPage(): React.JSX.Element {
         setLocationStatus('set')
       },
       () => setLocationStatus('error'),
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 10_000 },
     )
   }
 
-  // ── Submit handler ─────────────────────────────────────────────────────────
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setSubmitError(null)
 
@@ -107,8 +80,7 @@ export default function OnboardingPage(): React.JSX.Element {
     if (!result.success) {
       const fieldErrors: FormErrors = {}
       for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof FormErrors
-        fieldErrors[field] = issue.message
+        fieldErrors[issue.path[0] as keyof FormErrors] = issue.message
       }
       setErrors(fieldErrors)
       return
@@ -116,69 +88,74 @@ export default function OnboardingPage(): React.JSX.Element {
 
     setErrors({})
     setIsSubmitting(true)
-
     try {
-      await apiFetch<{ tenant: { id: string } }>('/tenants', {
-        method: 'POST',
-        body: JSON.stringify(result.data),
-      })
+      await apiFetch('/tenants', { method: 'POST', body: JSON.stringify(result.data) })
       refetch()
-      navigate('/', { replace: true })
+      void navigate('/', { replace: true })
     } catch (err: unknown) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'Failed to create garage. Please try again.',
-      )
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create garage. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  return (
-    <div className="min-h-dvh bg-bg px-4 pt-6 pb-10">
-      <div className="w-full max-w-md md:max-w-lg mx-auto">
-        {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="text-center mb-7">
-          <div className="w-14 h-14 rounded-tile bg-primary flex items-center justify-center mx-auto mb-4">
-            <Building2 size={26} className="text-white" />
-          </div>
-          <h1 className="text-[1.625rem] font-bold text-text mb-2">Set Up Your Garage</h1>
-          <p className="text-row-title text-text-secondary leading-normal">
-            We need these details for your invoices and staff attendance.
-          </p>
-        </div>
+  // Colour carries the state: green once captured, red on failure. Semantic,
+  // not decorative — the brand blue stays the idle action.
+  const locationTone =
+    locationStatus === 'set' ? 'success' : locationStatus === 'error' ? 'error' : 'primary'
 
-        {/* ── Form ───────────────────────────────────────────────── */}
-        <form onSubmit={handleSubmit} noValidate>
-          <Card className="!p-6 mb-4">
-            <div className="flex flex-col gap-4">
-              <Input
+  return (
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', px: 2, pt: 4, pb: 6 }}>
+      <Box sx={{ width: '100%', maxWidth: 520, mx: 'auto' }}>
+        <Stack alignItems="center" textAlign="center" spacing={1} sx={{ mb: 3.5 }}>
+          <Box
+            sx={{
+              width: 56, height: 56, borderRadius: 2, display: 'grid', placeItems: 'center',
+              bgcolor: 'primary.main', color: 'primary.contrastText', mb: 1,
+            }}
+          >
+            <GarageIcon sx={{ fontSize: 26 }} />
+          </Box>
+          <Typography component="h1" sx={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em' }}>
+            Set up your garage
+          </Typography>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6 }}>
+            These details go on your invoices and drive staff attendance.
+          </Typography>
+        </Stack>
+
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Card sx={{ p: 3, mb: 2 }}>
+            <Stack spacing={2.5}>
+              <Field
                 id="garage-name"
-                label="Garage Name"
+                label="Garage name"
                 required
-                type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Azim Auto Autro"
-                leftIcon={<Building2 size={16} />}
+                placeholder="Sharma Auto Works"
                 error={errors.name}
               />
 
-              <Input
+              <Field
                 id="garage-phone"
-                label="Phone Number"
+                label="Phone number"
                 required
                 type="tel"
                 inputMode="numeric"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                // Digits only as it is typed, so what the owner sees is what
+                // the schema validates.
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                 placeholder="9876543210"
-                leftIcon={<Phone size={16} />}
                 error={errors.phone}
               />
 
-              <Textarea
+              <Field
                 id="garage-address"
-                label="Address (optional)"
+                label="Address"
+                helper="Optional — appears on invoices"
+                multiline
                 rows={2}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -186,79 +163,65 @@ export default function OnboardingPage(): React.JSX.Element {
                 error={errors.address}
               />
 
-              {/* ── Autro location ──────────────────────────── */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-semibold text-text">
-                  Autro Location{' '}
-                  <span className="font-normal text-text-muted">(for staff attendance)</span>
-                </span>
+              <Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', mb: 0.75 }}>
+                  Workshop location
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.6, mb: 1.5 }}>
+                  Staff check in by GPS, so capture this <strong>on a phone</strong>, <strong>standing
+                  inside the workshop</strong>. A laptop will report the wrong place and check-ins
+                  will fail.
+                </Typography>
 
-                <div className="text-xs text-text-secondary leading-snug mb-1.5">
-                  <strong className="font-semibold">Important rules for accurate GPS:</strong>
-                  <ul className="list-disc ml-4 mt-1">
-                    <li>
-                      Use a <strong className="font-semibold">mobile phone</strong> (PCs often give
-                      wrong locations).
-                    </li>
-                    <li>
-                      Stand <strong className="font-semibold">inside the autro</strong> when tapping
-                      the button.
-                    </li>
-                  </ul>
-                </div>
-
-                <button
-                  type="button"
+                <Button
                   id="set-location-btn"
-                  onClick={handleSetLocation}
+                  type="button"
+                  variant="outlined"
+                  fullWidth
                   disabled={locationStatus === 'loading'}
-                  className={[
-                    'w-full flex items-center justify-center gap-2',
-                    'rounded-input border-[1.5px] p-3',
-                    'text-sm font-semibold transition-colors cursor-pointer',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                    LOCATION_BUTTON_STYLES[locationStatus],
-                  ].join(' ')}
+                  onClick={captureLocation}
+                  startIcon={
+                    locationStatus === 'loading' ? <CircularProgress size={15} color="inherit" />
+                    : locationStatus === 'set' ? <CheckIcon />
+                    : locationStatus === 'error' ? <ErrorIcon />
+                    : <PinIcon />
+                  }
+                  sx={(t) => ({
+                    height: 46,
+                    borderStyle: locationStatus === 'idle' ? 'dashed' : 'solid',
+                    borderColor: `${locationTone}.main`,
+                    color: `${locationTone}.main`,
+                    bgcolor: locationTone === 'primary' ? 'transparent' : alpha(t.palette[locationTone].main, 0.1),
+                    '&:hover': { borderColor: `${locationTone}.main` },
+                  })}
                 >
-                  {locationStatus === 'loading' && (
-                    <>
-                      <Loader2 size={16} className="animate-spin-fast" /> Getting location…
-                    </>
-                  )}
-                  {locationStatus === 'set' && (
-                    <>
-                      <CheckCircle size={16} /> Location set ({latitude?.toFixed(4)},{' '}
-                      {longitude?.toFixed(4)})
-                    </>
-                  )}
-                  {locationStatus === 'error' && (
-                    <>
-                      <AlertCircle size={16} /> Failed — tap to retry
-                    </>
-                  )}
-                  {locationStatus === 'idle' && (
-                    <>
-                      <MapPinned size={16} /> Set Autro Location
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+                  {locationStatus === 'loading' && 'Getting location…'}
+                  {locationStatus === 'set' && `Location set (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`}
+                  {locationStatus === 'error' && 'Could not get location — tap to retry'}
+                  {locationStatus === 'idle' && 'Set workshop location'}
+                </Button>
+              </Box>
+            </Stack>
           </Card>
 
-          {/* ── Submit error ─────────────────────────────────────── */}
           {submitError && (
-            <div className="flex items-center gap-2 rounded-input bg-danger-light text-danger text-sm px-4 py-3 mb-4">
-              <AlertCircle size={16} className="flex-shrink-0" />
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
               {submitError}
-            </div>
+            </Alert>
           )}
 
-          <Button type="submit" id="create-autro-btn" size="lg" isLoading={isSubmitting}>
-            Create Autro
+          <Button
+            id="create-autro-btn"
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={isSubmitting}
+            sx={{ height: 48, fontSize: 14 }}
+          >
+            {isSubmitting ? 'Creating…' : 'Create garage'}
           </Button>
-        </form>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   )
 }
