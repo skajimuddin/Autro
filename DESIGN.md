@@ -9,10 +9,10 @@ Rebuilt 2026-08-20 from an approved design explored outside the repo and
 signed off screen by screen. It replaces the previous flat/zero-radius system
 and the rounded blue system that briefly followed it.
 
-**The dashboard and the three vehicle screens are migrated. Every other screen
-still renders its content with Tailwind** and will be migrated one at a time.
-Both systems read the same palette (below), so they do not drift while that is
-in progress.
+**Migrated so far: the dashboard, the three vehicle screens, `/invoices` and
+`/estimates`. Every other screen still renders its content with Tailwind** and
+will be migrated one at a time. Both systems read the same palette (below), so
+they do not drift while that is in progress.
 
 ## Foundations
 
