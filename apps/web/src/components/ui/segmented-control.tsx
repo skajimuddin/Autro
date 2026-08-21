@@ -1,8 +1,11 @@
-// SegmentedControl — pill track with a filled active thumb.
+// SegmentedControl — a small either/or choice, inline with its input.
 //
-// Rounded system (2026-08-20): an inset track (`bg-subtle`) with the selected
-// option lifted as a filled pill, replacing the flat bordered group.
+// Migrated 2026-08-20 onto MUI. Used for the discount type on both editors,
+// where the choice (₹ or %) changes what the number beside it means, so the
+// two controls have to read as one thing.
 import type React from 'react'
+import { ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 
 interface SegmentedOption<T extends string> {
   value: T
@@ -15,7 +18,6 @@ interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void
   id?: string
   'aria-label'?: string
-  fill?: boolean
 }
 
 export function SegmentedControl<T extends string>({
@@ -24,40 +26,39 @@ export function SegmentedControl<T extends string>({
   onChange,
   id,
   'aria-label': ariaLabel,
-  fill = false,
 }: SegmentedControlProps<T>): React.JSX.Element {
   return (
-    <div
+    <ToggleButtonGroup
       id={id}
-      role="radiogroup"
       aria-label={ariaLabel}
-      className={[
-        'inline-flex gap-1 p-1 rounded-tile bg-subtle flex-shrink-0',
-        fill ? 'w-full' : '',
-      ].join(' ')}
+      exclusive
+      size="small"
+      value={value}
+      // `next` is null when the active button is pressed again. Ignoring it
+      // keeps the control exclusive rather than letting it empty itself.
+      onChange={(_, next: T | null) => next && onChange(next)}
+      sx={{ flexShrink: 0 }}
     >
-      {options.map((opt) => {
-        const isActive = opt.value === value
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            onClick={() => onChange(opt.value)}
-            className={[
-              'px-3 py-2 rounded-[8px] text-row-sub font-semibold transition-colors whitespace-nowrap',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              fill ? 'flex-1' : '',
-              isActive
-                ? 'bg-primary text-white shadow-[var(--shadow-primary)]'
-                : 'text-text-secondary hover:text-text',
-            ].join(' ')}
-          >
-            {opt.label}
-          </button>
-        )
-      })}
-    </div>
+      {options.map((opt) => (
+        <ToggleButton
+          key={opt.value}
+          value={opt.value}
+          sx={(t) => ({
+            px: 1.75,
+            height: 40,
+            fontSize: 12.5,
+            fontWeight: 600,
+            textTransform: 'none',
+            '&.Mui-selected': {
+              bgcolor: alpha(t.palette.primary.main, 0.12),
+              color: t.palette.primary.main,
+              '&:hover': { bgcolor: alpha(t.palette.primary.main, 0.18) },
+            },
+          })}
+        >
+          {opt.label}
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
   )
 }

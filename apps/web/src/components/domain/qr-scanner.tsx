@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { X } from '@/components/ui/icons'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@mui/material'
 
 const SCANNER_ELEMENT_ID = 'qr-scanner-region'
 
@@ -103,11 +103,11 @@ export function QRScanner({ onScan, onError, onCancel }: QRScannerProps): React.
 
       <Button
         id="qr-scanner-cancel"
-        variant="outline"
-        fullWidth={false}
-        leftIcon={<X size={16} />}
+        variant="contained"
+        color="inherit"
+        startIcon={<X size={16} />}
         onClick={onCancel}
-        className="bg-white"
+        sx={{ bgcolor: '#fff', color: '#111', '&:hover': { bgcolor: '#eee' } }}
       >
         Cancel
       </Button>
