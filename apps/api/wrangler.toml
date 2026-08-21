@@ -8,11 +8,9 @@ compatibility_flags = ["nodejs_compat"]
 # and manage the DNS record + SSL cert itself — the zeonweb.com zone is
 # already on this Cloudflare account, so no separate dashboard step is needed.
 #
-# `workers_dev = true` is explicit here because Wrangler silently disables the
-# *.workers.dev URL the moment any `routes` entry exists. Keep it on until the
-# frontend, CORS and the Google OAuth redirect have all cut over to the new
-# domain — then flip it off deliberately (see SETUP.md).
-workers_dev = true
+# workers_dev is deliberately omitted (defaults to false): the frontend, CORS
+# and the Google OAuth redirect have all cut over to this domain and it's
+# confirmed working end-to-end, so the old *.workers.dev URL is retired.
 routes = [
   { pattern = "api.autro.zeonweb.com", custom_domain = true }
 ]
