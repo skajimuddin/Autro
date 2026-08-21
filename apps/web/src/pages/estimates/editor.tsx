@@ -1,35 +1,32 @@
-// Estimate Editor — create/edit estimates with line items
+// Estimate editor — line items, discount, tax, total.
+//
+// Migrated 2026-08-20 onto the MUI design system. The line-item row is the
+// whole screen, so it gets the room: description takes the width, quantity and
+// amount are fixed and right-aligned, and the running total sits at the bottom
+// where an owner reads it out to a customer.
+//
+// The arithmetic is deliberately the backend's: discount comes off the
+// subtotal, then tax applies to what is left. Taxing the pre-discount subtotal
+// disagrees with the total the server freezes, and the customer sees both.
 import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  FileText,
-  Plus,
-  Trash2,
-  Save,
-  ArrowRight,
-  Percent,
-  IndianRupee,
-  ToggleLeft,
-  ToggleRight,
-} from '@/components/ui/icons'
+  Box, Button, Divider, IconButton, InputAdornment, Stack, Switch, TextField, Typography,
+} from '@mui/material'
+import AddIcon from '@mui/icons-material/AddRounded'
+import DeleteIcon from '@mui/icons-material/DeleteOutlineRounded'
+import SaveIcon from '@mui/icons-material/SaveOutlined'
+import ArrowIcon from '@mui/icons-material/ArrowForwardRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Button,
-  Input,
-  PriceRow,
-  TotalRow,
-  SegmentedControl,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { SectionCard } from '@/components/ui/section-card'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { inr } from '@/lib/format'
 
 interface EstimateItem {
   id: string
@@ -49,18 +46,21 @@ interface EstimateDetail {
   tax_percent: number
   notes: string | null
   status: string
-  registration_number?: string
-  customer_name?: string
 }
 
-interface NewItem {
+interface DraftItem {
   tempId: string
   description: string
   amount: string
   quantity: string
 }
 
-// ── Estimate Editor Page ──────────────────────────────────────────────────────
+const blankItem = (): DraftItem => ({
+  tempId: crypto.randomUUID(),
+  description: '',
+  amount: '',
+  quantity: '1',
+})
 
 export default function EstimateEditorPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>()
@@ -73,84 +73,50 @@ export default function EstimateEditorPage(): React.JSX.Element {
 
   const isNew = !id || id === 'new'
 
-  // State for items
-  const [items, setItems] = useState<NewItem[]>([
-    { tempId: crypto.randomUUID(), description: '', amount: '', quantity: '1' },
-  ])
+  const [items, setItems] = useState<DraftItem[]>([blankItem()])
   const [taxEnabled, setTaxEnabled] = useState(false)
   const [taxPercent, setTaxPercent] = useState('18')
   const [discountType, setDiscountType] = useState<'FLAT' | 'PERCENT'>('FLAT')
   const [discountValue, setDiscountValue] = useState('0')
 
-  // Fetch existing estimate
-  const { data: existingEstimate, isLoading: fetchLoading } = useQuery<EstimateDetail>({
+  const { data: existing, isLoading } = useQuery<EstimateDetail>({
     queryKey: ['estimate', id],
-    queryFn: () =>
-      apiFetch<EstimateDetail>(`/estimates/${id}`, {
-        tenantId: tenant?.id,
-      }),
+    queryFn: () => apiFetch<EstimateDetail>(`/estimates/${id}`, { tenantId: tenant?.id }),
     enabled: Boolean(id && !isNew && tenant?.id),
   })
 
-  // Hydrate form state when data loads
   useEffect(() => {
-    if (!existingEstimate) return
+    if (!existing) return
     setItems(
-      existingEstimate.items.map((item) => ({
+      existing.items.map((item) => ({
         tempId: item.id,
         description: item.description,
         amount: String(item.amount),
         quantity: String(item.quantity),
       })),
     )
-    setTaxEnabled(existingEstimate.tax_enabled)
-    setTaxPercent(String(existingEstimate.tax_percent))
-    if (existingEstimate.discount_type) setDiscountType(existingEstimate.discount_type)
-    setDiscountValue(String(existingEstimate.discount_value))
-  }, [existingEstimate])
+    setTaxEnabled(existing.tax_enabled)
+    setTaxPercent(String(existing.tax_percent))
+    if (existing.discount_type) setDiscountType(existing.discount_type)
+    setDiscountValue(String(existing.discount_value))
+  }, [existing])
 
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => {
-    const amount = Number(item.amount) || 0
-    const qty = Number(item.quantity) || 1
-    return sum + amount * qty
-  }, 0)
-
-  // Discount applies to the subtotal, then tax applies to what's left —
-  // matches the backend's canonical calc in routes/estimates.ts and
-  // routes/invoices.ts. Taxing the pre-discount subtotal (as this used to)
-  // silently disagreed with the total the server freezes and displays
-  // everywhere else once both tax and a discount are in use.
+  const subtotal = items.reduce(
+    (sum, i) => sum + (Number(i.amount) || 0) * (Number(i.quantity) || 1),
+    0,
+  )
   const discountAmount =
     discountType === 'PERCENT'
       ? (subtotal * (Number(discountValue) || 0)) / 100
       : Number(discountValue) || 0
-
   const afterDiscount = Math.max(0, subtotal - discountAmount)
-
   const taxAmount = taxEnabled ? (afterDiscount * (Number(taxPercent) || 0)) / 100 : 0
-
   const grandTotal = afterDiscount + taxAmount
 
-  // Add item
-  const addItem = useCallback(() => {
-    setItems((prev) => [
-      ...prev,
-      { tempId: crypto.randomUUID(), description: '', amount: '', quantity: '1' },
-    ])
-  }, [])
-
-  // Remove item
-  const removeItem = useCallback((tempId: string) => {
-    setItems((prev) => prev.filter((i) => i.tempId !== tempId))
-  }, [])
-
-  // Update item
-  const updateItem = useCallback((tempId: string, field: keyof NewItem, value: string) => {
+  const updateItem = useCallback((tempId: string, field: keyof DraftItem, value: string) => {
     setItems((prev) => prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)))
   }, [])
 
-  // Save mutation
   const saveMutation = useMutation({
     mutationFn: () => {
       const body = {
@@ -168,130 +134,96 @@ export default function EstimateEditorPage(): React.JSX.Element {
         tax_enabled: taxEnabled,
         tax_percent: taxEnabled ? Number(taxPercent) || 0 : 0,
       }
-
-      if (isNew) {
-        return apiFetch<{ id: string }>('/estimates', {
-          method: 'POST',
-          body: JSON.stringify(body),
-          tenantId: tenant?.id,
-        })
-      }
-      return apiFetch(`/estimates/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-        tenantId: tenant?.id,
-      })
+      return isNew
+        ? apiFetch<{ id: string }>('/estimates', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            tenantId: tenant?.id,
+          })
+        : apiFetch(`/estimates/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+            tenantId: tenant?.id,
+          })
     },
     onSuccess: () => {
       showToast('success', isNew ? 'Estimate created' : 'Estimate saved')
       queryClient.invalidateQueries({ queryKey: ['estimates'] })
-      if (isNew) navigate(-1)
+      // The vehicle screen prints this estimate's total.
+      queryClient.invalidateQueries({ queryKey: ['vehicle'] })
+      if (isNew) void navigate(-1)
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to save estimate')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to save estimate'),
   })
 
-  if (fetchLoading && !isNew) return <FullPageSpinner />
+  if (isLoading && !isNew) return <FullPageSpinner />
+
+  const hasItems = items.some((i) => i.description.trim() && Number(i.amount) > 0)
 
   return (
-    <PageShell title="Estimate" showBack hideNav>
+    <PageShell title="Estimate" mobileTitle="Estimate" showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 flex flex-col gap-4">
-        {/* ── Items Section ────────────────────────────────────── */}
-        <section>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3 flex items-center gap-1.5">
-            <FileText size={13} />
-            Items
-          </h3>
-
-          <Card className="!p-3 flex flex-col gap-2">
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <SectionCard title="Items" padded>
+          <Stack spacing={1.25}>
             {items.map((item) => (
-              <div key={item.tempId} className="flex gap-2 items-center">
-                <input
-                  type="text"
+              <Stack key={item.tempId} direction="row" spacing={1} alignItems="center">
+                <TextField
+                  size="small"
+                  fullWidth
                   value={item.description}
                   onChange={(e) => updateItem(item.tempId, 'description', e.target.value)}
-                  placeholder="Item description"
-                  className="flex-1 min-w-0 h-10 rounded-input border border-border bg-card text-detail text-text px-3 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  placeholder="Item or service"
+                  inputProps={{ 'aria-label': 'Description' }}
                 />
-                <input
-                  type="number"
+                <TextField
+                  size="small"
                   value={item.quantity}
                   onChange={(e) => updateItem(item.tempId, 'quantity', e.target.value)}
-                  placeholder="Qty"
-                  aria-label="Quantity"
-                  className="w-12 h-10 rounded-input border border-border bg-card text-detail text-text px-1 text-center placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
-                <input
                   type="number"
+                  inputProps={{ 'aria-label': 'Quantity', style: { textAlign: 'center' } }}
+                  sx={{ width: 62, flexShrink: 0 }}
+                />
+                <TextField
+                  size="small"
                   value={item.amount}
                   onChange={(e) => updateItem(item.tempId, 'amount', e.target.value)}
-                  placeholder="₹ Amount"
-                  aria-label="Amount"
-                  className="w-24 h-10 rounded-input border border-border bg-card text-detail text-text px-2 placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  type="number"
+                  placeholder="0"
+                  inputProps={{ 'aria-label': 'Amount', style: { textAlign: 'right' } }}
+                  InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                  sx={{ width: 118, flexShrink: 0 }}
                 />
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.tempId)}
-                  className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger-light transition-colors flex-shrink-0"
+                <IconButton
                   aria-label="Remove item"
+                  // Never leave the list empty — an editor with no rows has no
+                  // affordance to start typing again.
+                  onClick={() =>
+                    setItems((prev) =>
+                      prev.length === 1 ? [blankItem()] : prev.filter((i) => i.tempId !== item.tempId),
+                    )
+                  }
+                  sx={{ color: 'text.disabled', flexShrink: 0, '&:hover': { color: 'error.main' } }}
                 >
-                  <Trash2 size={15} />
-                </button>
-              </div>
+                  <DeleteIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Stack>
             ))}
 
             <Button
               id="estimate-add-item"
-              variant="ghost"
-              size="sm"
-              fullWidth={false}
-              leftIcon={<Plus size={14} />}
-              onClick={addItem}
-              className="self-start !px-0 hover:!bg-transparent hover:!text-primary"
+              startIcon={<AddIcon />}
+              onClick={() => setItems((prev) => [...prev, blankItem()])}
+              sx={{ alignSelf: 'flex-start' }}
             >
               Add line item
             </Button>
-          </Card>
-        </section>
+          </Stack>
+        </SectionCard>
 
-        {/* ── Tax Toggle ───────────────────────────────────────── */}
-        <Card>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-text">Add Tax</span>
-            <button
-              type="button"
-              onClick={() => setTaxEnabled(!taxEnabled)}
-              className="text-primary"
-              aria-label={taxEnabled ? 'Disable tax' : 'Enable tax'}
-            >
-              {taxEnabled ? (
-                <ToggleRight size={28} />
-              ) : (
-                <ToggleLeft size={28} className="text-text-muted" />
-              )}
-            </button>
-          </div>
-          {taxEnabled && (
-            <div className="mt-3">
-              <Input
-                label="Tax %"
-                type="number"
-                value={taxPercent}
-                onChange={(e) => setTaxPercent(e.target.value)}
-                leftIcon={<Percent size={14} />}
-                placeholder="18"
-              />
-            </div>
-          )}
-        </Card>
-
-        {/* ── Discount ─────────────────────────────────────────── */}
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-text">Discount</span>
+        <SectionCard title="Discount" padded>
+          <Stack direction="row" spacing={1.5} alignItems="center">
             <SegmentedControl
               id="estimate-discount-type"
               aria-label="Discount type"
@@ -302,57 +234,110 @@ export default function EstimateEditorPage(): React.JSX.Element {
                 { value: 'PERCENT', label: '%' },
               ]}
             />
-          </div>
-          <Input
-            type="number"
-            value={discountValue}
-            onChange={(e) => setDiscountValue(e.target.value)}
-            leftIcon={discountType === 'FLAT' ? <IndianRupee size={14} /> : <Percent size={14} />}
-            placeholder="0"
-          />
-        </Card>
-
-        {/* ── Totals ───────────────────────────────────────────── */}
-        <Card id="estimate-totals">
-          <PriceRow name="Subtotal" price={subtotal} />
-          {taxEnabled && taxAmount > 0 && (
-            <PriceRow name={`Tax (${taxPercent}%)`} price={taxAmount} />
-          )}
-          {discountAmount > 0 && (
-            <PriceRow
-              name={`Discount${discountType === 'PERCENT' ? ` (${discountValue}%)` : ''}`}
-              price={-discountAmount}
+            <TextField
+              size="small"
+              type="number"
+              value={discountValue}
+              onChange={(e) => setDiscountValue(e.target.value)}
+              placeholder="0"
+              inputProps={{ 'aria-label': 'Discount value', style: { textAlign: 'right' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">{discountType === 'FLAT' ? '₹' : '%'}</InputAdornment>
+                ),
+              }}
+              sx={{ width: 140 }}
             />
-          )}
-          <TotalRow total={grandTotal} />
-        </Card>
+          </Stack>
+        </SectionCard>
 
-        {/* ── Actions ──────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3 pb-6">
+        <SectionCard
+          title="Tax"
+          padded
+          action={
+            <Switch
+              checked={taxEnabled}
+              onChange={(e) => setTaxEnabled(e.target.checked)}
+              inputProps={{ 'aria-label': 'Add tax' }}
+            />
+          }
+        >
+          {taxEnabled ? (
+            <TextField
+              size="small"
+              type="number"
+              value={taxPercent}
+              onChange={(e) => setTaxPercent(e.target.value)}
+              placeholder="18"
+              inputProps={{ 'aria-label': 'Tax percent', style: { textAlign: 'right' } }}
+              InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+              sx={{ width: 140 }}
+            />
+          ) : (
+            <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>
+              No tax on this estimate
+            </Typography>
+          )}
+        </SectionCard>
+
+        <SectionCard id="estimate-totals" padded>
+          <Stack spacing={1}>
+            <TotalLine label="Subtotal" value={subtotal} />
+            {discountAmount > 0 && (
+              <TotalLine
+                label={`Discount${discountType === 'PERCENT' ? ` (${discountValue}%)` : ''}`}
+                value={-discountAmount}
+              />
+            )}
+            {taxAmount > 0 && <TotalLine label={`Tax (${taxPercent}%)`} value={taxAmount} />}
+            <Divider sx={{ my: 0.5 }} />
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Total</Typography>
+              <Typography
+                sx={{ fontSize: 26, fontWeight: 700, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}
+              >
+                {inr(grandTotal)}
+              </Typography>
+            </Stack>
+          </Stack>
+        </SectionCard>
+
+        <Stack spacing={1.5}>
           <Button
             id="estimate-save"
-            variant="outline"
-            leftIcon={<Save size={16} />}
-            isLoading={saveMutation.isPending}
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={saveMutation.isPending || !hasItems}
             onClick={() => saveMutation.mutate()}
+            sx={{ height: 46 }}
           >
-            Save Estimate
+            {saveMutation.isPending ? 'Saving…' : isNew ? 'Create estimate' : 'Save estimate'}
           </Button>
           <Button
             id="estimate-convert"
-            leftIcon={<ArrowRight size={16} />}
-            onClick={() => {
-              if (id && !isNew) {
-                navigate(`/invoices/new?from_estimate=${id}`)
-              } else {
-                showToast('error', 'Save the estimate first')
-              }
-            }}
+            variant="outlined"
+            endIcon={<ArrowIcon />}
+            // Converting reads the saved estimate by id, so a draft that has
+            // never been saved has nothing to convert.
+            disabled={isNew}
+            onClick={() => void navigate(`/invoices/new?from_estimate=${id}`)}
+            sx={{ height: 46 }}
           >
-            Convert to Invoice
+            {isNew ? 'Save first to convert' : 'Convert to invoice'}
           </Button>
-        </div>
-      </div>
+        </Stack>
+      </Box>
     </PageShell>
+  )
+}
+
+function TotalLine({ label, value }: { label: string; value: number }): React.JSX.Element {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+      <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{label}</Typography>
+      <Typography sx={{ fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+        {inr(value)}
+      </Typography>
+    </Stack>
   )
 }
