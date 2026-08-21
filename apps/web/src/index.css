@@ -65,8 +65,10 @@
   --text-kicker:     0.6875rem; /* 11px — uppercase kickers */
 
   /* ── Border radius ─────────────────────────────────────────────────────── */
-  /* Buttons and chips are pills; surfaces are 16px; inputs 10px. */
-  --radius-card:   16px;
+  /* Buttons and chips are pills; surfaces are 18px; inputs 10px. Card is
+     rounder than the rest on purpose — it's the one surface meant to read as
+     soft. theme.ts's MuiCard override matches this for migrated screens. */
+  --radius-card:   18px;
   --radius-button: 9999px;
   --radius-input:  10px;
   --radius-tile:   12px;   /* thumbnails, icon squares, nav items */

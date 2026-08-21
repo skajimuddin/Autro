@@ -89,9 +89,14 @@ export const theme = createTheme({
     MuiCard: {
       defaultProps: { elevation: 0 },
       styleOverrides: {
+        // Rounder than the theme's base shape (8px, shared by inputs, chips,
+        // menus…) on purpose — cards are the one surface meant to read as
+        // soft. Matches --radius-card in index.css, which does the same job
+        // for screens still on Tailwind.
         root: ({ theme }) => ({
           border: `1px solid ${theme.palette.divider}`,
           backgroundImage: 'none',
+          borderRadius: 18,
         }),
       },
     },
