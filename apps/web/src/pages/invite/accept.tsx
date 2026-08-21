@@ -1,17 +1,32 @@
-// Accept Invitation — staff invite acceptance flow
+// Accept invitation — the screen a staff member lands on from an invite link.
+//
+// Migrated 2026-08-20 onto the MUI design system. One card on the page ground,
+// centred at every width: this is opened on a phone from a WhatsApp message,
+// and it has exactly one decision on it.
+//
+// Four states, all reachable: invalid/expired link, already accepted, revoked,
+// and the live invite — which itself splits on whether the visitor is signed
+// in yet, because accepting needs an identity to attach the membership to.
 import { useParams, useNavigate } from 'react-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { Building2, Users, User, Shield, LogIn } from '@/components/ui/icons'
+import { Avatar, Box, Button, Card, Stack, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import GarageIcon from '@mui/icons-material/StorefrontOutlined'
+import ShieldIcon from '@mui/icons-material/VerifiedUserOutlined'
+import PersonIcon from '@mui/icons-material/PersonOutline'
+import LoginIcon from '@mui/icons-material/LoginRounded'
+import CheckIcon from '@mui/icons-material/CheckCircleOutlineRounded'
+import BlockIcon from '@mui/icons-material/BlockRounded'
+import LinkOffIcon from '@mui/icons-material/LinkOffRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
-import { MobileContainer } from '@/components/layout/mobile-container'
-import { Card, Button, EmptyState, useToast, ToastContainer } from '@/components/ui'
+import { EmptyPanel } from '@/components/ui/empty-panel'
+import { Kicker } from '@/components/ui/kicker'
+import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
 import { config } from '@/lib/config'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface InviteDetails {
   garage_name: string
@@ -20,7 +35,28 @@ interface InviteDetails {
   status: 'PENDING' | 'ACCEPTED' | 'REVOKED'
 }
 
-// ── Invite Accept Page ────────────────────────────────────────────────────────
+/** Every state on this screen is one centred card on the page ground. */
+function Frame({ children }: { children: React.ReactNode }): React.JSX.Element {
+  return (
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
+      <Card sx={{ width: '100%', maxWidth: 420, p: 3 }}>{children}</Card>
+    </Box>
+  )
+}
+
+function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }): React.JSX.Element {
+  return (
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ bgcolor: 'action.hover', borderRadius: 1.5, px: 2, py: 1.25 }}>
+      <Box sx={{ color: 'text.secondary', display: 'grid', placeItems: 'center' }}>{icon}</Box>
+      <Box sx={{ minWidth: 0, textAlign: 'left' }}>
+        <Kicker>{label}</Kicker>
+        <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600, textTransform: label === 'Role' ? 'capitalize' : 'none' }}>
+          {value}
+        </Typography>
+      </Box>
+    </Stack>
+  )
+}
 
 export default function InviteAcceptPage(): React.JSX.Element {
   const { token } = useParams<{ token: string }>()
@@ -29,173 +65,155 @@ export default function InviteAcceptPage(): React.JSX.Element {
   const { refetch: refetchTenant } = useTenant()
   const { toasts, showToast, dismissToast } = useToast()
 
-  const {
-    data: invite,
-    isLoading,
-    isError,
-  } = useQuery<InviteDetails>({
+  const { data: invite, isLoading, isError } = useQuery<InviteDetails>({
     queryKey: ['invite', token],
     queryFn: () => apiFetch<InviteDetails>(`/staff/invite/${token}`),
     enabled: Boolean(token),
   })
 
   const acceptMutation = useMutation({
-    mutationFn: () =>
-      apiFetch(`/staff/invite/${token}/accept`, {
-        method: 'POST',
-      }),
+    mutationFn: () => apiFetch(`/staff/invite/${token}/accept`, { method: 'POST' }),
     onSuccess: () => {
-      showToast('success', 'Invitation accepted!')
+      showToast('success', 'Invitation accepted')
       refetchTenant()
-      setTimeout(() => navigate('/checkin'), 800)
+      setTimeout(() => void navigate('/checkin'), 800)
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to accept invitation')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to accept invitation'),
   })
 
-  const handleSignIn = () => {
-    const googleAuthUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
+  /** Google consent, carrying this invite path as `state` so the callback
+   *  returns the visitor here rather than to the dashboard. */
+  const signIn = (): void => {
+    const url =
+      'https://accounts.google.com/o/oauth2/v2/auth?' +
       `client_id=${config.googleClientId}` +
       `&redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}` +
-      `&response_type=code` +
+      '&response_type=code' +
       `&scope=${encodeURIComponent('openid email profile')}` +
       `&state=${encodeURIComponent(`/invite/${token}`)}`
-    window.location.href = googleAuthUrl
+    window.location.href = url
   }
 
   if (isLoading) return <FullPageSpinner />
 
   if (isError || !invite) {
     return (
-      <MobileContainer>
-        <div className="min-h-dvh flex items-center justify-center p-4">
-          <EmptyState
-            icon={<Users size={28} />}
-            title="Invalid invitation"
-            description="This invite link may have expired or been revoked"
-          />
-        </div>
-      </MobileContainer>
+      <Frame>
+        <EmptyPanel
+          icon={<LinkOffIcon />}
+          title="Invalid invitation"
+          description="This invite link may have expired or been revoked"
+        />
+      </Frame>
     )
   }
 
   if (invite.status === 'ACCEPTED') {
     return (
-      <MobileContainer>
-        <div className="min-h-dvh flex items-center justify-center p-4">
-          <Card className="!p-6 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
-                <Users size={28} className="text-success" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-text">Already accepted</p>
-                <p className="text-sm text-text-muted mt-1">
-                  You've already joined {invite.garage_name}
-                </p>
-              </div>
-              <Button size="sm" fullWidth={false} onClick={() => navigate('/checkin')}>
-                Go to Check-In
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </MobileContainer>
+      <Frame>
+        <EmptyPanel
+          icon={<CheckIcon />}
+          title="Already accepted"
+          description={`You have already joined ${invite.garage_name}`}
+          action={{ label: 'Go to check-in', onClick: () => void navigate('/checkin') }}
+        />
+      </Frame>
     )
   }
 
   if (invite.status === 'REVOKED') {
     return (
-      <MobileContainer>
-        <div className="min-h-dvh flex items-center justify-center p-4">
-          <EmptyState
-            icon={<Shield size={28} />}
-            title="Invite revoked"
-            description="This invitation has been revoked by the owner"
-          />
-        </div>
-      </MobileContainer>
+      <Frame>
+        <EmptyPanel
+          icon={<BlockIcon />}
+          title="Invite revoked"
+          description="This invitation has been revoked by the owner"
+        />
+      </Frame>
     )
   }
 
   return (
-    <MobileContainer>
+    <>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <Frame>
+        <Stack alignItems="center" spacing={2.5} textAlign="center">
+          <Box
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              display: 'grid',
+              placeItems: 'center',
+              bgcolor: (t) => alpha(t.palette.primary.main, 0.12),
+              color: 'primary.main',
+            }}
+          >
+            <GarageIcon sx={{ fontSize: 32 }} />
+          </Box>
 
-      <div className="min-h-dvh flex items-center justify-center p-4">
-        <Card className="!p-6 w-full">
-          <div className="flex flex-col items-center gap-5 text-center">
-            {/* Garage Icon */}
-            <div className="w-20 h-20 bg-primary-light flex items-center justify-center">
-              <Building2 size={36} className="text-primary" />
-            </div>
+          <Box>
+            <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>
+              You have been invited to join
+            </Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, mt: 0.5, letterSpacing: '-.015em' }}>
+              {invite.garage_name}
+            </Typography>
+          </Box>
 
-            {/* Invite Info */}
-            <div>
-              <p className="text-sm text-text-muted">You've been invited to join</p>
-              <h2 className="text-xl font-bold text-text mt-1">{invite.garage_name}</h2>
-            </div>
+          <Stack spacing={1} sx={{ width: '100%' }}>
+            <DetailRow icon={<ShieldIcon sx={{ fontSize: 18 }} />} label="Role" value={invite.role.toLowerCase()} />
+            <DetailRow icon={<PersonIcon sx={{ fontSize: 18 }} />} label="Invited by" value={invite.invited_by} />
+          </Stack>
 
-            {/* Details */}
-            <div className="w-full flex flex-col gap-2">
-              <div className="flex items-center gap-3 bg-bg px-4 py-3">
-                <Shield size={16} className="text-text-secondary" />
-                <div className="text-left">
-                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">Role</p>
-                  <p className="text-sm font-semibold text-text capitalize">
-                    {invite.role.toLowerCase()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 bg-bg px-4 py-3">
-                <User size={16} className="text-text-secondary" />
-                <div className="text-left">
-                  <p className="text-[0.65rem] text-text-muted uppercase font-bold">Invited by</p>
-                  <p className="text-sm font-semibold text-text">{invite.invited_by}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action */}
-            {authToken && user ? (
-              <div className="w-full flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-bg px-3 py-2 text-left">
-                  {user.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt=""
-                      className="w-8 h-8 object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-primary-light flex items-center justify-center">
-                      <User size={14} className="text-primary" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text truncate">{user.name}</p>
-                    <p className="text-[0.6rem] text-text-muted truncate">{user.email}</p>
-                  </div>
-                </div>
-
-                <Button
-                  id="invite-accept-btn"
-                  isLoading={acceptMutation.isPending}
-                  onClick={() => acceptMutation.mutate()}
+          {authToken && user ? (
+            <Stack spacing={1.5} sx={{ width: '100%' }}>
+              {/* Whose account the membership will attach to — worth showing,
+                  since a staff member may be signed in as someone else. */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1.25}
+                sx={{ bgcolor: 'action.hover', borderRadius: 1.5, px: 1.5, py: 1, textAlign: 'left' }}
+              >
+                <Avatar
+                  src={user.avatar_url ?? undefined}
+                  imgProps={{ referrerPolicy: 'no-referrer' }}
+                  sx={{ width: 32, height: 32, fontSize: 13, fontWeight: 600 }}
                 >
-                  Accept Invitation
-                </Button>
-              </div>
-            ) : (
-              <Button id="invite-signin-btn" leftIcon={<LogIn size={18} />} onClick={handleSignIn}>
-                Sign in with Google to Accept
+                  {user.name?.charAt(0).toUpperCase()}
+                </Avatar>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 600 }}>{user.name}</Typography>
+                  <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled' }}>{user.email}</Typography>
+                </Box>
+              </Stack>
+
+              <Button
+                id="invite-accept-btn"
+                variant="contained"
+                fullWidth
+                disabled={acceptMutation.isPending}
+                onClick={() => acceptMutation.mutate()}
+                sx={{ height: 46 }}
+              >
+                {acceptMutation.isPending ? 'Accepting…' : 'Accept invitation'}
               </Button>
-            )}
-          </div>
-        </Card>
-      </div>
-    </MobileContainer>
+            </Stack>
+          ) : (
+            <Button
+              id="invite-signin-btn"
+              variant="contained"
+              fullWidth
+              startIcon={<LoginIcon />}
+              onClick={signIn}
+              sx={{ height: 46 }}
+            >
+              Sign in with Google to accept
+            </Button>
+          )}
+        </Stack>
+      </Frame>
+    </>
   )
 }

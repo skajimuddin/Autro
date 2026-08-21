@@ -1,29 +1,18 @@
+// OAuth callback — Google redirects here with ?code=… which the backend
+// exchanges for a JWT.
+//
+// Migrated 2026-08-20 onto the MUI design system. Two states only: a spinner
+// while the exchange is in flight, and a failure with a way back. There is no
+// success state — a successful exchange navigates away immediately.
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { AlertCircle } from '@/components/ui/icons'
+import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import ErrorIcon from '@mui/icons-material/ErrorOutlineRounded'
 
 import { handleOAuthCallback } from '@/lib/auth'
 import { useAuth } from '@/providers/auth-provider'
-import { Button } from '@/components/ui/button'
 
-/**
- * OAuth callback page.
- *
- * Google redirects here after the user grants consent.
- * URL will contain ?code=... which we send to the backend to exchange for a JWT.
- *
- * Flow:
- *   1. Extract `code` from URL search params
- *   2. Call handleOAuthCallback(code) → backend exchanges code for JWT
- *   3. Save the JWT
- *   4. Redirect to dashboard (or let auth provider handle routing)
- *
- * Converted off inline styles 2026-08-13 (UI-6). It previously hardcoded seven hex
- * colours, hand-rolled an SVG that duplicates Lucide's AlertCircle, redefined
- * `@keyframes spin` in an inline <style> tag (index.css already ships it as
- * `animate-spin-fast`), and painted the page `#f8fafc` where the design token is
- * `#f1f5f9`.
- */
 export default function AuthCallbackPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { onLoginSuccess } = useAuth()
@@ -42,46 +31,62 @@ export default function AuthCallbackPage(): React.JSX.Element {
     handleOAuthCallback(code)
       .then(({ token, user }) => {
         onLoginSuccess(token, user)
-        // Navigate to state if provided (e.g., returning to an invite link), else root
+        // `state` carries where the user was headed before login — an invite
+        // link, usually. Only same-origin paths, so it cannot be used to
+        // bounce someone off-site.
         if (state && state.startsWith('/')) {
-          navigate(state, { replace: true })
+          void navigate(state, { replace: true })
         } else {
-          navigate('/', { replace: true })
+          void navigate('/', { replace: true })
         }
       })
       .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
-        setError(message)
+        setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
       })
   }, [navigate, onLoginSuccess])
 
-  if (error) {
-    return (
-      <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
-        <div className="text-center max-w-[320px]">
-          <div className="w-14 h-14 rounded-card bg-danger-light flex items-center justify-center mx-auto mb-4">
-            <AlertCircle size={24} strokeWidth={2.5} className="text-danger" />
-          </div>
-          <h2 className="text-[1.1rem] font-semibold text-text mb-2">Login Failed</h2>
-          <p className="text-sm text-text-secondary mb-6">{error}</p>
+  return (
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        bgcolor: 'background.default',
+        display: 'grid',
+        placeItems: 'center',
+        p: 3,
+      }}
+    >
+      {error ? (
+        <Stack alignItems="center" textAlign="center" spacing={2} sx={{ maxWidth: 320 }}>
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              display: 'grid',
+              placeItems: 'center',
+              bgcolor: (t) => alpha(t.palette.error.main, 0.14),
+              color: 'error.main',
+            }}
+          >
+            <ErrorIcon sx={{ fontSize: 26 }} />
+          </Box>
+          <Typography sx={{ fontSize: 17, fontWeight: 600 }}>Login failed</Typography>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{error}</Typography>
           <Button
             id="callback-back-to-login"
-            fullWidth={false}
-            onClick={() => navigate('/login', { replace: true })}
+            variant="contained"
+            onClick={() => void navigate('/login', { replace: true })}
+            sx={{ mt: 1 }}
           >
-            Back to Login
+            Back to login
           </Button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
-      <div className="text-center">
-        <div className="w-10 h-10 rounded-full border-[3px] border-divider border-t-primary animate-spin-fast mx-auto mb-4" />
-        <p className="text-sm text-text-secondary">Signing you in…</p>
-      </div>
-    </div>
+        </Stack>
+      ) : (
+        <Stack alignItems="center" spacing={2}>
+          <CircularProgress size={34} thickness={4} />
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Signing you in…</Typography>
+        </Stack>
+      )}
+    </Box>
   )
 }
