@@ -37,7 +37,7 @@ import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
 
 import { apiFetch } from '@/lib/api'
-import { inr } from '@/lib/format'
+import { inr, formatTime } from '@/lib/format'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
@@ -83,13 +83,6 @@ function today(): string {
   const weekday = d.toLocaleDateString('en-IN', { weekday: 'long' })
   const rest = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
   return `${weekday}, ${rest}`
-}
-
-function checkInLabel(iso: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -338,7 +331,7 @@ export default function DashboardPage(): React.JSX.Element {
                       </Box>
                       {s.attendance_status === 'PRESENT' ? (
                         <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'success.main' }}>
-                          {checkInLabel(s.check_in_at)}
+                          {formatTime(s.check_in_at)}
                         </Typography>
                       ) : (
                         <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>

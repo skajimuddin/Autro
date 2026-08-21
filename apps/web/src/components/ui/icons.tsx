@@ -12,7 +12,6 @@ export {
   LuCheck as Check,
   LuCircleCheck as CheckCircle,
   LuCircleCheck as CheckCircle2,
-  LuSearch as Search,
   LuPlus as Plus,
   LuPrinter as Printer,
   LuQrCode as QrCode,

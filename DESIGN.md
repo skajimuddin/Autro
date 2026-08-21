@@ -9,9 +9,9 @@ Rebuilt 2026-08-20 from an approved design explored outside the repo and
 signed off screen by screen. It replaces the previous flat/zero-radius system
 and the rounded blue system that briefly followed it.
 
-**Migrated so far: the dashboard, the three vehicle screens, `/invoices` and
-`/estimates`. Every other screen still renders its content with Tailwind** and
-will be migrated one at a time. Both systems read the same palette (below), so
+**Migrated so far: the dashboard, the three vehicle screens, `/invoices`,
+`/estimates` and `/staff`. Every other screen still renders its content with
+Tailwind** and will be migrated one at a time. Both systems read the same palette (below), so
 they do not drift while that is in progress.
 
 ## Foundations
@@ -77,7 +77,7 @@ two screens show is one component, in one file:
 | `EmptyPanel`   | `components/ui/empty-panel.tsx`      | every "nothing here yet" body          |
 | `Kicker`       | `components/ui/kicker.tsx`           | stat labels, card kickers              |
 | `Field`        | `components/ui/field.tsx`            | every MUI form field                   |
-| format helpers | `lib/format.ts`                      | money, dates, day counts, stage labels |
+| format helpers | `lib/format.ts`                      | money, dates, times, day counts, stages |
 | photo upload   | `lib/upload.ts`                      | Add Vehicle, vehicle detail            |
 
 This is not tidiness. The dashboard and `/vehicles` previously drew the same

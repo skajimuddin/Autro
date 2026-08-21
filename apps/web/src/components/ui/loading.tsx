@@ -1,8 +1,8 @@
-// Loading — skeleton shimmer for data fetching.
+// Loading — skeleton shimmer for the screens still on Tailwind.
 //
-// Skeletons mirror the shape of what they replace (2026-08-20): rounded row
-// cards for lists, a table row for the desktop vehicle table, a pill for the
-// dashboard stat strip — so nothing shifts when real data lands.
+// Migrated screens use MUI's <Skeleton> directly, so this shrinks as they go:
+// the row-list skeleton left with /staff, and what remains is the stat-card
+// shape /staff/attendance draws and the full-page spinner route guards use.
 import type React from 'react'
 
 interface SkeletonProps {
@@ -14,19 +14,6 @@ function Skeleton({ className = '' }: SkeletonProps): React.JSX.Element {
 }
 
 // ── Preset skeleton layouts ──────────────────────────────────────────────────
-
-/** The row shape <Loading> repeats. Private: nothing needs one on its own. */
-function ListItemSkeleton(): React.JSX.Element {
-  return (
-    <div className="flex items-center gap-3 p-2.5 rounded-[14px] border border-divider bg-card">
-      <Skeleton className="w-12 h-12 flex-shrink-0 rounded-tile" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-3.5 w-2/3" />
-        <Skeleton className="h-3 w-1/2" />
-      </div>
-    </div>
-  )
-}
 
 /** Stat card skeleton — matches <StatCard>. */
 export function StatCardSkeleton(): React.JSX.Element {
@@ -45,18 +32,6 @@ export function FullPageSpinner({ label }: { label?: string }): React.JSX.Elemen
     <div className="min-h-dvh flex flex-col items-center justify-center gap-3 bg-bg">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin-fast" />
       {label && <p className="text-sm text-text-secondary">{label}</p>}
-    </div>
-  )
-}
-
-/** Generic block skeleton for flexible use */
-export function Loading({ rows = 4 }: { rows?: number }): React.JSX.Element {
-  return (
-    <div className="flex flex-col gap-2">
-      {Array.from({ length: rows }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows have no meaningful key
-        <ListItemSkeleton key={i} />
-      ))}
     </div>
   )
 }
