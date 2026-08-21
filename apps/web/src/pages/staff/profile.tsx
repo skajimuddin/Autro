@@ -1,35 +1,36 @@
-// Staff Profile — individual staff view with attendance + salary
+// Staff profile — one member: today, this month, pay, and the two things an
+// owner can do about them.
+//
+// Migrated 2026-08-20 onto the MUI design system.
+//
+// The estimated salary is derived, and it says so: present days over working
+// days times the monthly figure. It is shown only when a salary is actually set
+// — a ₹0 estimate for someone with no salary on record would read as a fact
+// rather than a blank.
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  User,
-  Clock,
-  CalendarDays,
-  IndianRupee,
-  CheckCircle2,
-  XCircle,
-  Edit3,
-  Trash2,
-  ChevronRight,
-} from '@/components/ui/icons'
+  Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Divider, Stack, Typography,
+} from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import CalendarIcon from '@mui/icons-material/CalendarMonthOutlined'
+import EditIcon from '@mui/icons-material/EditOutlined'
+import DeleteIcon from '@mui/icons-material/DeleteOutlineRounded'
+import PersonIcon from '@mui/icons-material/PersonOutline'
+import ChevronRightIcon from '@mui/icons-material/ChevronRightRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import {
-  Card,
-  Button,
-  StatCard,
-  EmptyState,
-  Modal,
-  Input,
-  useToast,
-  ToastContainer,
-} from '@/components/ui'
+import { SectionCard } from '@/components/ui/section-card'
+import { EmptyPanel } from '@/components/ui/empty-panel'
+import { Kicker } from '@/components/ui/kicker'
+import { Field } from '@/components/ui/field'
+import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
-import { useState } from 'react'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { inr, formatTime } from '@/lib/format'
 
 interface StaffProfile {
   id: string
@@ -46,8 +47,6 @@ interface StaffProfile {
   total_working_days: number
 }
 
-// ── Staff Profile Page ────────────────────────────────────────────────────────
-
 export default function StaffProfilePage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -55,20 +54,13 @@ export default function StaffProfilePage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { toasts, showToast, dismissToast } = useToast()
 
-  const [showSalaryModal, setShowSalaryModal] = useState(false)
-  const [showRemoveModal, setShowRemoveModal] = useState(false)
+  const [salaryOpen, setSalaryOpen] = useState(false)
+  const [removeOpen, setRemoveOpen] = useState(false)
   const [newSalary, setNewSalary] = useState('')
 
-  const {
-    data: profile,
-    isLoading,
-    isError,
-  } = useQuery<StaffProfile>({
+  const { data: profile, isLoading, isError } = useQuery<StaffProfile>({
     queryKey: ['staff', id],
-    queryFn: () =>
-      apiFetch<StaffProfile>(`/staff/${id}`, {
-        tenantId: tenant?.id,
-      }),
+    queryFn: () => apiFetch<StaffProfile>(`/staff/${id}`, { tenantId: tenant?.id }),
     enabled: Boolean(id && tenant?.id),
   })
 
@@ -81,282 +73,200 @@ export default function StaffProfilePage(): React.JSX.Element {
       }),
     onSuccess: () => {
       showToast('success', 'Salary updated')
-      setShowSalaryModal(false)
+      setSalaryOpen(false)
       queryClient.invalidateQueries({ queryKey: ['staff', id] })
+      // The staff list prints the same salary.
+      queryClient.invalidateQueries({ queryKey: ['staff'] })
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to update salary')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to update salary'),
   })
 
   const removeMutation = useMutation({
-    mutationFn: () =>
-      apiFetch(`/staff/${id}`, {
-        method: 'DELETE',
-        tenantId: tenant?.id,
-      }),
+    mutationFn: () => apiFetch(`/staff/${id}`, { method: 'DELETE', tenantId: tenant?.id }),
     onSuccess: () => {
       showToast('success', 'Staff member removed')
-      navigate('/staff')
+      void navigate('/staff')
     },
-    onError: (err: Error) => {
-      showToast('error', err.message || 'Failed to remove staff')
-    },
+    onError: (err: Error) => showToast('error', err.message || 'Failed to remove staff'),
   })
 
   if (isLoading) return <FullPageSpinner />
 
   if (isError || !profile) {
     return (
-      <PageShell title="Staff" showBack hideNav>
-        <EmptyState
-          icon={<User size={28} />}
-          title="Staff member not found"
-          action={
-            <Button size="sm" fullWidth={false} onClick={() => navigate('/staff')}>
-              Back to Staff
-            </Button>
-          }
-        />
+      <PageShell title="Staff" mobileTitle="Staff" showBack hideNav>
+        <Box sx={{ px: { xs: 2, md: 3.5 } }}>
+          <EmptyPanel
+            icon={<PersonIcon />}
+            title="Staff member not found"
+            description="They may have been removed from the garage"
+            action={{ label: 'Back to staff', onClick: () => void navigate('/staff') }}
+          />
+        </Box>
       </PageShell>
     )
   }
 
-  // Calculate estimated salary
   const estimatedSalary =
-    profile.monthly_salary && profile.total_working_days > 0
+    profile.monthly_salary != null && profile.total_working_days > 0
       ? Math.round((profile.present_days / profile.total_working_days) * profile.monthly_salary)
       : null
 
   return (
-    <PageShell title={profile.name} showBack hideNav>
+    <PageShell title={profile.name} mobileTitle={profile.name} showBack hideNav>
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="p-4 md:p-6 flex flex-col gap-4">
-        {/* ── Profile Header ───────────────────────────────────── */}
-        <Card id="staff-profile-header">
-          <div className="flex items-center gap-4">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
-                <User size={28} className="text-primary" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-lg font-bold text-text truncate">{profile.name}</p>
-              <p className="text-xs text-text-muted truncate">{profile.email}</p>
-              <p className="text-xs text-text-secondary mt-0.5 capitalize">
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <SectionCard id="staff-profile-header" padded>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar
+              src={profile.avatar_url ?? undefined}
+              imgProps={{ referrerPolicy: 'no-referrer' }}
+              sx={{ width: 64, height: 64, fontSize: 24, fontWeight: 600 }}
+            >
+              {profile.name.charAt(0).toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography noWrap sx={{ fontSize: 18, fontWeight: 700 }}>{profile.name}</Typography>
+              <Typography noWrap sx={{ fontSize: 12.5, color: 'text.disabled' }}>{profile.email}</Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', textTransform: 'capitalize', mt: 0.25 }}>
                 {profile.role.toLowerCase()}
-              </p>
-            </div>
-          </div>
-        </Card>
+              </Typography>
+            </Box>
+          </Stack>
+        </SectionCard>
 
-        {/* ── Today's Attendance ────────────────────────────────── */}
-        <Card id="staff-today-attendance">
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            Today
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <TimeBlock label="IN" time={profile.check_in_at} variant="success" />
-            <TimeBlock label="OUT" time={profile.check_out_at} variant="default" />
-          </div>
-        </Card>
+        <SectionCard id="staff-today-attendance" title="Today" padded>
+          <Stack direction="row" spacing={3}>
+            <Box sx={{ flex: 1 }}>
+              <Kicker>In</Kicker>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: profile.check_in_at ? 'success.main' : 'text.disabled' }}>
+                {formatTime(profile.check_in_at)}
+              </Typography>
+            </Box>
+            <Divider orientation="vertical" flexItem />
+            <Box sx={{ flex: 1 }}>
+              <Kicker>Out</Kicker>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: profile.check_out_at ? 'text.primary' : 'text.disabled' }}>
+                {formatTime(profile.check_out_at)}
+              </Typography>
+            </Box>
+          </Stack>
+        </SectionCard>
 
-        {/* ── Monthly Stats ────────────────────────────────────── */}
-        <div>
-          <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-3">
-            This Month
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              id="staff-present-days"
-              icon={<CheckCircle2 size={18} className="text-success" />}
-              tone="success"
-              value={profile.present_days}
-              label="Present"
-            />
-            <StatCard
-              id="staff-absent-days"
-              icon={<XCircle size={18} className="text-danger" />}
-              tone="danger"
-              value={profile.absent_days}
-              label="Absent"
-            />
-          </div>
-        </div>
+        <SectionCard title="This month" padded>
+          <Stack direction="row" spacing={3}>
+            <Box sx={{ flex: 1 }}>
+              <Kicker>Present</Kicker>
+              <Typography sx={{ fontSize: 26, fontWeight: 700, color: 'success.main', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                {profile.present_days}
+              </Typography>
+            </Box>
+            <Divider orientation="vertical" flexItem />
+            <Box sx={{ flex: 1 }}>
+              <Kicker>Absent</Kicker>
+              <Typography sx={{ fontSize: 26, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                {profile.absent_days}
+              </Typography>
+            </Box>
+          </Stack>
+        </SectionCard>
 
-        {/* ── Estimated Salary ─────────────────────────────────── */}
         {profile.monthly_salary != null && (
-          <Card id="staff-salary-card">
-            <h3 className="text-kicker font-bold text-text-secondary uppercase tracking-[0.08em] mb-2">
-              Estimated Salary
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-light flex items-center justify-center flex-shrink-0">
-                <IndianRupee size={18} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-primary leading-none">
-                  ₹{(estimatedSalary ?? 0).toLocaleString('en-IN')}
-                </p>
-                <p className="text-[0.65rem] text-text-muted mt-1">
-                  ({profile.present_days}/{profile.total_working_days} days) × ₹
-                  {profile.monthly_salary.toLocaleString('en-IN')}
-                </p>
-              </div>
-            </div>
-          </Card>
+          <SectionCard id="staff-salary-card" title="Estimated salary" padded>
+            <Typography sx={{ fontSize: 30, fontWeight: 700, color: 'primary.main', lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+              {inr(estimatedSalary ?? 0)}
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 0.75 }}>
+              {profile.present_days} of {profile.total_working_days} working days ×{' '}
+              {inr(profile.monthly_salary)} monthly
+            </Typography>
+          </SectionCard>
         )}
 
-        {/* ── Actions ──────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3 pt-2 pb-6">
-          <Button
-            id="staff-view-attendance"
-            variant="outline"
-            leftIcon={<CalendarDays size={16} />}
-            rightIcon={<ChevronRight size={14} />}
-            onClick={() => navigate('/staff/attendance')}
-          >
-            View Full Attendance
-          </Button>
+        <Stack spacing={1.5}>
           <Button
             id="staff-edit-salary"
-            variant="primary"
-            leftIcon={<Edit3 size={16} />}
+            variant="contained"
+            startIcon={<EditIcon />}
             onClick={() => {
               setNewSalary(String(profile.monthly_salary ?? ''))
-              setShowSalaryModal(true)
+              setSalaryOpen(true)
             }}
           >
-            Edit Salary
+            Edit salary
+          </Button>
+          <Button
+            id="staff-view-attendance"
+            variant="outlined"
+            startIcon={<CalendarIcon />}
+            endIcon={<ChevronRightIcon />}
+            onClick={() => void navigate('/staff/attendance')}
+          >
+            View full attendance
           </Button>
           {profile.role !== 'OWNER' && (
             <Button
               id="staff-remove"
-              variant="ghost"
-              leftIcon={<Trash2 size={16} />}
-              className="!text-danger hover:!bg-danger-light"
-              onClick={() => setShowRemoveModal(true)}
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setRemoveOpen(true)}
+              sx={{ alignSelf: 'flex-start' }}
             >
-              Remove Staff
+              Remove from garage
             </Button>
           )}
-        </div>
-      </div>
+        </Stack>
+      </Box>
 
-      {/* ── Edit Salary Modal ──────────────────────────────────── */}
-      <Modal
-        id="salary-modal"
-        isOpen={showSalaryModal}
-        onClose={() => setShowSalaryModal(false)}
-        title="Edit Monthly Salary"
-      >
-        <div className="flex flex-col gap-4">
-          <Input
-            label="Monthly Salary (₹)"
+      <Dialog id="salary-modal" open={salaryOpen} onClose={() => setSalaryOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 700 }}>Edit monthly salary</DialogTitle>
+        <DialogContent>
+          <Field
+            id="salary-input"
+            label="Monthly salary (₹)"
             type="number"
+            inputMode="numeric"
+            autoFocus
             value={newSalary}
             onChange={(e) => setNewSalary(e.target.value)}
-            leftIcon={<IndianRupee size={16} />}
-            placeholder="e.g. 15000"
+            placeholder="15000"
           />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setSalaryOpen(false)}>Cancel</Button>
           <Button
             id="salary-save-btn"
-            isLoading={salaryMutation.isPending}
-            onClick={() => {
-              const val = Number(newSalary)
-              if (!Number.isNaN(val) && val >= 0) {
-                salaryMutation.mutate(val)
-              }
-            }}
+            variant="contained"
+            disabled={salaryMutation.isPending || Number.isNaN(Number(newSalary)) || Number(newSalary) < 0}
+            onClick={() => salaryMutation.mutate(Number(newSalary))}
           >
-            Save
+            {salaryMutation.isPending ? 'Saving…' : 'Save'}
           </Button>
-        </div>
-      </Modal>
+        </DialogActions>
+      </Dialog>
 
-      {/* ── Remove Confirmation Modal ──────────────────────────── */}
-      <Modal
-        id="remove-modal"
-        isOpen={showRemoveModal}
-        onClose={() => setShowRemoveModal(false)}
-        title="Remove Staff"
-      >
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to remove <strong className="text-text">{profile.name}</strong>{' '}
-            from your autro? They will no longer be able to check in.
-          </p>
-          <div className="flex gap-3">
-            <Button
-              id="remove-cancel-btn"
-              variant="outline"
-              onClick={() => setShowRemoveModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              id="remove-confirm-btn"
-              variant="primary"
-              className="!bg-danger hover:!bg-red-600"
-              isLoading={removeMutation.isPending}
-              onClick={() => removeMutation.mutate()}
-            >
-              Remove
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <Dialog id="remove-modal" open={removeOpen} onClose={() => setRemoveOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 700 }}>Remove {profile.name}?</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.7 }}>
+            They will no longer be able to check in. Their past attendance stays on record.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button id="remove-cancel-btn" onClick={() => setRemoveOpen(false)}>Cancel</Button>
+          <Button
+            id="remove-confirm-btn"
+            variant="contained"
+            color="error"
+            disabled={removeMutation.isPending}
+            onClick={() => removeMutation.mutate()}
+            sx={(t) => ({ bgcolor: t.palette.error.main, '&:hover': { bgcolor: alpha(t.palette.error.main, 0.85) } })}
+          >
+            {removeMutation.isPending ? 'Removing…' : 'Remove'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageShell>
   )
-}
-
-// ── Time Block ────────────────────────────────────────────────────────────────
-
-interface TimeBlockProps {
-  label: string
-  time: string | null
-  variant: 'success' | 'default'
-}
-
-function TimeBlock({ label, time, variant }: TimeBlockProps): React.JSX.Element {
-  const formatted = time ? formatTime(time) : '--:--'
-
-  return (
-    <div className="flex items-center gap-2.5 bg-bg px-3 py-2.5">
-      <Clock size={16} className={variant === 'success' ? 'text-success' : 'text-text-muted'} />
-      <div>
-        <p className="text-[0.65rem] text-text-muted uppercase font-bold">{label}</p>
-        <p
-          className={[
-            'text-sm font-bold',
-            variant === 'success' && time ? 'text-success' : 'text-text-muted',
-          ].join(' ')}
-        >
-          {formatted}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    })
-  } catch {
-    return '--:--'
-  }
 }
