@@ -20,5 +20,4 @@ function requireEnv(key: string): string {
 
 export const config = {
   apiBaseUrl: requireEnv('VITE_API_BASE_URL'),
-  googleClientId: requireEnv('VITE_GOOGLE_CLIENT_ID'),
 } as const

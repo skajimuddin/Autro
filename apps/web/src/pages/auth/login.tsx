@@ -8,7 +8,7 @@
 // it is Google's brand asset, not a design-system colour, and is one of the two
 // documented exceptions to "never hard-code a hex" in DESIGN.md.
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate, type Location } from 'react-router'
 import { Box, Button, Stack, Typography } from '@mui/material'
 
 import { getToken, redirectToGoogleLogin } from '@/lib/auth'
@@ -41,7 +41,15 @@ function GoogleMark(): React.JSX.Element {
 
 export default function LoginPage(): React.JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const alreadyLoggedIn = Boolean(getToken())
+
+  // RequireAuth (App.tsx) bounces an unauthenticated visitor here with the
+  // page they were headed to in router state — carry it through the OAuth
+  // round trip so /auth/callback can send them on to it instead of always
+  // landing on the dashboard.
+  const from = (location.state as { from?: Location } | null)?.from
+  const returnTo = from ? `${from.pathname}${from.search}` : undefined
 
   useEffect(() => {
     if (alreadyLoggedIn) {
@@ -81,7 +89,7 @@ export default function LoginPage(): React.JSX.Element {
               variant="contained"
               fullWidth
               startIcon={<GoogleMark />}
-              onClick={redirectToGoogleLogin}
+              onClick={() => redirectToGoogleLogin(returnTo)}
               sx={{ height: 48, fontSize: 14 }}
             >
               Continue with Google

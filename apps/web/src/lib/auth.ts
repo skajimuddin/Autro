@@ -32,9 +32,18 @@ export function clearToken(): void {
  * The backend handles the redirect to Google and manages the callback.
  *
  * This keeps OAuth secrets on the server (not exposed to the browser).
+ *
+ * `returnTo` is an optional same-origin path — where the app should land the
+ * visitor after a successful login (an invite link, a page they were
+ * bounced from by RequireAuth). It round-trips through Google as the OAuth
+ * `state` param and comes back on /auth/callback's query string, where it's
+ * only ever treated as a path (never a full URL), so it can't be used to
+ * bounce someone off-site.
  */
-export function redirectToGoogleLogin(): void {
-  window.location.href = `${config.apiBaseUrl}/auth/google`
+export function redirectToGoogleLogin(returnTo?: string): void {
+  const url = new URL(`${config.apiBaseUrl}/auth/google`)
+  if (returnTo) url.searchParams.set('state', returnTo)
+  window.location.href = url.toString()
 }
 
 /**

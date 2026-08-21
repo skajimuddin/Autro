@@ -33,14 +33,21 @@ cd apps/api && wrangler deploy          # API → api.autro.zeonweb.com
 The frontend build output is `apps/web/dist` — deploy it wherever you host it
 (Pages/Netlify/etc). Its config is committed in `apps/web/.env.production`:
 
-| Variable                | Value                                      |
-| ----------------------- | ------------------------------------------- |
-| `VITE_API_BASE_URL`     | `https://api.autro.zeonweb.com`            |
-| `VITE_GOOGLE_CLIENT_ID` | `790736114811-…apps.googleusercontent.com` |
+| Variable            | Value                            |
+| ------------------- | --------------------------------- |
+| `VITE_API_BASE_URL` | `https://api.autro.zeonweb.com` |
 
-Both are public by nature (the client ID is visible in any browser), so they
-live in the repo rather than in secrets. If the Worker URL ever changes, edit
-that file — the frontend throws on boot if either is missing, by design.
+It's public by nature (visible in any browser), so it lives in the repo
+rather than in secrets. If the Worker URL ever changes, edit that file — the
+frontend throws on boot if it's missing, by design.
+
+The Google OAuth client ID lives only on the backend (`GOOGLE_CLIENT_ID`
+below) — the frontend never builds a Google URL itself, it always redirects
+through `GET /auth/google`, so it has no need for its own copy. (Previously
+the frontend also carried `VITE_GOOGLE_CLIENT_ID` for a one-off OAuth URL on
+the invite-accept screen; that screen now goes through the same backend
+redirect as every other login, so the var was dropped — safe to remove from
+your deploy's env if you had it set.)
 
 ### Database migrations
 
@@ -96,8 +103,8 @@ npm run dev:api                                     # :8787
 npm run dev:web                                     # :5173
 ```
 
-`apps/web` needs a `.env.local` with `VITE_API_BASE_URL=http://localhost:8787`
-and your `VITE_GOOGLE_CLIENT_ID`. It is gitignored.
+`apps/web` needs a `.env.local` with `VITE_API_BASE_URL=http://localhost:8787`.
+It is gitignored.
 
 ---
 

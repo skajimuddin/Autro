@@ -34,7 +34,10 @@ export default function AuthCallbackPage(): React.JSX.Element {
         // `state` carries where the user was headed before login — an invite
         // link, usually. Only same-origin paths, so it cannot be used to
         // bounce someone off-site.
-        if (state && state.startsWith('/')) {
+        // `//evil.com` also passes a bare startsWith('/') check — browsers
+        // (and some router/history implementations) treat a leading `//` as
+        // scheme-relative, i.e. an off-site redirect. Reject it explicitly.
+        if (state && state.startsWith('/') && !state.startsWith('//')) {
           void navigate(state, { replace: true })
         } else {
           void navigate('/', { replace: true })

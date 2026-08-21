@@ -20,13 +20,13 @@ import BlockIcon from '@mui/icons-material/BlockRounded'
 import LinkOffIcon from '@mui/icons-material/LinkOffRounded'
 
 import { apiFetch } from '@/lib/api'
+import { redirectToGoogleLogin } from '@/lib/auth'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { EmptyPanel } from '@/components/ui/empty-panel'
 import { Kicker } from '@/components/ui/kicker'
 import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
-import { config } from '@/lib/config'
 
 interface InviteDetails {
   garage_name: string
@@ -83,16 +83,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
 
   /** Google consent, carrying this invite path as `state` so the callback
    *  returns the visitor here rather than to the dashboard. */
-  const signIn = (): void => {
-    const url =
-      'https://accounts.google.com/o/oauth2/v2/auth?' +
-      `client_id=${config.googleClientId}` +
-      `&redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}` +
-      '&response_type=code' +
-      `&scope=${encodeURIComponent('openid email profile')}` +
-      `&state=${encodeURIComponent(`/invite/${token}`)}`
-    window.location.href = url
-  }
+  const signIn = (): void => redirectToGoogleLogin(`/invite/${token}`)
 
   if (isLoading) return <FullPageSpinner />
 

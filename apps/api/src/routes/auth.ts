@@ -36,6 +36,12 @@ auth.get('/google', (c) => {
     prompt: 'select_account',
   })
 
+  // Optional caller-supplied return path — Google echoes `state` back
+  // untouched on the callback redirect, so the frontend can send the visitor
+  // back to the invite link or page that sent them to /login.
+  const state = c.req.query('state')
+  if (state) params.set('state', state)
+
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   return c.redirect(googleAuthUrl)
 })

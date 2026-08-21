@@ -6,9 +6,26 @@ import { validateR2Env } from '@/env'
 
 const uploadRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
+// This is a photo upload endpoint — vehicle condition photos, nothing else.
+// The extension in the R2 key is derived from this map, never from the
+// caller-supplied filename: a filename's "extension" is just whatever
+// follows the last dot, and an attacker who controls that string controls
+// a chunk of the object key (e.g. `filename: '../../x'` → ext `../../x`).
+// Content-type is restricted to the same set so the bucket can't be used to
+// host arbitrary files (an HTML upload served back with an attacker-chosen
+// content-type is a stored-XSS vector on the R2 public host).
+const EXTENSION_BY_CONTENT_TYPE: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+}
+
 const PresignRequestSchema = z.object({
-  filename: z.string().min(1),
-  content_type: z.string().min(1),
+  content_type: z.enum(
+    Object.keys(EXTENSION_BY_CONTENT_TYPE) as [string, ...string[]],
+    { message: 'content_type must be one of: ' + Object.keys(EXTENSION_BY_CONTENT_TYPE).join(', ') },
+  ),
 })
 
 uploadRouter.post('/presign', async (c) => {
@@ -27,7 +44,7 @@ uploadRouter.post('/presign', async (c) => {
     )
   }
 
-  const ext = parsed.data.filename.split('.').pop()
+  const ext = EXTENSION_BY_CONTENT_TYPE[parsed.data.content_type]
   const fileKey = `${tenantId}/${crypto.randomUUID()}.${ext}`
 
   const aws = new AwsClient({

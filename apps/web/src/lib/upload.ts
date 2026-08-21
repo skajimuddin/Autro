@@ -37,7 +37,6 @@ export async function uploadVehiclePhoto(
   const presigned = await apiFetch<PresignResponse>('/upload/presign', {
     method: 'POST',
     body: JSON.stringify({
-      filename: payload.name || 'photo.jpg',
       content_type: payload.type || 'image/jpeg',
     }),
     tenantId,
