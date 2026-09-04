@@ -22,6 +22,7 @@ import ErrorIcon from '@mui/icons-material/ErrorOutlineRounded'
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { Field } from '@/components/ui/field'
+import { isMobileDevice } from '@/lib/device'
 
 const onboardingSchema = z.object({
   name: z.string().min(1, 'Garage name is required').max(100, 'Name too long'),
@@ -47,6 +48,9 @@ export default function OnboardingPage(): React.JSX.Element {
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Computed once — the device an owner is on does not change mid-session,
+  // and re-checking on every render would just flicker the button.
+  const [onMobile] = useState(isMobileDevice)
 
   const captureLocation = (): void => {
     if (!navigator.geolocation) {
@@ -173,33 +177,45 @@ export default function OnboardingPage(): React.JSX.Element {
                   will fail.
                 </Typography>
 
-                <Button
-                  id="set-location-btn"
-                  type="button"
-                  variant="outlined"
-                  fullWidth
-                  disabled={locationStatus === 'loading'}
-                  onClick={captureLocation}
-                  startIcon={
-                    locationStatus === 'loading' ? <CircularProgress size={15} color="inherit" />
-                    : locationStatus === 'set' ? <CheckIcon />
-                    : locationStatus === 'error' ? <ErrorIcon />
-                    : <PinIcon />
-                  }
-                  sx={(t) => ({
-                    height: 46,
-                    borderStyle: locationStatus === 'idle' ? 'dashed' : 'solid',
-                    borderColor: `${locationTone}.main`,
-                    color: `${locationTone}.main`,
-                    bgcolor: locationTone === 'primary' ? 'transparent' : alpha(t.palette[locationTone].main, 0.1),
-                    '&:hover': { borderColor: `${locationTone}.main` },
-                  })}
-                >
-                  {locationStatus === 'loading' && 'Getting location…'}
-                  {locationStatus === 'set' && `Location set (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`}
-                  {locationStatus === 'error' && 'Could not get location — tap to retry'}
-                  {locationStatus === 'idle' && 'Set workshop location'}
-                </Button>
+                {onMobile ? (
+                  <Button
+                    id="set-location-btn"
+                    type="button"
+                    variant="outlined"
+                    fullWidth
+                    disabled={locationStatus === 'loading'}
+                    onClick={captureLocation}
+                    startIcon={
+                      locationStatus === 'loading' ? <CircularProgress size={15} color="inherit" />
+                      : locationStatus === 'set' ? <CheckIcon />
+                      : locationStatus === 'error' ? <ErrorIcon />
+                      : <PinIcon />
+                    }
+                    sx={(t) => ({
+                      height: 46,
+                      borderStyle: locationStatus === 'idle' ? 'dashed' : 'solid',
+                      borderColor: `${locationTone}.main`,
+                      color: `${locationTone}.main`,
+                      bgcolor: locationTone === 'primary' ? 'transparent' : alpha(t.palette[locationTone].main, 0.1),
+                      '&:hover': { borderColor: `${locationTone}.main` },
+                    })}
+                  >
+                    {locationStatus === 'loading' && 'Getting location…'}
+                    {locationStatus === 'set' && `Location set (${latitude?.toFixed(4)}, ${longitude?.toFixed(4)})`}
+                    {locationStatus === 'error' && 'Could not get location — tap to retry'}
+                    {locationStatus === 'idle' && 'Set workshop location'}
+                  </Button>
+                ) : (
+                  // Desktop/laptop: no button at all. Offering one that produces
+                  // a bad fix (and then blames the owner for every failed
+                  // check-in) is worse than not offering it — this can only be
+                  // done from the phone, later, from Settings → Location.
+                  <Alert severity="warning" icon={<PinIcon sx={{ fontSize: 18 }} />} sx={{ borderRadius: 2, fontSize: 12.5 }}>
+                    You're on a desktop or laptop. Open Autro on your <strong>phone</strong>, standing
+                    inside the workshop, and set the location from Settings — you can finish the rest
+                    of this setup here and do that afterwards.
+                  </Alert>
+                )}
               </Box>
             </Stack>
           </Card>

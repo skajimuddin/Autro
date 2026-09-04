@@ -133,18 +133,39 @@ attendanceRouter.post('/checkin', async (c) => {
     return c.json({ error: { code: 'BAD_REQUEST', message: 'Already checked in today' } }, 400)
   }
 
-  // Verify GPS
+  // Verify GPS — always, no opt-out. A garage with no workshop location set
+  // cannot geofence a check-in at all, so rather than silently letting one
+  // through unchecked (the previous behaviour: the `if` below was skipped
+  // whenever any of lat/lng/radius was unset), check-in is refused outright
+  // until the owner sets a location. That has to happen from a phone
+  // standing in the workshop (see lib/device.ts on the frontend) — it is
+  // never accepted from the API without a real fix either.
   const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).get()
-  if (tenant && tenant.latitude && tenant.longitude && tenant.gps_radius_meters) {
-    const dist = getDistanceFromLatLonInM(
-      parsed.data.latitude,
-      parsed.data.longitude,
-      tenant.latitude,
-      tenant.longitude,
+  if (!tenant || tenant.latitude == null || tenant.longitude == null) {
+    return c.json(
+      {
+        error: {
+          code: 'BAD_REQUEST',
+          message:
+            'Workshop location is not set. Ask the owner to set it from their phone (Settings → Location) before staff can check in.',
+        },
+      },
+      400,
     )
-    if (dist > tenant.gps_radius_meters) {
-      return c.json({ error: { code: 'FORBIDDEN', message: 'You are not at the autro' } }, 403)
-    }
+  }
+
+  const radius = tenant.gps_radius_meters ?? 100
+  const dist = getDistanceFromLatLonInM(
+    parsed.data.latitude,
+    parsed.data.longitude,
+    tenant.latitude,
+    tenant.longitude,
+  )
+  if (dist > radius) {
+    return c.json(
+      { error: { code: 'FORBIDDEN', message: 'You are not at the workshop. Move closer and try again.' } },
+      403,
+    )
   }
 
   await db.insert(attendance_logs).values({
@@ -210,6 +231,35 @@ attendanceRouter.post('/checkout', async (c) => {
 
   if (!existing) {
     return c.json({ error: { code: 'BAD_REQUEST', message: 'Not checked in today' } }, 400)
+  }
+
+  // Same mandatory geofence as check-in (previously checkout recorded
+  // whatever GPS fix it was given with no distance check at all — a staff
+  // member could check out from anywhere).
+  const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).get()
+  if (!tenant || tenant.latitude == null || tenant.longitude == null) {
+    return c.json(
+      {
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Workshop location is not set. Ask the owner to set it from their phone in Settings.',
+        },
+      },
+      400,
+    )
+  }
+  const radius = tenant.gps_radius_meters ?? 100
+  const dist = getDistanceFromLatLonInM(
+    parsed.data.latitude,
+    parsed.data.longitude,
+    tenant.latitude,
+    tenant.longitude,
+  )
+  if (dist > radius) {
+    return c.json(
+      { error: { code: 'FORBIDDEN', message: 'You are not at the workshop. Move closer and try again.' } },
+      403,
+    )
   }
 
   await db
