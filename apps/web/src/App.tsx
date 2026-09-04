@@ -25,7 +25,12 @@ import StaffProfilePage from '@/pages/staff/profile'
 import StaffAttendancePage from '@/pages/staff/attendance'
 import StaffCheckinPage from '@/pages/staff/checkin'
 import InviteAcceptPage from '@/pages/invite/accept'
-import SettingsPage from '@/pages/settings/index'
+import SettingsHubPage from '@/pages/settings/index'
+import SettingsGaragePage from '@/pages/settings/garage'
+import SettingsLocationPage from '@/pages/settings/location'
+import SettingsPayrollPage from '@/pages/settings/payroll'
+import SettingsPdfTemplatePage from '@/pages/settings/pdf-template'
+import SettingsAccountPage from '@/pages/settings/account'
 import { FullPageSpinner } from '@/components/ui/loading'
 
 // ── Route guard: requires authentication ──────────────────────────────────────
@@ -117,7 +122,12 @@ function AppRoutes(): React.JSX.Element {
           </Route>
 
           {/* Settings */}
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<SettingsHubPage />} />
+          <Route path="/settings/garage" element={<SettingsGaragePage />} />
+          <Route path="/settings/location" element={<SettingsLocationPage />} />
+          <Route path="/settings/payroll" element={<SettingsPayrollPage />} />
+          <Route path="/settings/pdf" element={<SettingsPdfTemplatePage />} />
+          <Route path="/settings/account" element={<SettingsAccountPage />} />
         </Route>
       </Route>
 
