@@ -18,6 +18,8 @@ import AddIcon from '@mui/icons-material/AddRounded'
 import DeleteIcon from '@mui/icons-material/DeleteOutlineRounded'
 import SaveIcon from '@mui/icons-material/SaveOutlined'
 import ArrowIcon from '@mui/icons-material/ArrowForwardRounded'
+import PdfIcon from '@mui/icons-material/PictureAsPdfOutlined'
+import ShareIcon from '@mui/icons-material/IosShareRounded'
 
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
@@ -27,6 +29,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
 import { inr } from '@/lib/format'
+import { downloadEstimatePdf } from '@/lib/pdf'
 
 interface EstimateItem {
   id: string
@@ -46,6 +49,9 @@ interface EstimateDetail {
   tax_percent: number
   notes: string | null
   status: string
+  registration_number?: string
+  customer_name?: string
+  customer_phone?: string
 }
 
 interface DraftItem {
@@ -116,6 +122,61 @@ export default function EstimateEditorPage(): React.JSX.Element {
   const updateItem = useCallback((tempId: string, field: keyof DraftItem, value: string) => {
     setItems((prev) => prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)))
   }, [])
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+
+  // The heavy @react-pdf/renderer import lives in lib/pdf.ts so it only
+  // downloads when this actually runs.
+  const downloadPdf = useCallback(async () => {
+    if (!tenant) {
+      showToast('error', 'Garage details are still loading. Try again.')
+      return
+    }
+    setIsGeneratingPdf(true)
+    try {
+      await downloadEstimatePdf({
+        reference: (existing?.id ?? id ?? 'draft').slice(0, 8).toUpperCase(),
+        date: new Date().toISOString(),
+        garage: { name: tenant.name, phone: tenant.phone, address: tenant.address, logo_url: tenant.logo_url },
+        template: tenant.pdf_template,
+        customer: {
+          name: existing?.customer_name ?? '—',
+          phone: existing?.customer_phone ?? '—',
+          registration: existing?.registration_number ?? '—',
+        },
+        items: items.map((i) => ({
+          description: i.description,
+          amount: Number(i.amount) || 0,
+          quantity: Number(i.quantity) || 1,
+        })),
+        subtotal,
+        taxEnabled,
+        taxPercent: Number(taxPercent) || 0,
+        taxAmount,
+        discountAmount,
+        total: grandTotal,
+        notes: existing?.notes ?? null,
+      })
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : 'Could not generate the PDF')
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }, [tenant, existing, id, items, subtotal, taxEnabled, taxPercent, taxAmount, discountAmount, grandTotal, showToast])
+
+  const share = useCallback(async () => {
+    const text = `Quotation from ${tenant?.name ?? 'the workshop'}:\nTotal: ${inr(grandTotal)}\n\nLet us know if you'd like to go ahead.`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Quotation from ${tenant?.name ?? 'the workshop'}`, text })
+        return
+      } catch (err) {
+        // A cancelled share is not a failure.
+        if ((err as Error).name === 'AbortError') return
+      }
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+  }, [tenant?.name, grandTotal])
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -301,6 +362,29 @@ export default function EstimateEditorPage(): React.JSX.Element {
             </Stack>
           </Stack>
         </SectionCard>
+
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            id="estimate-share-whatsapp"
+            variant="outlined"
+            startIcon={<ShareIcon />}
+            disabled={!hasItems}
+            onClick={() => void share()}
+            sx={{ flex: 1, height: 46 }}
+          >
+            Share
+          </Button>
+          <Button
+            id="estimate-download-pdf"
+            variant="outlined"
+            startIcon={<PdfIcon />}
+            disabled={isGeneratingPdf || !hasItems}
+            onClick={() => void downloadPdf()}
+            sx={{ flex: 1, height: 46 }}
+          >
+            {isGeneratingPdf ? 'Building…' : 'PDF'}
+          </Button>
+        </Stack>
 
         <Stack spacing={1.5}>
           <Button

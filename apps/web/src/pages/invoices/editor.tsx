@@ -160,7 +160,8 @@ export default function InvoiceEditorPage(): React.JSX.Element {
       await downloadInvoicePdf({
         reference: (existing?.id ?? id ?? 'draft').slice(0, 8).toUpperCase(),
         date: new Date().toISOString(),
-        garage: { name: tenant.name, phone: tenant.phone, address: tenant.address },
+        garage: { name: tenant.name, phone: tenant.phone, address: tenant.address, logo_url: tenant.logo_url },
+        template: tenant.pdf_template,
         customer: {
           name: existing?.customer_name ?? '—',
           phone: existing?.customer_phone ?? '—',

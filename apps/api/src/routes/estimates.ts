@@ -215,6 +215,7 @@ estimatesRouter.get('/:id', async (c) => {
     items,
     registration_number: vehicle?.registration_number,
     customer_name: customer?.name,
+    customer_phone: customer?.phone,
   })
 })
 
