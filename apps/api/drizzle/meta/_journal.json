@@ -64,6 +64,13 @@
       "when": 1788561736601,
       "tag": "0008_secret_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788562545251,
+      "tag": "0009_large_swordsman",
+      "breakpoints": true
     }
   ]
 }

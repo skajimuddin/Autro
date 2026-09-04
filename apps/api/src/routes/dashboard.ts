@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { and, eq, gte, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, isNotNull, isNull, lte, sql } from 'drizzle-orm'
 import type { Env, Variables } from '@/env'
-import { service_visits, invoices } from '@/db/schema'
+import { service_visits, invoices, vehicles, customers } from '@/db/schema'
 
 const dashboardRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -78,6 +78,45 @@ dashboardRouter.get('/stats', async (c) => {
     revenue_today,
     unpaid_invoices,
   })
+})
+
+// GET /dashboard/service-reminders — vehicles due back within 14 days
+// (including already-overdue ones), soonest first. A cheap, zero-dependency
+// alternative to a full service-scheduling system: the owner sets a date
+// from the vehicle screen when closing out a job, and this is where it
+// resurfaces so it isn't just a field nobody looks at again.
+dashboardRouter.get('/service-reminders', async (c) => {
+  const tenantId = c.get('tenantId')
+  const db = drizzle(c.env.DB)
+
+  const horizon = new Date()
+  horizon.setDate(horizon.getDate() + 14)
+  const horizonStr = horizon.toISOString().slice(0, 10)
+
+  const rows = await db
+    .select({
+      id: vehicles.id,
+      registration_number: vehicles.registration_number,
+      name: vehicles.name,
+      next_service_due_at: vehicles.next_service_due_at,
+      customer_name: customers.name,
+      customer_phone: customers.phone,
+    })
+    .from(vehicles)
+    .innerJoin(customers, eq(vehicles.customer_id, customers.id))
+    .where(
+      and(
+        eq(vehicles.tenant_id, tenantId),
+        isNull(vehicles.deleted_at),
+        isNotNull(vehicles.next_service_due_at),
+        lte(vehicles.next_service_due_at, horizonStr),
+      ),
+    )
+    .orderBy(asc(vehicles.next_service_due_at))
+    .limit(20)
+    .all()
+
+  return c.json({ reminders: rows })
 })
 
 export default dashboardRouter

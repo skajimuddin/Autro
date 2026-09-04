@@ -31,13 +31,16 @@ import {
   Skeleton,
   IconButton,
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import AddIcon from '@mui/icons-material/Add'
 import SettingsIcon from '@mui/icons-material/SettingsOutlined'
 import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
+import EventIcon from '@mui/icons-material/EventOutlined'
+import ShareIcon from '@mui/icons-material/IosShareRounded'
 
 import { apiFetch } from '@/lib/api'
-import { inr, formatTime } from '@/lib/format'
+import { inr, formatTime, formatDayMonth } from '@/lib/format'
 import { useAuth } from '@/providers/auth-provider'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
@@ -64,6 +67,15 @@ interface StaffRow {
   role: 'OWNER' | 'STAFF'
   attendance_status: 'PRESENT' | 'ABSENT' | 'NOT_YET'
   check_in_at: string | null
+}
+
+interface ServiceReminder {
+  id: string
+  registration_number: string
+  name: string | null
+  next_service_due_at: string
+  customer_name: string
+  customer_phone: string
 }
 
 /** Enough rows to see the shape of the day without becoming the list page. */
@@ -116,6 +128,13 @@ export default function DashboardPage(): React.JSX.Element {
   })
   const staff = staffData?.staff ?? []
   const presentCount = staff.filter((s) => s.attendance_status === 'PRESENT').length
+
+  const { data: remindersData } = useQuery<{ reminders: ServiceReminder[] }>({
+    queryKey: ['dashboard', 'service-reminders', tenant?.id],
+    queryFn: () => apiFetch<{ reminders: ServiceReminder[] }>('/dashboard/service-reminders', { tenantId: tenant?.id }),
+    enabled: Boolean(tenant?.id) && isOwner,
+  })
+  const reminders = remindersData?.reminders ?? []
 
   // App Badging API
   useEffect(() => {
@@ -345,6 +364,60 @@ export default function DashboardPage(): React.JSX.Element {
             </SectionCard>
           )}
         </Box>
+
+        {/* ── Upcoming service reminders (owner only) ─────────────────── */}
+        {/* Only rendered when there's something to show — an owner who has
+            never set a reminder should see nothing here, not an empty card. */}
+        {isOwner && reminders.length > 0 && (
+          <SectionCard id="dashboard-service-reminders" title="Upcoming service reminders">
+            {reminders.map((r, i) => (
+              <Box key={r.id}>
+                {i > 0 && <Divider />}
+                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2.25, py: 1.5 }}>
+                  <Box
+                    sx={(t) => ({
+                      width: 34,
+                      height: 34,
+                      borderRadius: 1.5,
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                      bgcolor:
+                        r.next_service_due_at <= new Date().toISOString().slice(0, 10)
+                          ? alpha(t.palette.warning.main, 0.14)
+                          : alpha(t.palette.text.primary, 0.06),
+                      color:
+                        r.next_service_due_at <= new Date().toISOString().slice(0, 10)
+                          ? t.palette.warning.main
+                          : t.palette.text.secondary,
+                    })}
+                  >
+                    <EventIcon sx={{ fontSize: 17 }} />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
+                      {r.registration_number} {r.name ? `· ${r.name}` : ''}
+                    </Typography>
+                    <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                      {r.customer_name} · due {formatDayMonth(r.next_service_due_at)}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    aria-label={`Remind ${r.customer_name} on WhatsApp`}
+                    size="small"
+                    onClick={() => {
+                      const text = `Hi ${r.customer_name}, this is a reminder from ${tenant?.name ?? 'your workshop'} that your ${r.name ?? 'vehicle'} (${r.registration_number}) is due for its next service around ${formatDayMonth(r.next_service_due_at)}. Reply to book a slot!`
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+                    }}
+                    sx={{ color: 'text.disabled', flexShrink: 0 }}
+                  >
+                    <ShareIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Stack>
+              </Box>
+            ))}
+          </SectionCard>
+        )}
       </Box>
     </PageShell>
   )

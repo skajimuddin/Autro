@@ -99,6 +99,10 @@ export const vehicles = sqliteTable(
       .references(() => customers.id),
     registration_number: text('registration_number').notNull(),
     name: text('name'),
+    // YYYY-MM-DD. Set by the owner from the vehicle detail screen (e.g. when
+    // closing out a job — "come back for an oil change in 3 months"). NULL =
+    // no reminder set; surfaced on the dashboard once it's due within 14 days.
+    next_service_due_at: text('next_service_due_at'),
     created_at: text('created_at').notNull(),
     updated_at: text('updated_at').notNull(),
     deleted_at: text('deleted_at'), // Soft delete

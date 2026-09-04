@@ -27,6 +27,7 @@ import {
   CircularProgress,
   Divider,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
@@ -37,6 +38,8 @@ import ReceiptIcon from '@mui/icons-material/ReceiptOutlined'
 import AddPhotoIcon from '@mui/icons-material/AddAPhotoOutlined'
 import CheckIcon from '@mui/icons-material/CheckRounded'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import EventIcon from '@mui/icons-material/EventOutlined'
+import ShareIcon from '@mui/icons-material/IosShareRounded'
 import type { VisitStatus } from '@autro/shared'
 
 import { apiFetch } from '@/lib/api'
@@ -83,6 +86,7 @@ interface VehicleDetail {
   estimate_total: number | null
   invoice_id: string | null
   invoice_total: number | null
+  next_service_due_at: string | null
   created_at: string
 }
 
@@ -137,6 +141,21 @@ export default function VehicleDetailsPage(): React.JSX.Element {
       queryClient.invalidateQueries({ queryKey: ['vehicle', id] })
     },
     onError: (err: Error) => showToast('error', err.message || 'Could not add the photo'),
+  })
+
+  const reminderMutation = useMutation({
+    mutationFn: (next_service_due_at: string | null) =>
+      apiFetch(`/vehicles/${id}/service-reminder`, {
+        method: 'PATCH',
+        body: JSON.stringify({ next_service_due_at }),
+        tenantId: tenant?.id,
+      }),
+    onSuccess: () => {
+      showToast('success', 'Service reminder saved')
+      queryClient.invalidateQueries({ queryKey: ['vehicle', id] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    },
+    onError: (err: Error) => showToast('error', err.message || 'Could not save the reminder'),
   })
 
   if (isLoading) return <FullPageSpinner />
@@ -333,6 +352,39 @@ export default function VehicleDetailsPage(): React.JSX.Element {
             <Spec label="In shop since" value={formatDayMonth(vehicle.visit_started_at)} />
             <Divider />
             <Spec label="First seen" value={formatFullDate(vehicle.created_at)} />
+          </SectionCard>
+
+          {/* ── Service reminder ────────────────────────────────────── */}
+          <SectionCard id="vehicle-reminder" title="Service reminder" padded>
+            <Stack spacing={1.5}>
+              <TextField
+                id="vehicle-reminder-date"
+                type="date"
+                size="small"
+                fullWidth
+                value={vehicle.next_service_due_at ?? ''}
+                onChange={(e) => reminderMutation.mutate(e.target.value || null)}
+                disabled={reminderMutation.isPending}
+                InputProps={{ startAdornment: <EventIcon sx={{ fontSize: 17, mr: 1, color: 'text.disabled' }} /> }}
+              />
+              {vehicle.next_service_due_at && (
+                <Button
+                  id="vehicle-reminder-whatsapp"
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ShareIcon sx={{ fontSize: 15 }} />}
+                  onClick={() => {
+                    const text = `Hi ${vehicle.customer_name}, this is a reminder from ${tenant?.name ?? 'your workshop'} that your ${vehicle.name ?? 'vehicle'} (${vehicle.registration_number}) is due for its next service around ${formatFullDate(vehicle.next_service_due_at)}. Reply to book a slot!`
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+                  }}
+                >
+                  Remind on WhatsApp
+                </Button>
+              )}
+              <Typography sx={{ fontSize: 11, color: 'text.disabled', lineHeight: 1.5 }}>
+                Shows up on the dashboard once it's within 2 weeks of this date.
+              </Typography>
+            </Stack>
           </SectionCard>
         </Stack>
       </Box>

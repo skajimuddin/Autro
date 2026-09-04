@@ -1,0 +1,1 @@
+ALTER TABLE `vehicles` ADD `next_service_due_at` text;

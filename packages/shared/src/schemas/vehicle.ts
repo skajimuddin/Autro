@@ -52,3 +52,14 @@ export const UpdateVisitStatusSchema = z.object({
 export const AddVehicleImageSchema = z.object({
   image_url: z.string().url('Must be a valid URL'),
 })
+
+/**
+ * PATCH /vehicles/:id/service-reminder — set or clear when this vehicle is
+ * next due back. `null` clears it.
+ */
+export const SetServiceReminderSchema = z.object({
+  next_service_due_at: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be a date in YYYY-MM-DD format')
+    .nullable(),
+})

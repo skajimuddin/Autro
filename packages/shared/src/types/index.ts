@@ -20,6 +20,7 @@ import type {
   CreateVehicleSchema,
   UpdateVisitStatusSchema,
   AddVehicleImageSchema,
+  SetServiceReminderSchema,
 } from '../schemas/vehicle'
 
 /** Post-parse shape: `registration_number` is upper-cased and `image_urls`
@@ -28,6 +29,7 @@ export type CreateVehicle = z.infer<typeof CreateVehicleSchema>
 export type CreateVehicleInput = z.input<typeof CreateVehicleSchema>
 export type UpdateVisitStatus = z.infer<typeof UpdateVisitStatusSchema>
 export type AddVehicleImage = z.infer<typeof AddVehicleImageSchema>
+export type SetServiceReminder = z.infer<typeof SetServiceReminderSchema>
 
 // ── Estimate ─────────────────────────────────────────────────────────────────
 import type {

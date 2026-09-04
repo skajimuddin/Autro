@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull, like, or, sql } from 'drizzle-orm'
-import { CreateVehicleSchema, AddVehicleImageSchema } from '@autro/shared'
+import { CreateVehicleSchema, AddVehicleImageSchema, SetServiceReminderSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
@@ -353,8 +353,44 @@ vehiclesRouter.get('/:id', async (c) => {
     estimate_total,
     invoice_id,
     invoice_total,
+    next_service_due_at: vehicle.next_service_due_at,
     created_at: vehicle.created_at,
   })
+})
+
+// PATCH /:id/service-reminder — set or clear the "next due" date the
+// dashboard's upcoming-reminders panel reads.
+vehiclesRouter.patch('/:id/service-reminder', async (c) => {
+  const tenantId = c.get('tenantId')
+  const vehicleId = c.req.param('id')
+  const body = await c.req.json().catch(() => null)
+  const parsed = SetServiceReminderSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return c.json(
+      { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message } },
+      400,
+    )
+  }
+
+  const db = drizzle(c.env.DB)
+
+  const existing = await db
+    .select({ id: vehicles.id })
+    .from(vehicles)
+    .where(and(eq(vehicles.tenant_id, tenantId), eq(vehicles.id, vehicleId), isNull(vehicles.deleted_at)))
+    .get()
+
+  if (!existing) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, 404)
+  }
+
+  await db
+    .update(vehicles)
+    .set({ next_service_due_at: parsed.data.next_service_due_at, updated_at: new Date().toISOString() })
+    .where(and(eq(vehicles.tenant_id, tenantId), eq(vehicles.id, vehicleId)))
+
+  return c.json({ success: true, next_service_due_at: parsed.data.next_service_due_at })
 })
 
 // POST /:id/images
