@@ -8,6 +8,39 @@ gets recorded.
 
 ## ⚠️ Pending — do this before your next deploy
 
+### Two new migrations to apply
+
+`0008_secret_skrulls.sql` (tenant payroll/PDF settings columns) and
+`0009_large_swordsman.sql` (vehicle service-reminder date) — both purely
+additive/nullable, no data at risk:
+
+```bash
+cd apps/api
+wrangler d1 migrations apply autro-db --remote     # --local for the dev copy
+```
+
+### Behaviour change: check-in now requires a workshop location
+
+`POST /attendance/checkin` and `/checkout` used to skip the GPS distance
+check entirely for any garage that hadn't set a workshop location —
+meaning check-in silently worked, unverified, for that garage. That gap is
+now closed: **check-in and check-out are refused outright until the owner
+sets a location** (Settings → Workshop location, from a phone, standing in
+the workshop). If any existing garage on this deploy hasn't set one yet,
+their staff will not be able to check in again until they do — worth a
+heads-up to them before this ships, not after.
+
+### Optional: R2 CORS, for logos to appear in generated PDFs
+
+The garage logo is now embedded into invoice/estimate PDFs by fetching it
+client-side (`fetch(logo_url, { mode: 'cors' })`) and converting it to a
+data URL — `@react-pdf/renderer` can't read a cross-origin image URL
+directly. If the R2 bucket's CORS policy doesn't allow `GET` from the app's
+origin, the fetch fails silently and the PDF still generates, just without
+the logo. To get logos showing up: R2 bucket → Settings → CORS policy →
+allow `GET` from `https://autro.zeonweb.com` (or your web origin). Not
+blocking anything else.
+
 ### CI deploy is broken — production is stale
 
 GitHub Actions has failed the API deploy step on every push since
@@ -58,7 +91,7 @@ your deploy's env if you had it set.)
 
 ### Database migrations
 
-Migrations live in `apps/api/drizzle/` (8 so far) and are **not** applied by
+Migrations live in `apps/api/drizzle/` (10 so far) and are **not** applied by
 `wrangler deploy`. When a release adds one, apply it yourself:
 
 ```bash
@@ -121,6 +154,10 @@ Newest first. Anything here needs an action from you that code alone cannot do.
 
 | Date       | Change                                                                          | Action                             |
 | ---------- | -------------------------------------------------------------------------------- | ------------------------------------ |
+| 2026-09-04 | Migrations 0008 (tenant payroll/PDF settings) + 0009 (vehicle service reminder) added | **Pending** — see above |
+| 2026-09-04 | Check-in/checkout now require a workshop location (previously optional) | **Pending** — see above, tell existing garages |
+| 2026-09-04 | PDF logo embedding needs R2 CORS to allow `GET` from the web origin | **Pending (optional)** — see above |
+| 2026-09-04 | Settings split into 5 pages; new /settings/garage, /location, /payroll, /pdf, /account routes | Done — no action needed |
 | 2026-08-21 | CI deploy started failing (zone permission gap on `CLOUDFLARE_API_TOKEN`) — see [`CI_DEPLOY_FIX.md`](./CI_DEPLOY_FIX.md) | **Pending** — see above |
 | 2026-08-21 | Custom domains live: `autro.zeonweb.com` (web), `api.autro.zeonweb.com` (API). `workers.dev` retired. | Done — see **Pending** above for the one optional cleanup |
 | 2026-08-20 | `R2_PUBLIC_URL` added; the R2 host is no longer hardcoded in `upload.ts`        | Done — secret is set                |
