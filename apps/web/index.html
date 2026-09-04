@@ -5,11 +5,18 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="description" content="Autro — Garage Management for Small Autros" />
     <!-- Keep in sync with BRAND.light in src/theme.ts — this is a static
          HTML file so it can't import the module directly. -->
     <meta name="theme-color" content="#3560c0" />
+    <!-- iOS ignores manifest.json's display:standalone entirely — these are
+         the only way a Home Screen launch there gets a real full-screen app
+         (no Safari chrome) instead of opening back in the browser. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Autro" />
     <title>Autro</title>
   </head>
   <body>

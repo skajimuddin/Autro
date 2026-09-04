@@ -1,6 +1,9 @@
 {
+  "id": "/",
   "short_name": "Autro",
   "name": "Autro Garage Management",
+  "description": "Multi-tenant garage/workshop management — vehicles, estimates, invoices, staff attendance and payroll.",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -29,5 +32,5 @@
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
-  "theme_color": "#2563eb"
+  "theme_color": "#3560c0"
 }

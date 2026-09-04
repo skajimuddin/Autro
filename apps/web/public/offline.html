@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#3560c0" />
+    <title>Autro — Offline</title>
+    <style>
+      /* Standalone page — the service worker serves this when a navigation
+         fails offline and nothing for that page is cached yet. It cannot
+         depend on the app's JS bundle or self-hosted font (whichever isn't
+         cached yet is exactly what's unavailable right now), so this is
+         plain HTML/CSS matching the brand by hand, not a route inside the
+         React app. Colours match apps/web/src/theme.ts BRAND/NEUTRAL — keep
+         them in sync if that palette moves. */
+      :root {
+        color-scheme: light dark;
+        --brand: #3560c0;
+        --canvas: #f6f7f9;
+        --paper: #ffffff;
+        --line: #e4e7ec;
+        --ink: #15181d;
+        --ink2: #5b6473;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand: #8dabf0;
+          --canvas: #121417;
+          --paper: #191c20;
+          --line: #262a30;
+          --ink: #e9ecf1;
+          --ink2: #9aa3b2;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        text-align: center;
+      }
+      .card {
+        max-width: 360px;
+        width: 100%;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 32px 28px;
+      }
+      .mark {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: var(--brand);
+        display: grid;
+        place-items: center;
+        margin: 0 auto 18px;
+      }
+      .mark svg { width: 26px; height: 26px; }
+      h1 { font-size: 18px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+      p { font-size: 13.5px; line-height: 1.6; color: var(--ink2); margin: 0 0 22px; }
+      button {
+        appearance: none;
+        border: none;
+        width: 100%;
+        height: 44px;
+        border-radius: 8px;
+        background: var(--brand);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+      }
+      button:active { opacity: 0.85; }
+      .hint { margin-top: 16px; font-size: 11.5px; color: var(--ink2); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      </div>
+      <h1>You're offline</h1>
+      <p>This page needs a connection and hasn't been opened on this device before, so there's nothing saved to show. Screens you've already visited still work offline.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+      <div class="hint">Autro reconnects automatically once you're back online.</div>
+    </div>
+  </body>
+</html>
