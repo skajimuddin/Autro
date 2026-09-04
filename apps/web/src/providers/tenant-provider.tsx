@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { PdfTemplate, SalaryBasis } from '@autro/shared'
 import { useAuth } from '@/providers/auth-provider'
 import { apiFetch } from '@/lib/api'
 
@@ -15,6 +16,12 @@ interface Tenant {
   latitude: number | null
   longitude: number | null
   gps_radius_meters: number | null
+  /** Weekly-off pattern, 0=Sun..6=Sat. Always populated — the API defaults it. */
+  work_days: number[]
+  salary_basis: SalaryBasis
+  salary_fixed_divisor: number | null
+  /** Invoice/estimate PDF customisation. Always populated — the API defaults it. */
+  pdf_template: PdfTemplate
   created_at: string
   updated_at: string
 }

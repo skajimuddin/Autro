@@ -12,6 +12,9 @@ import type { CreateTenantSchema, UpdateTenantSchema } from '../schemas/tenant'
 export type CreateTenant = z.infer<typeof CreateTenantSchema>
 export type UpdateTenant = z.infer<typeof UpdateTenantSchema>
 
+// ── PDF template ─────────────────────────────────────────────────────────────
+export type { PdfTemplate } from '../schemas/pdf-template'
+
 // ── Vehicle ──────────────────────────────────────────────────────────────────
 import type {
   CreateVehicleSchema,

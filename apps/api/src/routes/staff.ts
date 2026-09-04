@@ -2,11 +2,12 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, eq, isNull, like } from 'drizzle-orm'
 import { attendance_logs } from '@/db/schema'
-import { CreateStaffInviteSchema, UpdateStaffSchema } from '@autro/shared'
+import { CreateStaffInviteSchema, UpdateStaffSchema, workingDaysInMonth } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
 import { staff_invites, tenant_members, users, tenants } from '@/db/schema'
+import { parseWorkDays, parseSalaryBasis } from '@/lib/tenant-settings'
 
 export const publicStaffRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -190,10 +191,28 @@ staffRouter.get('/:id', async (c) => {
     }
   }
 
-  // Use days in the current month as total working days
+  // Total working days respects the garage's own weekly-off + salary-basis
+  // configuration (Settings → Attendance & payroll) rather than assuming
+  // every calendar day is payable — see packages/shared/constants/payroll.ts.
+  const tenant = await db
+    .select({
+      work_days: tenants.work_days,
+      salary_basis: tenants.salary_basis,
+      salary_fixed_divisor: tenants.salary_fixed_divisor,
+    })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId))
+    .get()
+
   const year = today.getFullYear()
   const month = today.getMonth() + 1
-  const total_working_days = new Date(year, month, 0).getDate()
+  const total_working_days = workingDaysInMonth(
+    year,
+    month,
+    parseWorkDays(tenant?.work_days ?? null),
+    parseSalaryBasis(tenant?.salary_basis ?? null),
+    tenant?.salary_fixed_divisor ?? null,
+  )
 
   return c.json({
     id: member.id,

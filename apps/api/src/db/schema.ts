@@ -27,6 +27,17 @@ export const tenants = sqliteTable('tenants', {
   latitude: real('latitude'), // Autro GPS for attendance
   longitude: real('longitude'), // Autro GPS for attendance
   gps_radius_meters: integer('gps_radius_meters').default(100), // Allowed check-in radius
+  // JSON array of weekday numbers (0=Sun..6=Sat) the garage is open —
+  // drives working-day counts for salary math. NULL = DEFAULT_WORK_DAYS
+  // (Mon-Sat) — see packages/shared/src/constants/payroll.ts.
+  work_days: text('work_days'),
+  // 'ACTUAL_WORKING_DAYS' | 'CALENDAR_DAYS' | 'FIXED_DIVISOR'. NULL defaults
+  // to ACTUAL_WORKING_DAYS at the application layer.
+  salary_basis: text('salary_basis'),
+  // Only read when salary_basis = FIXED_DIVISOR.
+  salary_fixed_divisor: integer('salary_fixed_divisor'),
+  // JSON — invoice/estimate PDF customisation. NULL = DEFAULT_PDF_TEMPLATE.
+  pdf_template: text('pdf_template'),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
   deleted_at: text('deleted_at'), // Soft delete

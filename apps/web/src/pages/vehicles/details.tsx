@@ -40,7 +40,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { VisitStatus } from '@autro/shared'
 
 import { apiFetch } from '@/lib/api'
-import { uploadVehiclePhoto } from '@/lib/upload'
+import { uploadImage } from '@/lib/upload'
 import {
   daysInShop,
   durationLabel,
@@ -125,7 +125,7 @@ export default function VehicleDetailsPage(): React.JSX.Element {
 
   const photoMutation = useMutation({
     mutationFn: async (file: File) => {
-      const imageUrl = await uploadVehiclePhoto(file, tenant?.id)
+      const imageUrl = await uploadImage(file, tenant?.id)
       return apiFetch(`/vehicles/${id}/images`, {
         method: 'POST',
         body: JSON.stringify({ image_url: imageUrl }),

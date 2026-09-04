@@ -1,17 +1,18 @@
-// Photo upload — the one path a picture takes from a phone to a vehicle.
+// Image upload — the one path a picture takes from a phone to R2.
 //
 // Three steps that always go together: shrink the file, ask the API to sign a
-// PUT, upload straight to R2. The Add Vehicle form and the vehicle detail
-// screen both add photos, and the sequence is written once here so they cannot
-// disagree about it (the detail screen previously had an Add photo button with
-// nothing behind it at all).
+// PUT, upload straight to R2. Vehicle photos and the garage logo both go
+// through this (same presign endpoint, same content-type allowlist), and the
+// sequence is written once here so they cannot disagree about it (the vehicle
+// detail screen previously had an Add photo button with nothing behind it at
+// all).
 import { apiFetch } from '@/lib/api'
 import { compressImage } from '@/lib/image'
 
 interface PresignResponse {
   upload_url: string
   /** Where the object will be readable once the PUT lands — this is what gets
-   *  stored against the vehicle. */
+   *  stored against the vehicle/tenant. */
   public_url: string
 }
 
@@ -21,10 +22,7 @@ interface PresignResponse {
  * Throws on failure — callers surface that to the owner rather than leaving a
  * photo silently missing.
  */
-export async function uploadVehiclePhoto(
-  file: File,
-  tenantId: string | undefined,
-): Promise<string> {
+export async function uploadImage(file: File, tenantId: string | undefined): Promise<string> {
   // A modern phone camera produces 4–8 MB per shot. Compression is best-effort:
   // a browser without canvas/webp support still gets the photo uploaded.
   let payload = file

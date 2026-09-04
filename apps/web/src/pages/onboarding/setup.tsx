@@ -23,6 +23,8 @@ import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { Field } from '@/components/ui/field'
 import { isMobileDevice } from '@/lib/device'
+import { LogoUploader } from '@/components/domain/logo-uploader'
+import { useToast, ToastContainer } from '@/components/ui/toast'
 
 const onboardingSchema = z.object({
   name: z.string().min(1, 'Garage name is required').max(100, 'Name too long'),
@@ -38,6 +40,17 @@ type LocationStatus = 'idle' | 'loading' | 'set' | 'error'
 export default function OnboardingPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { refetch } = useTenant()
+  const { toasts, showToast, dismissToast } = useToast()
+
+  // Two steps, not one form: the logo upload needs a real tenant id (the
+  // presign endpoint requires tenant membership), which only exists once
+  // POST /tenants has already succeeded. So the garage is created first,
+  // then this optionally attaches a logo to it before landing on the
+  // dashboard — never blocking garage creation on a photo picker.
+  const [step, setStep] = useState<'details' | 'logo'>('details')
+  const [createdTenantId, setCreatedTenantId] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [isSavingLogo, setIsSavingLogo] = useState(false)
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -93,14 +106,38 @@ export default function OnboardingPage(): React.JSX.Element {
     setErrors({})
     setIsSubmitting(true)
     try {
-      await apiFetch('/tenants', { method: 'POST', body: JSON.stringify(result.data) })
-      refetch()
-      void navigate('/', { replace: true })
+      const { tenant } = await apiFetch<{ tenant: { id: string } }>('/tenants', {
+        method: 'POST',
+        body: JSON.stringify(result.data),
+      })
+      setCreatedTenantId(tenant.id)
+      setStep('logo')
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to create garage. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const finishOnboarding = async (): Promise<void> => {
+    if (logoUrl && createdTenantId) {
+      setIsSavingLogo(true)
+      try {
+        await apiFetch(`/tenants/${createdTenantId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ logo_url: logoUrl }),
+          tenantId: createdTenantId,
+        })
+      } catch {
+        // The garage already exists — a failed logo save shouldn't strand the
+        // owner on this screen. It's addable any time from Settings → Garage.
+        showToast('error', 'Garage created, but the logo did not save. Add it from Settings.')
+      } finally {
+        setIsSavingLogo(false)
+      }
+    }
+    refetch()
+    void navigate('/', { replace: true })
   }
 
   // Colour carries the state: green once captured, red on failure. Semantic,
@@ -121,13 +158,39 @@ export default function OnboardingPage(): React.JSX.Element {
             <GarageIcon sx={{ fontSize: 26 }} />
           </Box>
           <Typography component="h1" sx={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em' }}>
-            Set up your garage
+            {step === 'details' ? 'Set up your garage' : 'Add your logo'}
           </Typography>
           <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6 }}>
-            These details go on your invoices and drive staff attendance.
+            {step === 'details'
+              ? 'These details go on your invoices and drive staff attendance.'
+              : "It'll appear on every invoice and quotation PDF, and in the app header. Optional — add it any time from Settings."}
           </Typography>
         </Stack>
 
+        {step === 'logo' ? (
+          <Card sx={{ p: 3 }}>
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+            <Stack spacing={3}>
+              <LogoUploader
+                value={logoUrl}
+                onChange={setLogoUrl}
+                tenantId={createdTenantId ?? undefined}
+                onError={(message) => showToast('error', message)}
+              />
+              <Button
+                id="onboarding-finish-btn"
+                type="button"
+                variant="contained"
+                fullWidth
+                disabled={isSavingLogo}
+                onClick={() => void finishOnboarding()}
+                sx={{ height: 48, fontSize: 14 }}
+              >
+                {isSavingLogo ? 'Saving…' : logoUrl ? 'Finish' : 'Skip for now'}
+              </Button>
+            </Stack>
+          </Card>
+        ) : (
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Card sx={{ p: 3, mb: 2 }}>
             <Stack spacing={2.5}>
@@ -237,6 +300,7 @@ export default function OnboardingPage(): React.JSX.Element {
             {isSubmitting ? 'Creating…' : 'Create garage'}
           </Button>
         </Box>
+        )}
       </Box>
     </Box>
   )

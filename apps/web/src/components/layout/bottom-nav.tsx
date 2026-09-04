@@ -126,6 +126,8 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
         <Stack direction="row" spacing={1.25} alignItems="center" sx={{ px: 0.75, pb: 2.5 }}>
           <Avatar
             variant="rounded"
+            src={tenant?.logo_url ?? undefined}
+            imgProps={{ referrerPolicy: 'no-referrer' }}
             sx={{
               bgcolor: 'primary.main',
               color: 'primary.contrastText',

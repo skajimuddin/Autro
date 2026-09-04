@@ -92,6 +92,8 @@ export function Topbar({
         ) : (
           <Avatar
             variant="rounded"
+            src={tenant?.logo_url ?? undefined}
+            imgProps={{ referrerPolicy: 'no-referrer' }}
             sx={{
               bgcolor: 'primary.main',
               color: 'primary.contrastText',

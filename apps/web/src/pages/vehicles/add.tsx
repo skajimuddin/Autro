@@ -23,7 +23,7 @@ import { CreateVehicleSchema } from '@autro/shared'
 import type { z } from 'zod'
 
 import { apiFetch } from '@/lib/api'
-import { uploadVehiclePhoto } from '@/lib/upload'
+import { uploadImage } from '@/lib/upload'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { Field } from '@/components/ui/field'
@@ -79,7 +79,7 @@ export default function AddVehiclePage(): React.JSX.Element {
     mutationFn: async (data: AddVehicleValues) => {
       // Uploaded first: a vehicle saved without its photo would need the owner
       // to notice and go add it from the detail screen.
-      const imageUrls = photo ? [await uploadVehiclePhoto(photo.file, tenant?.id)] : []
+      const imageUrls = photo ? [await uploadImage(photo.file, tenant?.id)] : []
 
       return apiFetch<CreateVehicleResponse>('/vehicles', {
         method: 'POST',

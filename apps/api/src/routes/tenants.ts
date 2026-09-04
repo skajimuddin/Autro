@@ -4,6 +4,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { CreateTenantSchema, UpdateTenantSchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { tenants, tenant_members } from '@/db/schema'
+import { serializeTenant, parsePdfTemplate } from '@/lib/tenant-settings'
 
 const tenantsRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -62,7 +63,7 @@ tenantsRouter.post('/', async (c) => {
 
   const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).get()
 
-  return c.json({ tenant }, 201)
+  return c.json({ tenant: tenant ? serializeTenant(tenant) : tenant }, 201)
 })
 
 // ── GET /tenants/mine — Get user's garage ─────────────────────────────────────
@@ -94,7 +95,7 @@ tenantsRouter.get('/mine', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Garage not found' } }, 404)
   }
 
-  return c.json({ tenant, role: membership.role })
+  return c.json({ tenant: serializeTenant(tenant), role: membership.role })
 })
 
 // ── PATCH /tenants/:id — Update garage (owner only) ──────────────────────────
@@ -143,12 +144,33 @@ tenantsRouter.patch('/:id', async (c) => {
 
   const now = new Date().toISOString()
 
+  // work_days and pdf_template are stored as JSON text, so they can't just
+  // be spread in with the rest — and pdf_template is accepted as a *partial*
+  // object (a settings page toggling one field shouldn't have to resend
+  // every other one), so it has to be merged onto what's already saved
+  // rather than overwrite the column outright.
+  const { work_days, pdf_template, ...rest } = parsed.data
+  const updates: Record<string, unknown> = { ...rest, updated_at: now }
+
+  if (work_days !== undefined) {
+    updates.work_days = JSON.stringify(work_days)
+  }
+
+  if (pdf_template !== undefined) {
+    const current = await db
+      .select({ pdf_template: tenants.pdf_template })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .get()
+    updates.pdf_template = JSON.stringify({
+      ...parsePdfTemplate(current?.pdf_template ?? null),
+      ...pdf_template,
+    })
+  }
+
   await db
     .update(tenants)
-    .set({
-      ...parsed.data,
-      updated_at: now,
-    })
+    .set(updates)
     .where(and(eq(tenants.id, tenantId), isNull(tenants.deleted_at)))
 
   const updatedTenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).get()
@@ -157,7 +179,7 @@ tenantsRouter.patch('/:id', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Garage not found' } }, 404)
   }
 
-  return c.json({ tenant: updatedTenant })
+  return c.json({ tenant: serializeTenant(updatedTenant) })
 })
 
 export default tenantsRouter
