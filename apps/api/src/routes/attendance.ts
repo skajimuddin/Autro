@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { and, eq, isNull, like, desc } from 'drizzle-orm'
 import { CheckInSchema, CheckOutSchema, MonthlyAttendanceQuerySchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
+import { requireOwner } from '@/middleware/tenant'
 import { qr_codes, attendance_logs, tenants, tenant_members, users } from '@/db/schema'
 
 const attendanceRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -25,8 +26,13 @@ function getTodayString(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-// GET /attendance/qr
-attendanceRouter.get('/qr', async (c) => {
+// GET /attendance/qr — owner only. Was reachable by any tenant member before
+// this: the frontend hid it behind an owner-only screen, but nothing on the
+// API stopped a STAFF caller hitting it directly (unlike /staff/*, which
+// index.ts already gates with requireOwner). Moving it into Settings, which
+// STAFF can otherwise open, made that gap worth closing rather than moving
+// along with it.
+attendanceRouter.get('/qr', requireOwner, async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
 
@@ -47,8 +53,8 @@ attendanceRouter.get('/qr', async (c) => {
   return c.json({ qr_token: qr?.token })
 })
 
-// POST /attendance/qr/regenerate
-attendanceRouter.post('/qr/regenerate', async (c) => {
+// POST /attendance/qr/regenerate — owner only, same reasoning as GET /qr above.
+attendanceRouter.post('/qr/regenerate', requireOwner, async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
 

@@ -30,6 +30,7 @@ import SettingsGaragePage from '@/pages/settings/garage'
 import SettingsLocationPage from '@/pages/settings/location'
 import SettingsPayrollPage from '@/pages/settings/payroll'
 import SettingsPdfTemplatePage from '@/pages/settings/pdf-template'
+import SettingsQrCodePage from '@/pages/settings/qr-code'
 import SettingsAccountPage from '@/pages/settings/account'
 import { FullPageSpinner } from '@/components/ui/loading'
 
@@ -127,6 +128,12 @@ function AppRoutes(): React.JSX.Element {
           <Route path="/settings/location" element={<SettingsLocationPage />} />
           <Route path="/settings/payroll" element={<SettingsPayrollPage />} />
           <Route path="/settings/pdf" element={<SettingsPdfTemplatePage />} />
+          {/* Owner only — the API rejects a STAFF caller reading or
+              regenerating the attendance QR (see attendance.ts), so there's
+              no page worth showing them here either. */}
+          <Route element={<RequireOwner />}>
+            <Route path="/settings/qr" element={<SettingsQrCodePage />} />
+          </Route>
           <Route path="/settings/account" element={<SettingsAccountPage />} />
         </Route>
       </Route>

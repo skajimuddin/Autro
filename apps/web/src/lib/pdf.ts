@@ -28,6 +28,7 @@ import { createElement as el } from 'react'
 import type { PdfTemplate } from '@autro/shared'
 import { DEFAULT_PDF_TEMPLATE } from '@autro/shared'
 import { BRAND } from '@/theme'
+import { triggerDownload } from '@/lib/download-file'
 
 // ── Public data shape ─────────────────────────────────────────────────────────
 
@@ -117,25 +118,6 @@ async function toDataUrl(url: string): Promise<string | null> {
     console.error('[Autro] Logo could not be embedded in the PDF', err)
     return null
   }
-}
-
-/**
- * Save a Blob to disk via a temporary anchor.
- *
- * The anchor is attached to the document before clicking (some browsers ignore
- * clicks on detached nodes) and the object URL is revoked on the next tick —
- * revoking synchronously can cancel the download mid-flight.
- */
-function triggerDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.style.display = 'none'
-  document.body.appendChild(anchor)
-  anchor.click()
-  document.body.removeChild(anchor)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 // ── Shared document builder ──────────────────────────────────────────────────

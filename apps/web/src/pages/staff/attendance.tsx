@@ -1,18 +1,20 @@
-// Attendance — the QR an owner displays at the entrance, and who has come in.
+// Attendance — who has checked in today.
 //
-// Migrated 2026-08-20 onto the MUI design system. Two columns at md:+: the QR
-// is the thing that gets printed and stuck on a wall, so it keeps its own
-// column rather than scrolling away above the log.
+// Migrated 2026-08-20 onto the MUI design system. The QR code + regenerate
+// control used to live in this page's left column; it moved to Settings →
+// QR code — a setup task done once and rarely touched again, not something
+// that belongs mixed in with today's log — with a link below pointing there
+// for anyone who comes looking for it out of habit.
 //
 // Every figure comes from GET /attendance/today, which returns present, absent
 // and the entries. The endpoint only returns members who have a log row for
 // today, so "present + absent" is not the team size and is not presented as
 // one — there is no "x of y" here.
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Avatar, Box, Button, Card, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
+import { useNavigate } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
+import { Avatar, Box, Button, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import QrIcon from '@mui/icons-material/QrCode2Rounded'
-import RefreshIcon from '@mui/icons-material/RefreshRounded'
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
 import LoginIcon from '@mui/icons-material/LoginRounded'
 import LogoutIcon from '@mui/icons-material/LogoutRounded'
@@ -20,19 +22,9 @@ import LogoutIcon from '@mui/icons-material/LogoutRounded'
 import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
-import { QRDisplay } from '@/components/domain/qr-display'
 import { SectionCard } from '@/components/ui/section-card'
 import { EmptyPanel } from '@/components/ui/empty-panel'
-import { Kicker } from '@/components/ui/kicker'
-import { useToast, ToastContainer } from '@/components/ui/toast'
 import { formatTime } from '@/lib/format'
-
-interface QRData {
-  // Must match GET /attendance/qr exactly. apiFetch<T> only asserts the type
-  // and does no runtime validation, so a wrong field name here fails silently
-  // and the QR never renders — which is exactly what happened once already.
-  qr_token: string
-}
 
 interface AttendanceEntry {
   member_id: string
@@ -50,15 +42,8 @@ interface TodayAttendance {
 }
 
 export default function StaffAttendancePage(): React.JSX.Element {
+  const navigate = useNavigate()
   const { tenant } = useTenant()
-  const queryClient = useQueryClient()
-  const { toasts, showToast, dismissToast } = useToast()
-
-  const { data: qr, isLoading: qrLoading } = useQuery<QRData>({
-    queryKey: ['attendance', 'qr', tenant?.id],
-    queryFn: () => apiFetch<QRData>('/attendance/qr', { tenantId: tenant?.id }),
-    enabled: Boolean(tenant?.id),
-  })
 
   const { data: today, isLoading: todayLoading } = useQuery<TodayAttendance>({
     queryKey: ['attendance', 'today', tenant?.id],
@@ -67,70 +52,11 @@ export default function StaffAttendancePage(): React.JSX.Element {
     refetchInterval: 30_000,
   })
 
-  const regenerate = useMutation({
-    mutationFn: () => apiFetch('/attendance/qr/regenerate', { method: 'POST', tenantId: tenant?.id }),
-    onSuccess: () => {
-      showToast('success', 'QR code regenerated')
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'qr'] })
-    },
-    onError: (err: Error) => showToast('error', err.message || 'Failed to regenerate QR'),
-  })
-
   const entries = today?.entries ?? []
 
   return (
-    <PageShell title="Attendance" mobileTitle="Attendance" showBack hideNav wide>
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      <Box
-        sx={{
-          px: { xs: 2, md: 3.5 },
-          pb: 4,
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
-          gap: 2.5,
-          alignItems: 'start',
-        }}
-      >
-        {/* ── The QR ──────────────────────────────────────────── */}
-        <Stack spacing={1.5}>
-          <Card sx={{ p: 3 }}>
-            <Stack alignItems="center" spacing={2} textAlign="center">
-              <Kicker>Display at the entrance</Kicker>
-
-              {qrLoading ? (
-                <Skeleton variant="rounded" width={192} height={192} />
-              ) : qr?.qr_token ? (
-                <QRDisplay id="attendance-qr" token={qr.qr_token} />
-              ) : (
-                <Box
-                  sx={{
-                    width: 192, height: 192, display: 'grid', placeItems: 'center',
-                    bgcolor: 'action.hover', borderRadius: 2, color: 'text.disabled',
-                  }}
-                >
-                  <QrIcon sx={{ fontSize: 44 }} />
-                </Box>
-              )}
-
-              <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.6 }}>
-                Staff scan this to check in. It only works within range of the workshop location.
-              </Typography>
-            </Stack>
-          </Card>
-
-          <Button
-            id="attendance-regenerate-qr"
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            disabled={regenerate.isPending}
-            onClick={() => regenerate.mutate()}
-          >
-            {regenerate.isPending ? 'Regenerating…' : 'Regenerate QR'}
-          </Button>
-        </Stack>
-
-        {/* ── Who has come in ─────────────────────────────────── */}
+    <PageShell title="Attendance" mobileTitle="Attendance" showBack hideNav>
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <SectionCard
           title="Today"
           action={
@@ -174,6 +100,16 @@ export default function StaffAttendancePage(): React.JSX.Element {
             ))
           )}
         </SectionCard>
+
+        <Button
+          id="attendance-qr-settings-link"
+          variant="text"
+          startIcon={<QrIcon sx={{ fontSize: 18 }} />}
+          onClick={() => void navigate('/settings/qr')}
+          sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
+        >
+          Manage the check-in QR code
+        </Button>
       </Box>
     </PageShell>
   )

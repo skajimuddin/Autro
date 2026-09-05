@@ -14,6 +14,7 @@ import StorefrontIcon from '@mui/icons-material/StorefrontOutlined'
 import PlaceIcon from '@mui/icons-material/PlaceOutlined'
 import PayrollIcon from '@mui/icons-material/PaidOutlined'
 import PdfIcon from '@mui/icons-material/PictureAsPdfOutlined'
+import QrIcon from '@mui/icons-material/QrCode2Rounded'
 import AccountIcon from '@mui/icons-material/PersonOutlineRounded'
 import MailIcon from '@mui/icons-material/MailOutlineRounded'
 import { useNavigate } from 'react-router'
@@ -28,6 +29,9 @@ interface SettingsRow {
   icon: React.ElementType
   title: string
   subtitle: string
+  /** Hidden from STAFF — the API rejects them on these anyway (garage-level
+   *  config, or the requireOwner-gated attendance QR). */
+  ownerOnly?: boolean
 }
 
 const ROWS: SettingsRow[] = [
@@ -35,6 +39,7 @@ const ROWS: SettingsRow[] = [
   { to: '/settings/location', icon: PlaceIcon, title: 'Workshop location', subtitle: 'GPS check-in geofence' },
   { to: '/settings/payroll', icon: PayrollIcon, title: 'Attendance & payroll', subtitle: 'Weekly offs, salary calculation' },
   { to: '/settings/pdf', icon: PdfIcon, title: 'Invoice & estimate PDFs', subtitle: 'Logo, terms, document numbering' },
+  { to: '/settings/qr', icon: QrIcon, title: 'QR code', subtitle: 'Attendance check-in code', ownerOnly: true },
   { to: '/settings/account', icon: AccountIcon, title: 'Account', subtitle: 'Your profile, sign out' },
 ]
 
@@ -42,6 +47,7 @@ export default function SettingsHubPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { tenant, role } = useTenant()
+  const rows = ROWS.filter((r) => !r.ownerOnly || role === 'OWNER')
 
   return (
     <PageShell title="Settings">
@@ -73,7 +79,7 @@ export default function SettingsHubPage(): React.JSX.Element {
 
         <SectionCard id="settings-menu" padded={false}>
           <List disablePadding>
-            {ROWS.map(({ to, icon: Icon, title, subtitle }, i) => (
+            {rows.map(({ to, icon: Icon, title, subtitle }, i) => (
               <ListItemButton
                 key={to}
                 id={`settings-row-${to.split('/').pop()}`}

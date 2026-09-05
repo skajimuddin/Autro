@@ -14,6 +14,7 @@
 // attendance could not work at all.
 import React, { useEffect, useRef } from 'react'
 import QRCodeStyling from 'qr-code-styling'
+import { BRAND } from '@/theme'
 
 interface QRDisplayProps {
   /** The raw attendance token from GET /attendance/qr */
@@ -40,7 +41,7 @@ export function QRDisplay({ token, size = 208, id }: QRDisplayProps): React.JSX.
         type: 'extra-rounded',
       },
       cornersSquareOptions: {
-        color: '#2563eb', // --color-primary
+        color: BRAND.light, // kept in sync with the brand colour in theme.ts
         type: 'extra-rounded',
       },
       cornersDotOptions: {
