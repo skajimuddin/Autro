@@ -282,9 +282,13 @@ async function generate(
       el(
         View,
         { style: s.section },
+        // `fixed` makes react-pdf repeat this exact row at the top of every
+        // page the table spills onto — without it, a bill long enough to
+        // wrap to a second page (40+ lines; rare, but this app has no cap on
+        // line items) left that page's numbers with no column labels at all.
         el(
           View,
-          { style: s.tableHead },
+          { style: s.tableHead, fixed: true },
           t.show_item_numbers ? el(Text, { style: s.cNo }, '#') : null,
           el(Text, { style: s.cDesc }, 'Description'),
           el(Text, { style: s.cQty }, 'Qty'),
