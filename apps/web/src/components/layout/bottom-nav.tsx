@@ -16,6 +16,7 @@
 //
 // Staff/Attendance are OWNER-only routes (RequireOwner in App.tsx), so they are
 // hidden from STAFF rather than rendering a tab that bounces them back.
+import { useEffect, useRef } from 'react'
 import type React from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router'
 import {
@@ -100,6 +101,35 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const theme = useTheme()
+  const mobileBarRef = useRef<HTMLDivElement>(null)
+
+  // `position: fixed; bottom: 0` pins to the *layout* viewport, which on a
+  // phone stays the full screen height even once the on-screen keyboard
+  // opens and shrinks the *visual* viewport. The bar itself never moves —
+  // but the keyboard now covers its real position, so the browser has to
+  // reflow the fixed layer into whatever's left of the visible area, which
+  // is what reads as "the nav jumped to the middle of the screen" (tapping
+  // the vehicles search field is the easiest way to see it). Tracking
+  // window.visualViewport and pinning `bottom` to its actual edge keeps the
+  // bar glued to the bottom of what's really on screen instead.
+  useEffect(() => {
+    const vv = window.visualViewport
+    const el = mobileBarRef.current
+    if (!vv || !el) return
+
+    const reposition = (): void => {
+      const keyboardInset = window.innerHeight - vv.height - vv.offsetTop
+      el.style.bottom = `${Math.max(0, Math.round(keyboardInset))}px`
+    }
+
+    reposition()
+    vv.addEventListener('resize', reposition)
+    vv.addEventListener('scroll', reposition)
+    return () => {
+      vv.removeEventListener('resize', reposition)
+      vv.removeEventListener('scroll', reposition)
+    }
+  }, [])
 
   const visible = (i: NavItem): boolean => !i.ownerOnly || role === 'OWNER'
   const tabs = MOBILE_TABS.filter(visible)
@@ -250,6 +280,7 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
       {/* ── mobile bottom bar ─────────────────────────────────────────── */}
       <Paper
         id="bottom-nav"
+        ref={mobileBarRef}
         square
         elevation={0}
         sx={{

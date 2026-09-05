@@ -101,13 +101,6 @@ export default function VehicleListPage(): React.JSX.Element {
       spacing={1.5}
       sx={{ px: { xs: 0, md: 2 }, py: { xs: 0, md: 1.5 } }}
     >
-      <FilterTabs
-        value={status}
-        onChange={setStatus}
-        options={FILTERS}
-        label="Filter by stage"
-        desktop={desktop}
-      />
       <TextField
         id="vehicle-search"
         value={search}
@@ -122,6 +115,13 @@ export default function VehicleListPage(): React.JSX.Element {
           ),
         }}
         sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}
+      />
+      <FilterTabs
+        value={status}
+        onChange={setStatus}
+        options={FILTERS}
+        label="Filter by stage"
+        desktop={desktop}
       />
     </Stack>
   )
