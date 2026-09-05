@@ -1,7 +1,8 @@
 # Deploy this update — step by step
 
-Everything from the last session is on `main` already. Nothing is deployed
-yet. Do these in order.
+Everything from the last few sessions is on `main` already (confirmed in
+sync with GitHub — nothing sitting in an unmerged branch). Nothing is
+deployed yet. Do these in order.
 
 ## 1. Get the code
 
@@ -63,6 +64,12 @@ Go through this on a real phone + a real desktop, not just at your desk:
 - [ ] On a phone: scan the QR code, check in, check out
 - [ ] Vehicle details → set a "service reminder" date a few days out → it appears on the dashboard
 - [ ] Turn the phone to airplane mode, reopen the app on a screen you've visited before → it still opens (offline screen only appears for screens you've never opened)
+- [ ] Vehicles list/dashboard: each row shows a small photo (or a car icon if none uploaded)
+- [ ] Vehicles page: search box is above the stage filter (All/New/Repairing/...)
+- [ ] On a phone: tap the vehicles search box — the bottom nav bar stays put, doesn't jump up the screen
+- [ ] Settings → QR code (not Staff → Attendance anymore) → download the A4 PDF, check it opens and shows the code
+- [ ] Vehicle details → tap the customer's name → their profile opens with vehicles + total spent
+- [ ] Log in as a staff account (if you have one) → confirm Settings has no "QR code" row and Attendance page has no QR/regenerate control
 
 If any box fails, that's the one to send back for a fix — not a reason to
 redo the whole list.

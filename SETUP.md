@@ -154,6 +154,10 @@ Newest first. Anything here needs an action from you that code alone cannot do.
 
 | Date       | Change                                                                          | Action                             |
 | ---------- | -------------------------------------------------------------------------------- | ------------------------------------ |
+| 2026-09-05 | New GET /customers/:id — customer profile page (their vehicles + lifetime spend), linked from a vehicle's detail screen | Done — no action needed |
+| 2026-09-05 | Attendance QR moved from Staff → Attendance into Settings → QR code, with a printable A4 PDF download | Done — no action needed |
+| 2026-09-05 | GET/POST /attendance/qr(/regenerate) now require the OWNER role — previously any tenant member could call them directly even though the UI hid the control | Done — no action needed (closes a gap, no legitimate use relied on it) |
+| 2026-09-05 | GET /vehicles now includes a thumbnail photo per row; bottom nav no longer jumps mid-screen when the on-screen keyboard opens | Done — no action needed |
 | 2026-09-04 | Migrations 0008 (tenant payroll/PDF settings) + 0009 (vehicle service reminder) added | **Pending** — see above |
 | 2026-09-04 | Check-in/checkout now require a workshop location (previously optional) | **Pending** — see above, tell existing garages |
 | 2026-09-04 | PDF logo embedding needs R2 CORS to allow `GET` from the web origin | **Pending (optional)** — see above |
