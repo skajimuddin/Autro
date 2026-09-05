@@ -58,6 +58,10 @@ vehiclesRouter.get('/', async (c) => {
   const db = drizzle(c.env.DB)
 
   const latestVisitIdQuery = sql`(SELECT id FROM ${service_visits} WHERE vehicle_id = ${vehicles.id} AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1)`
+  // One thumbnail per row — the most recently added photo, if any. Cheap:
+  // a scalar subquery per vehicle rather than a join that would multiply
+  // rows by photo count.
+  const latestImageUrlQuery = sql<string | null>`(SELECT image_url FROM ${vehicle_images} WHERE vehicle_id = ${vehicles.id} ORDER BY uploaded_at DESC LIMIT 1)`
 
   const conditions = [eq(vehicles.tenant_id, tenantId), isNull(vehicles.deleted_at)]
 
@@ -94,6 +98,7 @@ vehiclesRouter.get('/', async (c) => {
       // customer's vehicle is old while its current visit is new.
       complaint: service_visits.complaint,
       visit_started_at: service_visits.created_at,
+      thumbnail_url: latestImageUrlQuery,
     })
     .from(vehicles)
     .innerJoin(customers, eq(vehicles.customer_id, customers.id))
@@ -104,7 +109,18 @@ vehiclesRouter.get('/', async (c) => {
     .offset(cursor)
 
   const hasNextPage = results.length > limit
-  const data = results.slice(0, limit)
+  const rows = results.slice(0, limit)
+
+  // Rows written before uploads returned a public URL hold an `r2://` scheme
+  // no browser can load — same conversion GET /vehicles/:id already does.
+  const publicBase = c.env.R2_PUBLIC_URL?.replace(/\/$/, '')
+  const data = rows.map((v) => ({
+    ...v,
+    thumbnail_url:
+      publicBase && v.thumbnail_url?.startsWith('r2://')
+        ? `${publicBase}/${v.thumbnail_url.slice('r2://'.length)}`
+        : v.thumbnail_url,
+  }))
 
   return c.json({
     vehicles: data,

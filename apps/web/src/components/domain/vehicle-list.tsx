@@ -17,6 +17,7 @@
 // so that column could only be faked.
 import type React from 'react'
 import {
+  Avatar,
   Box,
   ButtonBase,
   Divider,
@@ -30,6 +31,8 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import CarIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import type { VisitStatus } from '@autro/shared'
 
 import { StageChip } from '@/components/ui/stage-chip'
@@ -44,6 +47,31 @@ export interface VehicleListItem {
   status: VisitStatus
   complaint: string | null
   visit_started_at: string | null
+  /** Most recently added photo, if any — a car with no photos yet (most
+   *  never get one) falls back to a plain icon rather than a blank box. */
+  thumbnail_url?: string | null
+}
+
+/** The small square photo (or icon fallback) every row leads with. One
+ *  definition so the desktop table and the mobile rows can't drift on size,
+ *  radius or fallback treatment. */
+function VehicleThumbnail({ url }: { url?: string | null }): React.JSX.Element {
+  return (
+    <Avatar
+      variant="rounded"
+      src={url ?? undefined}
+      sx={(t) => ({
+        width: 40,
+        height: 40,
+        borderRadius: 1.5,
+        flexShrink: 0,
+        bgcolor: alpha(t.palette.text.primary, 0.06),
+        color: 'text.disabled',
+      })}
+    >
+      <CarIcon sx={{ fontSize: 18 }} />
+    </Avatar>
+  )
 }
 
 interface VehicleListProps {
@@ -135,14 +163,19 @@ function DesktopTable({ vehicles, onSelect }: VehicleListProps): React.JSX.Eleme
               }}
             >
               <TableCell sx={{ py: 1.75 }}>
-                <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
-                  {v.registration_number}
-                </Typography>
-                {v.name && (
-                  <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>
-                    {v.name}
-                  </Typography>
-                )}
+                <Stack direction="row" alignItems="center" spacing={1.25}>
+                  <VehicleThumbnail url={v.thumbnail_url} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
+                      {v.registration_number}
+                    </Typography>
+                    {v.name && (
+                      <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled' }}>
+                        {v.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
               </TableCell>
 
               <TableCell>
@@ -218,6 +251,8 @@ function MobileRows({ vehicles, onSelect }: VehicleListProps): React.JSX.Element
                 textAlign: 'left',
               }}
             >
+              <VehicleThumbnail url={v.thumbnail_url} />
+
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>
                   {v.registration_number}
