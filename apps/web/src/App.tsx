@@ -15,6 +15,7 @@ import DashboardPage from '@/pages/dashboard/index'
 import VehicleListPage from '@/pages/vehicles/list'
 import VehicleDetailsPage from '@/pages/vehicles/details'
 import AddVehiclePage from '@/pages/vehicles/add'
+import CustomerDetailsPage from '@/pages/customers/details'
 import EstimateListPage from '@/pages/estimates/list'
 import EstimateEditorPage from '@/pages/estimates/editor'
 import InvoiceListPage from '@/pages/invoices/list'
@@ -103,6 +104,9 @@ function AppRoutes(): React.JSX.Element {
           <Route path="/vehicles" element={<VehicleListPage />} />
           <Route path="/vehicles/add" element={<AddVehiclePage />} />
           <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+
+          {/* Customers — reached from a vehicle's detail screen */}
+          <Route path="/customers/:id" element={<CustomerDetailsPage />} />
 
           {/* Estimates */}
           <Route path="/estimates" element={<EstimateListPage />} />

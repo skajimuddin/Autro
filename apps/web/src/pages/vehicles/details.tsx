@@ -318,19 +318,28 @@ export default function VehicleDetailsPage(): React.JSX.Element {
           {/* ── Customer ────────────────────────────────────────────── */}
           <SectionCard id="vehicle-customer" padded>
             <Kicker>Customer</Kicker>
-            <Typography noWrap sx={{ fontSize: 18, fontWeight: 700, mt: 1 }}>
-              {vehicle.customer_name}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 13.5,
-                color: 'text.secondary',
-                mt: 0.375,
-                fontVariantNumeric: 'tabular-nums',
-              }}
+            <ButtonBase
+              id="vehicle-view-customer"
+              onClick={() => navigate(`/customers/${vehicle.customer_id}`)}
+              sx={{ display: 'flex', alignItems: 'center', width: '100%', mt: 1, borderRadius: 1 }}
             >
-              {vehicle.customer_phone}
-            </Typography>
+              <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <Typography noWrap sx={{ fontSize: 18, fontWeight: 700 }}>
+                  {vehicle.customer_name}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 13.5,
+                    color: 'text.secondary',
+                    mt: 0.375,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {vehicle.customer_phone}
+                </Typography>
+              </Box>
+              <ChevronRightIcon sx={{ fontSize: 20, color: 'text.disabled', flexShrink: 0 }} />
+            </ButtonBase>
             <Button
               id="vehicle-call-customer"
               variant="outlined"

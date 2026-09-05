@@ -7,6 +7,7 @@ import { tenantMiddleware, requireOwner } from '@/middleware/tenant'
 import authRoutes from '@/routes/auth'
 import tenantsRouter from '@/routes/tenants'
 import vehiclesRouter from '@/routes/vehicles'
+import customersRouter from '@/routes/customers'
 import visitsRouter from '@/routes/visits'
 import uploadRouter from '@/routes/upload'
 import dashboardRouter from '@/routes/dashboard'
@@ -68,6 +69,10 @@ app.route('/tenants', tenantsRouter)
 app.use('/vehicles/*', authMiddleware)
 app.use('/vehicles/*', tenantMiddleware)
 app.route('/vehicles', vehiclesRouter)
+
+app.use('/customers/*', authMiddleware)
+app.use('/customers/*', tenantMiddleware)
+app.route('/customers', customersRouter)
 
 app.use('/staff/invite/*/accept', authMiddleware)
 app.route('/staff', acceptInviteRouter)
