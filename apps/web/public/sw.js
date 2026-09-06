@@ -1,7 +1,7 @@
 // Bump this whenever the strategy below changes — a different CACHE_NAME is
 // what makes the browser notice the file differs and go through install /
 // activate again. It is NOT a release version; do not bump it per deploy.
-const CACHE_NAME = 'autro-cache-v3'
+const CACHE_NAME = 'autro-cache-v4'
 
 // The app shell precached at install time, before any page has had a chance
 // to populate the runtime cache. Without this, a device that installs the
