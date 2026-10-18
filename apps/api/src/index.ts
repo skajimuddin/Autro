@@ -64,14 +64,18 @@ app.on('PATCH', '/tenants/:id', tenantMiddleware)
 app.route('/tenants', tenantsRouter)
 
 // ── Protected routes ──────────────────────────────────────────────────────────
-// Each needs a JWT (authMiddleware) and a verified X-Tenant-ID membership
-// (tenantMiddleware) before its router sees the request.
+// Each needs a JWT (authMiddleware), a verified X-Tenant-ID membership
+// (tenantMiddleware) and the OWNER role (requireOwner) before its router sees
+// the request. A STAFF member's only access is attendance, below — without the
+// role check any mechanic with a token could read every bill and the day's takings.
 app.use('/vehicles/*', authMiddleware)
 app.use('/vehicles/*', tenantMiddleware)
+app.use('/vehicles/*', requireOwner)
 app.route('/vehicles', vehiclesRouter)
 
 app.use('/customers/*', authMiddleware)
 app.use('/customers/*', tenantMiddleware)
+app.use('/customers/*', requireOwner)
 app.route('/customers', customersRouter)
 
 app.use('/staff/invite/*/accept', authMiddleware)
@@ -79,22 +83,27 @@ app.route('/staff', acceptInviteRouter)
 
 app.use('/visits/*', authMiddleware)
 app.use('/visits/*', tenantMiddleware)
+app.use('/visits/*', requireOwner)
 app.route('/visits', visitsRouter)
 
 app.use('/upload/*', authMiddleware)
 app.use('/upload/*', tenantMiddleware)
+app.use('/upload/*', requireOwner)
 app.route('/upload', uploadRouter)
 
 app.use('/dashboard/*', authMiddleware)
 app.use('/dashboard/*', tenantMiddleware)
+app.use('/dashboard/*', requireOwner)
 app.route('/dashboard', dashboardRouter)
 
 app.use('/estimates/*', authMiddleware)
 app.use('/estimates/*', tenantMiddleware)
+app.use('/estimates/*', requireOwner)
 app.route('/estimates', estimatesRouter)
 
 app.use('/invoices/*', authMiddleware)
 app.use('/invoices/*', tenantMiddleware)
+app.use('/invoices/*', requireOwner)
 app.route('/invoices', invoicesRouter)
 
 // Every route on staffRouter is Owner-only per 05-ui-screens.md (staff list,

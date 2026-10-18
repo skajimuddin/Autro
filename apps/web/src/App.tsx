@@ -65,10 +65,9 @@ function RequireTenant(): React.JSX.Element {
 }
 
 // ── Route guard: requires OWNER role ───────────────────────────────────────────
-// Every /staff/* screen is "Access: Owner" per 05-ui-screens.md — a STAFF
-// member's only screen is /checkin. Must sit inside RequireTenant (role isn't
-// known until the tenant fetch resolves). This is a UI convenience, not the
-// security boundary — the API's requireOwner middleware is what actually
+// A STAFF member's only screen is /checkin. Must sit inside RequireTenant (role
+// isn't known until the tenant fetch resolves). This is a UI convenience, not
+// the security boundary — the API's requireOwner middleware is what actually
 // blocks a STAFF caller who hits these routes directly.
 function RequireOwner(): React.JSX.Element {
   const { role } = useTenant()
@@ -99,48 +98,45 @@ function AppRoutes(): React.JSX.Element {
 
         {/* ── Protected: requires JWT + garage (tenant) ──────────── */}
         <Route element={<RequireTenant />}>
-          <Route path="/" element={<DashboardPage />} />
-
-          {/* Vehicles */}
-          <Route path="/vehicles" element={<VehicleListPage />} />
-          <Route path="/vehicles/add" element={<AddVehiclePage />} />
-          <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
-
-          {/* Customers — reached from a vehicle's detail screen */}
-          <Route path="/customers/:id" element={<CustomerDetailsPage />} />
-
-          {/* Estimates */}
-          <Route path="/estimates" element={<EstimateListPage />} />
-          <Route path="/estimates/:id" element={<EstimateEditorPage />} />
-          <Route path="/estimates/new" element={<EstimateEditorPage />} />
-
-          {/* Invoices */}
-          <Route path="/invoices" element={<InvoiceListPage />} />
-          <Route path="/invoices/:id" element={<InvoiceEditorPage />} />
-          <Route path="/invoices/new" element={<InvoiceEditorPage />} />
-
-          {/* Staff — Owner only */}
+          {/* Every garage screen is Owner-only: a STAFF member's whole app is
+              /checkin, and the API refuses them everything else. */}
           <Route element={<RequireOwner />}>
+            <Route path="/" element={<DashboardPage />} />
+
+            {/* Vehicles */}
+            <Route path="/vehicles" element={<VehicleListPage />} />
+            <Route path="/vehicles/add" element={<AddVehiclePage />} />
+            <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+
+            {/* Customers — reached from a vehicle's detail screen */}
+            <Route path="/customers/:id" element={<CustomerDetailsPage />} />
+
+            {/* Estimates */}
+            <Route path="/estimates" element={<EstimateListPage />} />
+            <Route path="/estimates/:id" element={<EstimateEditorPage />} />
+            <Route path="/estimates/new" element={<EstimateEditorPage />} />
+
+            {/* Invoices */}
+            <Route path="/invoices" element={<InvoiceListPage />} />
+            <Route path="/invoices/:id" element={<InvoiceEditorPage />} />
+            <Route path="/invoices/new" element={<InvoiceEditorPage />} />
+
+            {/* Staff */}
             <Route path="/staff" element={<StaffListPage />} />
             <Route path="/staff/add" element={<StaffAddPage />} />
             <Route path="/staff/attendance" element={<StaffAttendancePage />} />
             <Route path="/staff/:id" element={<StaffProfilePage />} />
-          </Route>
 
-          {/* Settings */}
-          <Route path="/settings" element={<SettingsHubPage />} />
-          <Route path="/settings/garage" element={<SettingsGaragePage />} />
-          <Route path="/settings/location" element={<SettingsLocationPage />} />
-          <Route path="/settings/payroll" element={<SettingsPayrollPage />} />
-          <Route path="/settings/pdf" element={<SettingsPdfTemplatePage />} />
-          {/* Owner only — the API rejects a STAFF caller on GST settings and
-              on the attendance QR (see attendance.ts), so there's no page
-              worth showing them here either. */}
-          <Route element={<RequireOwner />}>
+            {/* Settings */}
+            <Route path="/settings" element={<SettingsHubPage />} />
+            <Route path="/settings/garage" element={<SettingsGaragePage />} />
+            <Route path="/settings/location" element={<SettingsLocationPage />} />
+            <Route path="/settings/payroll" element={<SettingsPayrollPage />} />
             <Route path="/settings/gst" element={<SettingsGstPage />} />
+            <Route path="/settings/pdf" element={<SettingsPdfTemplatePage />} />
             <Route path="/settings/qr" element={<SettingsQrCodePage />} />
+            <Route path="/settings/account" element={<SettingsAccountPage />} />
           </Route>
-          <Route path="/settings/account" element={<SettingsAccountPage />} />
         </Route>
       </Route>
 

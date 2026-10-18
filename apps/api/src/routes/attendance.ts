@@ -4,6 +4,7 @@ import { and, eq, isNull, like, desc } from 'drizzle-orm'
 import { CheckInSchema, CheckOutSchema, MonthlyAttendanceQuerySchema } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import { requireOwner } from '@/middleware/tenant'
+import { todayIST } from '@/lib/ist'
 import { qr_codes, attendance_logs, tenants, tenant_members, users } from '@/db/schema'
 
 const attendanceRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -20,10 +21,6 @@ function getDistanceFromLatLonInM(lat1: number, lon1: number, lat2: number, lon2
       Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
-}
-
-function getTodayString(): string {
-  return new Date().toISOString().slice(0, 10)
 }
 
 // GET /attendance/qr — owner only. Was reachable by any tenant member before
@@ -122,7 +119,7 @@ attendanceRouter.post('/checkin', async (c) => {
   }
 
   // Check if already checked in today
-  const today = getTodayString()
+  const today = todayIST()
   const existing = await db
     .select()
     .from(attendance_logs)
@@ -222,7 +219,7 @@ attendanceRouter.post('/checkout', async (c) => {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Not a member of this garage' } }, 403)
   }
 
-  const today = getTodayString()
+  const today = todayIST()
   const existing = await db
     .select()
     .from(attendance_logs)
@@ -285,7 +282,7 @@ attendanceRouter.get('/today', async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
 
-  const today = getTodayString()
+  const today = todayIST()
 
   const logs = await db
     .select({
@@ -344,7 +341,7 @@ attendanceRouter.get('/my-today', async (c) => {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Not a member of this garage' } }, 403)
   }
 
-  const today = getTodayString()
+  const today = todayIST()
   const log = await db
     .select()
     .from(attendance_logs)

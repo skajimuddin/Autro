@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, asc, eq, gte, isNotNull, isNull, lte, sql } from 'drizzle-orm'
 import type { Env, Variables } from '@/env'
+import { startOfTodayIST, todayIST } from '@/lib/ist'
 import { service_visits, invoices, vehicles, customers } from '@/db/schema'
 
 const dashboardRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -10,9 +11,7 @@ dashboardRouter.get('/stats', async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = today.toISOString()
+  const todayStr = startOfTodayIST()
 
   const vehiclesTodayResult = await db
     .select({ count: sql<number>`count(*)` })
@@ -89,9 +88,7 @@ dashboardRouter.get('/service-reminders', async (c) => {
   const tenantId = c.get('tenantId')
   const db = drizzle(c.env.DB)
 
-  const horizon = new Date()
-  horizon.setDate(horizon.getDate() + 14)
-  const horizonStr = horizon.toISOString().slice(0, 10)
+  const horizonStr = new Date(Date.parse(todayIST()) + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
   const rows = await db
     .select({

@@ -322,6 +322,11 @@ invoicesRouter.patch('/:id/pay', async (c) => {
   if (!currentInvoice)
     return c.json({ error: { code: 'NOT_FOUND', message: 'Invoice not found' } }, 404)
 
+  // A second tap (or a retry) must not rewrite when and how it was paid.
+  if (currentInvoice.payment_status === 'PAID') {
+    return c.json({ error: { code: 'BAD_REQUEST', message: 'This invoice is already paid' } }, 400)
+  }
+
   await db
     .update(invoices)
     .set({

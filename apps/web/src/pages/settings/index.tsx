@@ -30,18 +30,15 @@ interface SettingsRow {
   icon: React.ElementType
   title: string
   subtitle: string
-  /** Hidden from STAFF — the API rejects them on these anyway (garage-level
-   *  config, or the requireOwner-gated attendance QR). */
-  ownerOnly?: boolean
 }
 
 const ROWS: SettingsRow[] = [
   { to: '/settings/garage', icon: StorefrontIcon, title: 'Garage details', subtitle: 'Name, phone, address, logo' },
   { to: '/settings/location', icon: PlaceIcon, title: 'Workshop location', subtitle: 'GPS check-in geofence' },
   { to: '/settings/payroll', icon: PayrollIcon, title: 'Attendance & payroll', subtitle: 'Weekly offs, salary calculation' },
-  { to: '/settings/gst', icon: GstIcon, title: 'GST', subtitle: 'Charge GST on bills, GSTIN, default rate', ownerOnly: true },
+  { to: '/settings/gst', icon: GstIcon, title: 'GST', subtitle: 'Charge GST on bills, GSTIN, default rate' },
   { to: '/settings/pdf', icon: PdfIcon, title: 'Invoice & estimate PDFs', subtitle: 'Logo, terms, document numbering' },
-  { to: '/settings/qr', icon: QrIcon, title: 'QR code', subtitle: 'Attendance check-in code', ownerOnly: true },
+  { to: '/settings/qr', icon: QrIcon, title: 'QR code', subtitle: 'Attendance check-in code' },
   { to: '/settings/account', icon: AccountIcon, title: 'Account', subtitle: 'Your profile, sign out' },
 ]
 
@@ -49,7 +46,6 @@ export default function SettingsHubPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { tenant, role } = useTenant()
-  const rows = ROWS.filter((r) => !r.ownerOnly || role === 'OWNER')
 
   return (
     <PageShell title="Settings">
@@ -81,7 +77,7 @@ export default function SettingsHubPage(): React.JSX.Element {
 
         <SectionCard id="settings-menu" padded={false}>
           <List disablePadding>
-            {rows.map(({ to, icon: Icon, title, subtitle }, i) => (
+            {ROWS.map(({ to, icon: Icon, title, subtitle }, i) => (
               <ListItemButton
                 key={to}
                 id={`settings-row-${to.split('/').pop()}`}

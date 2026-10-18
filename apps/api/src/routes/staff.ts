@@ -7,6 +7,7 @@ import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
 import { staff_invites, tenant_members, users, tenants } from '@/db/schema'
+import { todayIST } from '@/lib/ist'
 import { parseWorkDays, parseSalaryBasis } from '@/lib/tenant-settings'
 
 export const publicStaffRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -67,7 +68,7 @@ staffRouter.get('/', async (c) => {
     .where(and(eq(tenant_members.tenant_id, tenantId), isNull(tenant_members.removed_at)))
     .all()
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayIST()
   const logs = await db
     .select()
     .from(attendance_logs)
@@ -161,8 +162,7 @@ staffRouter.get('/:id', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Staff not found' } }, 404)
   }
 
-  const today = new Date()
-  const todayStr = today.toISOString().slice(0, 10)
+  const todayStr = todayIST()
   const currentMonth = todayStr.slice(0, 7) // YYYY-MM
 
   const logs = await db
@@ -204,8 +204,8 @@ staffRouter.get('/:id', async (c) => {
     .where(eq(tenants.id, tenantId))
     .get()
 
-  const year = today.getFullYear()
-  const month = today.getMonth() + 1
+  const year = Number(todayStr.slice(0, 4))
+  const month = Number(todayStr.slice(5, 7))
   const total_working_days = workingDaysInMonth(
     year,
     month,
