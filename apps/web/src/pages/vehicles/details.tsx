@@ -181,7 +181,15 @@ export default function VehicleDetailsPage(): React.JSX.Element {
   const inShop = days !== null && vehicle.status !== 'DELIVERED'
   const stale = inShop && days >= STALE_AFTER_DAYS
 
+  // Bills hang off a visit; a vehicle with none open has nothing to bill yet.
+  const noVisit = (): boolean => {
+    if (vehicle.visit_id) return false
+    showToast('error', 'No open visit — add this vehicle again to start one.')
+    return true
+  }
+
   const createEstimate = (): void => {
+    if (!vehicle.estimate_id && noVisit()) return
     navigate(
       vehicle.estimate_id
         ? `/estimates/${vehicle.estimate_id}`
@@ -302,13 +310,14 @@ export default function VehicleDetailsPage(): React.JSX.Element {
               label="Invoice"
               total={vehicle.invoice_total}
               actionLabel={vehicle.invoice_id ? 'View' : 'Generate'}
-              onClick={() =>
+              onClick={() => {
+                if (!vehicle.invoice_id && noVisit()) return
                 navigate(
                   vehicle.invoice_id
                     ? `/invoices/${vehicle.invoice_id}`
                     : `/invoices/new?visit=${vehicle.visit_id}`,
                 )
-              }
+              }}
               emptyLabel="Not generated yet"
             />
           </SectionCard>

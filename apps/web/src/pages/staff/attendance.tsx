@@ -3,18 +3,15 @@
 // Migrated 2026-08-20 onto the MUI design system. The QR code + regenerate
 // control used to live in this page's left column; it moved to Settings →
 // QR code — a setup task done once and rarely touched again, not something
-// that belongs mixed in with today's log — with a link below pointing there
-// for anyone who comes looking for it out of habit.
+// that belongs mixed in with today's log.
 //
 // Every figure comes from GET /attendance/today, which returns present, absent
 // and the entries. The endpoint only returns members who have a log row for
 // today, so "present + absent" is not the team size and is not presented as
 // one — there is no "x of y" here.
-import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Box, Button, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
-import QrIcon from '@mui/icons-material/QrCode2Rounded'
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
 import LoginIcon from '@mui/icons-material/LoginRounded'
 import LogoutIcon from '@mui/icons-material/LogoutRounded'
@@ -42,7 +39,6 @@ interface TodayAttendance {
 }
 
 export default function StaffAttendancePage(): React.JSX.Element {
-  const navigate = useNavigate()
   const { tenant } = useTenant()
 
   const { data: today, isLoading: todayLoading } = useQuery<TodayAttendance>({
@@ -100,16 +96,6 @@ export default function StaffAttendancePage(): React.JSX.Element {
             ))
           )}
         </SectionCard>
-
-        <Button
-          id="attendance-qr-settings-link"
-          variant="text"
-          startIcon={<QrIcon sx={{ fontSize: 18 }} />}
-          onClick={() => void navigate('/settings/qr')}
-          sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
-        >
-          Manage the check-in QR code
-        </Button>
       </Box>
     </PageShell>
   )

@@ -113,7 +113,10 @@ export const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: ({ theme }) => ({
-          fontSize: 14,
+          // 16px on phones: iOS Safari zooms the page into any field below
+          // that, which is why pinch-zoom used to be switched off app-wide.
+          fontSize: 16,
+          [theme.breakpoints.up('md')]: { fontSize: 14 },
           backgroundColor: theme.palette.background.paper,
           '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
           '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.text.disabled },

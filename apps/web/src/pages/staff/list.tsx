@@ -42,7 +42,7 @@ import { alpha } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined'
 import PersonAddIcon from '@mui/icons-material/PersonAddAlt1Outlined'
-import QrCodeIcon from '@mui/icons-material/QrCode2Rounded'
+import AttendanceIcon from '@mui/icons-material/EventAvailableOutlined'
 import ErrorIcon from '@mui/icons-material/ErrorOutlineRounded'
 
 import { apiFetch } from '@/lib/api'
@@ -141,12 +141,12 @@ export default function StaffListPage(): React.JSX.Element {
       mobileAction={
         <Stack direction="row" spacing={0.5}>
           <IconButton
-            id="staff-qr-btn"
-            aria-label="QR attendance"
+            id="staff-attendance-btn"
+            aria-label="Attendance"
             onClick={() => navigate('/staff/attendance')}
             sx={{ border: 1, borderColor: 'divider', borderRadius: 1.5, color: 'text.primary' }}
           >
-            <QrCodeIcon sx={{ fontSize: 19 }} />
+            <AttendanceIcon sx={{ fontSize: 19 }} />
           </IconButton>
           <IconButton
             id="staff-add-btn-mobile"
