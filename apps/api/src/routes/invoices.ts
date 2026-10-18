@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull } from 'drizzle-orm'
-import { CreateInvoiceSchema, UpdateInvoiceSchema, MarkInvoicePaidSchema } from '@autro/shared'
+import { CreateInvoiceSchema, UpdateInvoiceSchema, MarkInvoicePaidSchema, computeBill } from '@autro/shared'
 import type { Env, Variables } from '@/env'
+import { nextDocNumber } from '@/lib/doc-number'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
 import {
@@ -34,6 +35,7 @@ invoicesRouter.get('/', async (c) => {
   const results = await db
     .select({
       id: invoices.id,
+      number: invoices.number,
       visit_id: invoices.visit_id,
       payment_status: invoices.payment_status,
       frozen_total: invoices.frozen_total,
@@ -77,26 +79,13 @@ invoicesRouter.post('/', async (c) => {
   const invoiceId = crypto.randomUUID()
   const data = parsed.data
 
-  // Calculate frozen_total
-  let subtotal = 0
-  for (const item of data.items) {
-    subtotal += item.amount * item.quantity
-  }
-
-  let discount = 0
-  if (data.discount_type === 'FLAT' && data.discount_value) {
-    discount = data.discount_value
-  } else if (data.discount_type === 'PERCENT' && data.discount_value) {
-    discount = subtotal * (data.discount_value / 100)
-  }
-
-  let afterDiscount = Math.max(0, subtotal - discount)
-  let tax = 0
-  if (data.tax_enabled && data.tax_percent) {
-    tax = afterDiscount * (data.tax_percent / 100)
-  }
-
-  const frozen_total = afterDiscount + tax
+  const frozen_total = computeBill({
+    items: data.items,
+    discountType: data.discount_type,
+    discountValue: data.discount_value,
+    taxEnabled: data.tax_enabled,
+    taxPercent: data.tax_percent,
+  }).total
 
   // Verify the visit belongs to this tenant — visit_id comes straight from the
   // request body, so without this an invoice can be attached to another
@@ -128,6 +117,7 @@ invoicesRouter.post('/', async (c) => {
       tax_enabled: data.tax_enabled ? 1 : 0,
       tax_percent: data.tax_percent,
       frozen_total: frozen_total,
+      number: await nextDocNumber(db, 'invoice', tenantId),
       notes: data.notes,
       payment_status: 'UNPAID',
       created_at: now,
@@ -281,28 +271,13 @@ invoicesRouter.patch('/:id', async (c) => {
       .all()
   }
 
-  // Recalculate frozen_total
-  let subtotal = 0
-  for (const item of finalItems) {
-    subtotal += item.amount * item.quantity
-  }
-  const discountType = dataToUpdate.discount_type ?? currentInvoice.discount_type
-  const discountValue = dataToUpdate.discount_value ?? currentInvoice.discount_value
-  let discount = 0
-  if (discountType === 'FLAT' && discountValue) {
-    discount = discountValue
-  } else if (discountType === 'PERCENT' && discountValue) {
-    discount = subtotal * (discountValue / 100)
-  }
-  const afterDiscount = Math.max(0, subtotal - discount)
-
-  const taxEnabled = dataToUpdate.tax_enabled ?? currentInvoice.tax_enabled
-  const taxPercent = dataToUpdate.tax_percent ?? currentInvoice.tax_percent
-  let tax = 0
-  if (taxEnabled && taxPercent) {
-    tax = afterDiscount * (taxPercent / 100)
-  }
-  dataToUpdate.frozen_total = afterDiscount + tax
+  dataToUpdate.frozen_total = computeBill({
+    items: finalItems,
+    discountType: (dataToUpdate.discount_type ?? currentInvoice.discount_type) as 'FLAT' | 'PERCENT' | null,
+    discountValue: dataToUpdate.discount_value ?? currentInvoice.discount_value ?? 0,
+    taxEnabled: Boolean(dataToUpdate.tax_enabled ?? currentInvoice.tax_enabled),
+    taxPercent: dataToUpdate.tax_percent ?? currentInvoice.tax_percent ?? 0,
+  }).total
 
   writes.push(
     db
@@ -408,26 +383,13 @@ invoicesRouter.post('/from-estimate/:estimateId', async (c) => {
     .where(eq(estimate_items.estimate_id, estimateId))
     .all()
 
-  // Calculate total
-  let subtotal = 0
-  for (const item of items) {
-    subtotal += item.amount * item.quantity
-  }
-
-  let discount = 0
-  if (estimate.discount_type === 'FLAT' && estimate.discount_value) {
-    discount = estimate.discount_value
-  } else if (estimate.discount_type === 'PERCENT' && estimate.discount_value) {
-    discount = subtotal * (estimate.discount_value / 100)
-  }
-
-  let afterDiscount = Math.max(0, subtotal - discount)
-  let tax = 0
-  if (estimate.tax_enabled && estimate.tax_percent) {
-    tax = afterDiscount * (estimate.tax_percent / 100)
-  }
-
-  const frozen_total = afterDiscount + tax
+  const frozen_total = computeBill({
+    items,
+    discountType: estimate.discount_type as 'FLAT' | 'PERCENT' | null,
+    discountValue: estimate.discount_value ?? 0,
+    taxEnabled: Boolean(estimate.tax_enabled),
+    taxPercent: estimate.tax_percent ?? 0,
+  }).total
   const invoiceId = crypto.randomUUID()
 
   // D1 has no SQL transactions; runBatch() uses db.batch(), its atomic primitive.
@@ -449,6 +411,7 @@ invoicesRouter.post('/from-estimate/:estimateId', async (c) => {
       tax_enabled: estimate.tax_enabled,
       tax_percent: estimate.tax_percent,
       frozen_total: frozen_total,
+      number: await nextDocNumber(db, 'invoice', tenantId),
       payment_method: null,
       payment_status: 'UNPAID',
       notes: estimate.notes,

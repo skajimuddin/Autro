@@ -38,6 +38,12 @@ export const tenants = sqliteTable('tenants', {
   salary_fixed_divisor: integer('salary_fixed_divisor'),
   // JSON — invoice/estimate PDF customisation. NULL = DEFAULT_PDF_TEMPLATE.
   pdf_template: text('pdf_template'),
+  // GST. When gst_enabled = 0 the invoice/estimate editors hide tax entirely
+  // (plain bills); when 1 they bill GST at gst_percent by default and the
+  // PDFs become "Tax Invoice"s carrying the gstin.
+  gst_enabled: integer('gst_enabled').notNull().default(0),
+  gstin: text('gstin'), // 15-char GSTIN; required while gst_enabled = 1
+  gst_percent: real('gst_percent').notNull().default(18), // default rate for new bills
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
   deleted_at: text('deleted_at'), // Soft delete
@@ -150,7 +156,9 @@ export const service_visits = sqliteTable(
 )
 
 // ── 9. estimates ─────────────────────────────────────────────────────────────
-export const estimates = sqliteTable('estimates', {
+export const estimates = sqliteTable(
+  'estimates',
+  {
   id: text('id').primaryKey(),
   tenant_id: text('tenant_id')
     .notNull()
@@ -164,9 +172,15 @@ export const estimates = sqliteTable('estimates', {
   tax_percent: real('tax_percent').default(0),
   notes: text('notes'),
   status: text('status').notNull().default('DRAFT'), // 'DRAFT', 'SENT', 'CONVERTED'
+  // Running number per garage (1, 2, 3…) — what the printed "EST-0001" shows.
+  number: integer('number'),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
-})
+  },
+  (table) => ({
+    unique_estimate_number: unique('unique_estimate_number').on(table.tenant_id, table.number),
+  }),
+)
 
 // ── 10. estimate_items ───────────────────────────────────────────────────────
 export const estimate_items = sqliteTable('estimate_items', {
@@ -199,6 +213,8 @@ export const invoices = sqliteTable(
     frozen_total: real('frozen_total').notNull(),
     payment_method: text('payment_method'), // 'CASH', 'UPI', 'CARD', 'OTHER'
     payment_status: text('payment_status').notNull().default('UNPAID'), // 'UNPAID', 'PAID'
+    // Running number per garage (1, 2, 3…) — what the printed "INV-0001" shows.
+    number: integer('number'),
     notes: text('notes'),
     created_at: text('created_at').notNull(),
     updated_at: text('updated_at').notNull(),
@@ -206,6 +222,7 @@ export const invoices = sqliteTable(
   },
   (table) => ({
     idx_invoices_payment: index('idx_invoices_payment').on(table.tenant_id, table.payment_status),
+    unique_invoice_number: unique('unique_invoice_number').on(table.tenant_id, table.number),
   }),
 )
 

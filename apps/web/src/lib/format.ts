@@ -4,7 +4,7 @@
 // vehicle detail page. Three copies of "how many days has this been in the
 // shop" is three chances for the dashboard to say 5 days while the list says
 // 6 — so they are written once here and imported everywhere.
-import type { VisitStatus } from '@autro/shared'
+import type { PdfTemplate, VisitStatus } from '@autro/shared'
 
 /** Display order == the real repair progression. */
 export const STAGE_ORDER: VisitStatus[] = ['NEW', 'REPAIRING', 'READY', 'DELIVERED']
@@ -20,6 +20,22 @@ export const STAGE_LABEL: Record<VisitStatus, string> = {
 /** Rupees, grouped the Indian way (₹1,20,400) and never with paise. */
 export function inr(amount: number): string {
   return `₹${Math.round(amount).toLocaleString('en-IN')}`
+}
+
+/** Rupees to the paisa, for bills where the GST split has to add up. */
+export function inrExact(amount: number): string {
+  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+/** The printed document number: an invoice numbered 7 → "INV-0007". The
+ *  prefix is the garage's, from Settings → Invoice & estimate PDFs. */
+export function docNumber(
+  kind: 'invoice' | 'estimate',
+  template: Partial<PdfTemplate> | null | undefined,
+  n: number,
+): string {
+  const prefix = (kind === 'invoice' ? template?.invoice_prefix : template?.estimate_prefix) || (kind === 'invoice' ? 'INV' : 'EST')
+  return `${prefix}-${String(n).padStart(4, '0')}`
 }
 
 /** A job sitting this long without handover is worth surfacing. */

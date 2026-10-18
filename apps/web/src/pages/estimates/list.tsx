@@ -43,12 +43,13 @@ import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { EmptyPanel } from '@/components/ui/empty-panel'
 import { FilterTabs } from '@/components/ui/filter-tabs'
-import { inr, formatFullDate } from '@/lib/format'
+import { inr, formatFullDate, docNumber } from '@/lib/format'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface EstimateListItem {
   id: string
+  number: number
   registration_number: string
   customer_name: string
   total: number
@@ -228,6 +229,7 @@ interface RowsProps {
 }
 
 function DesktopTable({ estimates, onSelect }: RowsProps): React.JSX.Element {
+  const { tenant } = useTenant()
   return (
     <Table size="small" sx={{ tableLayout: 'fixed' }}>
       <colgroup>
@@ -289,6 +291,9 @@ function DesktopTable({ estimates, onSelect }: RowsProps): React.JSX.Element {
               <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600 }}>
                 {est.registration_number}
               </Typography>
+              <Typography noWrap sx={{ fontSize: 11.5, color: 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
+                {docNumber('estimate', tenant?.pdf_template, est.number)}
+              </Typography>
             </TableCell>
 
             <TableCell>
@@ -332,6 +337,7 @@ function DesktopTable({ estimates, onSelect }: RowsProps): React.JSX.Element {
 // ── Mobile ────────────────────────────────────────────────────────────────────
 
 function MobileRows({ estimates, onSelect }: RowsProps): React.JSX.Element {
+  const { tenant } = useTenant()
   return (
     <Box>
       {estimates.map((est, i) => (
@@ -366,7 +372,7 @@ function MobileRows({ estimates, onSelect }: RowsProps): React.JSX.Element {
                   mt: 0.5,
                 }}
               >
-                {formatFullDate(est.created_at)}
+                {docNumber('estimate', tenant?.pdf_template, est.number)} · {formatFullDate(est.created_at)}
               </Typography>
             </Box>
 

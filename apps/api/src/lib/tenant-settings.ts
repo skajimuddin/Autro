@@ -41,15 +41,17 @@ export function parsePdfTemplate(raw: string | null): PdfTemplate {
  * columns decoded and defaulted — what every route that returns a tenant to
  * the frontend should send instead of the raw row.
  */
-export function serializeTenant<T extends { work_days: string | null; salary_basis: string | null; salary_fixed_divisor: number | null; pdf_template: string | null }>(
+export function serializeTenant<T extends { work_days: string | null; salary_basis: string | null; salary_fixed_divisor: number | null; pdf_template: string | null; gst_enabled: number }>(
   row: T,
-): Omit<T, 'work_days' | 'salary_basis' | 'pdf_template'> & {
+): Omit<T, 'work_days' | 'salary_basis' | 'pdf_template' | 'gst_enabled'> & {
+  gst_enabled: boolean
   work_days: number[]
   salary_basis: SalaryBasis
   pdf_template: PdfTemplate
 } {
   return {
     ...row,
+    gst_enabled: row.gst_enabled === 1,
     work_days: parseWorkDays(row.work_days),
     salary_basis: parseSalaryBasis(row.salary_basis),
     pdf_template: parsePdfTemplate(row.pdf_template),

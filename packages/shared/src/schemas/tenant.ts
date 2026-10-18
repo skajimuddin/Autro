@@ -5,6 +5,9 @@ import { PdfTemplateSchema } from './pdf-template'
 /** 0 = Sunday … 6 = Saturday, at least one day open. */
 const WorkDaysSchema = z.array(z.number().int().min(0).max(6)).min(1).max(7)
 
+/** 15-character GSTIN: 2-digit state, 10-char PAN, entity digit, 'Z', checksum. */
+export const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/
+
 /**
  * POST /tenants — create garage (onboarding)
  * Matches columns in the `tenants` table.
@@ -42,4 +45,9 @@ export const UpdateTenantSchema = z.object({
   salary_fixed_divisor: z.number().int().min(1).max(31).nullable().optional(),
   /** Invoice/estimate PDF customisation — see schemas/pdf-template.ts. */
   pdf_template: PdfTemplateSchema.partial().optional(),
+  /** Bill GST on invoices/estimates. Needs a GSTIN — enforced by the route. */
+  gst_enabled: z.boolean().optional(),
+  gstin: z.string().trim().toUpperCase().regex(GSTIN_REGEX, 'Enter a valid 15-character GSTIN').nullable().optional(),
+  /** Default GST rate pre-filled on new bills. */
+  gst_percent: z.number().min(0).max(100).optional(),
 })

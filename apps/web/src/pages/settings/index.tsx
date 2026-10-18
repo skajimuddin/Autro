@@ -13,6 +13,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRightRounded'
 import StorefrontIcon from '@mui/icons-material/StorefrontOutlined'
 import PlaceIcon from '@mui/icons-material/PlaceOutlined'
 import PayrollIcon from '@mui/icons-material/PaidOutlined'
+import GstIcon from '@mui/icons-material/PercentRounded'
 import PdfIcon from '@mui/icons-material/PictureAsPdfOutlined'
 import QrIcon from '@mui/icons-material/QrCode2Rounded'
 import AccountIcon from '@mui/icons-material/PersonOutlineRounded'
@@ -38,6 +39,7 @@ const ROWS: SettingsRow[] = [
   { to: '/settings/garage', icon: StorefrontIcon, title: 'Garage details', subtitle: 'Name, phone, address, logo' },
   { to: '/settings/location', icon: PlaceIcon, title: 'Workshop location', subtitle: 'GPS check-in geofence' },
   { to: '/settings/payroll', icon: PayrollIcon, title: 'Attendance & payroll', subtitle: 'Weekly offs, salary calculation' },
+  { to: '/settings/gst', icon: GstIcon, title: 'GST', subtitle: 'Charge GST on bills, GSTIN, default rate', ownerOnly: true },
   { to: '/settings/pdf', icon: PdfIcon, title: 'Invoice & estimate PDFs', subtitle: 'Logo, terms, document numbering' },
   { to: '/settings/qr', icon: QrIcon, title: 'QR code', subtitle: 'Attendance check-in code', ownerOnly: true },
   { to: '/settings/account', icon: AccountIcon, title: 'Account', subtitle: 'Your profile, sign out' },

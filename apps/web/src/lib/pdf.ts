@@ -25,8 +25,9 @@
 // This file uses createElement rather than JSX because 02-folder-structure.md
 // specifies `lib/pdf.ts`, and a .ts file cannot contain JSX.
 import { createElement as el } from 'react'
-import type { PdfTemplate } from '@autro/shared'
+import type { BillTotals, PdfTemplate } from '@autro/shared'
 import { DEFAULT_PDF_TEMPLATE } from '@autro/shared'
+import { docNumber } from '@/lib/format'
 import { BRAND } from '@/theme'
 import { triggerDownload } from '@/lib/download-file'
 
@@ -39,10 +40,10 @@ export interface PdfLineItem {
 }
 
 export interface PdfDocumentData {
-  /** Short human-facing reference, e.g. first 8 chars of the record's id —
-   *  the template's invoice/estimate prefix is applied on top of this. */
-  reference: string
-  /** ISO date string for the document date */
+  /** The garage's running number for this document — the template's
+   *  invoice/estimate prefix is applied on top of it ("INV-0007"). */
+  number: number
+  /** ISO date string for the document date — the day it was raised. */
   date: string
   garage: {
     name: string
@@ -53,6 +54,9 @@ export interface PdfDocumentData {
      *  breaking PDF generation, since the document still has to generate
      *  correctly on every device even when the image can't be reached. */
     logo_url: string | null
+    /** Set only while the garage bills GST: prints the GSTIN and retitles an
+     *  invoice "TAX INVOICE". */
+    gstin: string | null
   }
   customer: {
     name: string
@@ -60,12 +64,9 @@ export interface PdfDocumentData {
     registration: string
   }
   items: PdfLineItem[]
-  subtotal: number
-  taxEnabled: boolean
-  taxPercent: number
-  taxAmount: number
-  discountAmount: number
-  total: number
+  bill: BillTotals
+  /** The GST rate charged — CGST and SGST are each half of it. */
+  gstPercent: number
   notes: string | null
   /** Owner's customisation — pass `tenant.pdf_template` straight through.
    *  Missing/partial is fine; defaults fill the rest. */
@@ -126,13 +127,14 @@ async function generate(
   kind: 'INVOICE' | 'QUOTATION',
   data: PdfDocumentData,
   paymentStatus: 'PAID' | 'UNPAID' | null,
-): Promise<void> {
+): Promise<File> {
   const { pdf, Document, Page, Text, View, Image, StyleSheet } = await import('@react-pdf/renderer')
 
   const t: PdfTemplate = { ...DEFAULT_PDF_TEMPLATE, ...data.template }
   const accent = t.accent_color || BRAND.light
-  const prefix = (kind === 'INVOICE' ? t.invoice_prefix : t.estimate_prefix) || (kind === 'INVOICE' ? 'INV' : 'EST')
-  const reference = `${prefix}-${data.reference}`
+  const reference = docNumber(kind === 'INVOICE' ? 'invoice' : 'estimate', t, data.number)
+  const title = kind === 'QUOTATION' ? 'QUOTATION' : data.garage.gstin ? 'TAX INVOICE' : 'INVOICE'
+  const { bill } = data
   const showAddress = t.show_address && Boolean(data.garage.address)
 
   const logoDataUrl =
@@ -237,11 +239,12 @@ async function generate(
           el(Text, { style: s.garageName }, data.garage.name),
           el(Text, { style: s.muted }, data.garage.phone),
           showAddress ? el(Text, { style: s.muted }, data.garage.address) : null,
+          data.garage.gstin ? el(Text, { style: s.muted }, `GSTIN: ${data.garage.gstin}`) : null,
         ),
         el(
           View,
           {},
-          el(Text, { style: s.docTitle }, kind === 'INVOICE' ? 'INVOICE' : 'QUOTATION'),
+          el(Text, { style: s.docTitle }, title),
           el(Text, { style: s.muted }, `#${reference}`),
           el(Text, { style: s.muted }, formatDate(data.date)),
           paymentStatus
@@ -293,24 +296,40 @@ async function generate(
         el(
           View,
           { style: s.totalsBlock },
-          el(View, { style: s.totalRow }, el(Text, {}, 'Subtotal'), el(Text, {}, money(data.subtotal))),
-          data.taxEnabled
-            ? el(
-                View,
-                { style: s.totalRow },
-                el(Text, {}, `Tax (${data.taxPercent}%)`),
-                el(Text, {}, money(data.taxAmount)),
-              )
-            : null,
-          data.discountAmount > 0
+          el(View, { style: s.totalRow }, el(Text, {}, 'Subtotal'), el(Text, {}, money(bill.subtotal))),
+          bill.discount > 0
             ? el(
                 View,
                 { style: s.totalRow },
                 el(Text, {}, 'Discount'),
-                el(Text, {}, `- ${money(data.discountAmount)}`),
+                el(Text, {}, `- ${money(bill.discount)}`),
               )
             : null,
-          el(View, { style: s.grandRow }, el(Text, {}, 'Total'), el(Text, {}, money(data.total))),
+          bill.tax > 0
+            ? el(
+                View,
+                { style: s.totalRow },
+                el(Text, {}, `CGST (${data.gstPercent / 2}%)`),
+                el(Text, {}, money(bill.cgst)),
+              )
+            : null,
+          bill.tax > 0
+            ? el(
+                View,
+                { style: s.totalRow },
+                el(Text, {}, `SGST (${data.gstPercent / 2}%)`),
+                el(Text, {}, money(bill.sgst)),
+              )
+            : null,
+          bill.roundOff !== 0
+            ? el(
+                View,
+                { style: s.totalRow },
+                el(Text, {}, 'Round off'),
+                el(Text, {}, `${bill.roundOff > 0 ? '+' : '-'} ${money(Math.abs(bill.roundOff))}`),
+              )
+            : null,
+          el(View, { style: s.grandRow }, el(Text, {}, 'Total'), el(Text, {}, money(bill.total))),
         ),
       ),
 
@@ -343,7 +362,28 @@ async function generate(
   )
 
   const blob = await pdf(doc).toBlob()
-  triggerDownload(blob, `${kind === 'INVOICE' ? 'invoice' : 'quotation'}-${reference}.pdf`)
+  return new File([blob], `${kind === 'INVOICE' ? 'invoice' : 'quotation'}-${reference}.pdf`, {
+    type: 'application/pdf',
+  })
+}
+
+/**
+ * Hand the PDF to the phone's share sheet (WhatsApp, Gmail, Drive…) as a real
+ * file. Browsers that cannot share files — most desktops — download it
+ * instead, so the button always does something useful.
+ */
+async function share(file: File, message: string): Promise<void> {
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: file.name, text: message })
+      return
+    } catch (err) {
+      // Closing the share sheet is not a failure.
+      if ((err as Error).name === 'AbortError') return
+      throw err
+    }
+  }
+  triggerDownload(file, file.name)
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -351,11 +391,22 @@ async function generate(
 /** Build the invoice PDF and hand it to the browser as a download. Throws on
  *  failure so the caller can surface a toast. */
 export async function downloadInvoicePdf(data: InvoicePdfData): Promise<void> {
-  await generate('INVOICE', data, data.paymentStatus)
+  const file = await generate('INVOICE', data, data.paymentStatus)
+  triggerDownload(file, file.name)
+}
+
+/** Share the invoice PDF through the device's share sheet. */
+export async function shareInvoicePdf(data: InvoicePdfData, message: string): Promise<void> {
+  await share(await generate('INVOICE', data, data.paymentStatus), message)
 }
 
 /** Same document builder, no payment status — a quotation isn't paid or
  *  unpaid, it's an estimate. */
 export async function downloadEstimatePdf(data: EstimatePdfData): Promise<void> {
-  await generate('QUOTATION', data, null)
+  const file = await generate('QUOTATION', data, null)
+  triggerDownload(file, file.name)
+}
+
+export async function shareEstimatePdf(data: EstimatePdfData, message: string): Promise<void> {
+  await share(await generate('QUOTATION', data, null), message)
 }

@@ -22,6 +22,10 @@ interface Tenant {
   salary_fixed_divisor: number | null
   /** Invoice/estimate PDF customisation. Always populated — the API defaults it. */
   pdf_template: PdfTemplate
+  gst_enabled: boolean
+  gstin: string | null
+  /** Default GST rate pre-filled on new bills. */
+  gst_percent: number
   created_at: string
   updated_at: string
 }

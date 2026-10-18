@@ -1,10 +1,11 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { and, desc, eq, isNull } from 'drizzle-orm'
-import { CreateEstimateSchema, UpdateEstimateSchema } from '@autro/shared'
+import { CreateEstimateSchema, UpdateEstimateSchema, computeBill } from '@autro/shared'
 import type { Env, Variables } from '@/env'
 import type { D1Write } from '@/db/batch'
 import { runBatch } from '@/db/batch'
+import { nextDocNumber } from '@/lib/doc-number'
 import { estimates, estimate_items, service_visits, vehicles, customers } from '@/db/schema'
 
 const estimatesRouter = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -26,6 +27,7 @@ estimatesRouter.get('/', async (c) => {
   const results = await db
     .select({
       id: estimates.id,
+      number: estimates.number,
       visit_id: estimates.visit_id,
       status: estimates.status,
       created_at: estimates.created_at,
@@ -57,32 +59,23 @@ estimatesRouter.get('/', async (c) => {
         .from(estimate_items)
         .where(eq(estimate_items.estimate_id, est.id))
         .all()
-      let subtotal = 0
-      for (const item of items) {
-        subtotal += item.amount * item.quantity
-      }
-
-      let discount = 0
-      if (est.discount_type === 'FLAT' && est.discount_value) {
-        discount = est.discount_value
-      } else if (est.discount_type === 'PERCENT' && est.discount_value) {
-        discount = subtotal * (est.discount_value / 100)
-      }
-
-      let afterDiscount = Math.max(0, subtotal - discount)
-      let tax = 0
-      if (est.tax_enabled && est.tax_percent) {
-        tax = afterDiscount * (est.tax_percent / 100)
-      }
+      const total = computeBill({
+        items,
+        discountType: est.discount_type as 'FLAT' | 'PERCENT' | null,
+        discountValue: est.discount_value ?? 0,
+        taxEnabled: Boolean(est.tax_enabled),
+        taxPercent: est.tax_percent ?? 0,
+      }).total
 
       return {
         id: est.id,
+        number: est.number,
         visit_id: est.visit_id,
         registration_number: est.registration_number,
         customer_name: est.customer_name,
         status: est.status,
         created_at: est.created_at,
-        total: afterDiscount + tax,
+        total,
       }
     }),
   )
@@ -140,6 +133,7 @@ estimatesRouter.post('/', async (c) => {
     tax_percent: data.tax_percent,
     notes: data.notes,
     status: 'DRAFT',
+    number: await nextDocNumber(db, 'estimate', tenantId),
     created_at: now,
     updated_at: now,
   })

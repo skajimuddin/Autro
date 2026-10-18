@@ -149,8 +149,27 @@ tenantsRouter.patch('/:id', async (c) => {
   // object (a settings page toggling one field shouldn't have to resend
   // every other one), so it has to be merged onto what's already saved
   // rather than overwrite the column outright.
-  const { work_days, pdf_template, ...rest } = parsed.data
+  const { work_days, pdf_template, gst_enabled, ...rest } = parsed.data
   const updates: Record<string, unknown> = { ...rest, updated_at: now }
+
+  // GST can only be on while a GSTIN is on file — an invoice titled "Tax
+  // Invoice" with no GSTIN is not a valid one.
+  if (gst_enabled !== undefined || rest.gstin !== undefined) {
+    const current = await db
+      .select({ gst_enabled: tenants.gst_enabled, gstin: tenants.gstin })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .get()
+    const willEnable = gst_enabled ?? current?.gst_enabled === 1
+    const gstin = rest.gstin !== undefined ? rest.gstin : current?.gstin
+    if (willEnable && !gstin) {
+      return c.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Add your GSTIN to turn GST on' } },
+        400,
+      )
+    }
+    if (gst_enabled !== undefined) updates.gst_enabled = gst_enabled ? 1 : 0
+  }
 
   if (work_days !== undefined) {
     updates.work_days = JSON.stringify(work_days)

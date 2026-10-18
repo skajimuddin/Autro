@@ -1,8 +1,8 @@
 // Login — the only way into the app.
 //
-// Migrated 2026-08-20 onto the MUI design system. A centred column on the page
-// ground: logo, wordmark, one line of value, one action. Nothing else belongs
-// on a screen whose only job is to start OAuth.
+// A centred column on the page ground: logo, one line of value, the one action,
+// then three lines on what the app does so a first-time owner knows what they
+// are signing in to.
 //
 // The Google mark stays raw inline SVG with its own fixed colours on purpose —
 // it is Google's brand asset, not a design-system colour, and is one of the two
@@ -10,6 +10,10 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate, type Location } from 'react-router'
 import { Box, Button, Stack, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCarOutlined'
+import ReceiptIcon from '@mui/icons-material/ReceiptLongOutlined'
+import QrIcon from '@mui/icons-material/QrCodeScannerRounded'
 
 import { getToken, redirectToGoogleLogin } from '@/lib/auth'
 
@@ -39,6 +43,12 @@ function GoogleMark(): React.JSX.Element {
   )
 }
 
+const FEATURES = [
+  { icon: DirectionsCarIcon, title: 'Every vehicle, every stage', text: 'From drop-off to delivery, with photos and complaints.' },
+  { icon: ReceiptIcon, title: 'Estimates & GST invoices', text: 'Build a bill on your phone and share the PDF on WhatsApp.' },
+  { icon: QrIcon, title: 'Staff attendance', text: 'Check in by scanning the code at your workshop door.' },
+]
+
 export default function LoginPage(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
@@ -62,20 +72,23 @@ export default function LoginPage(): React.JSX.Element {
       sx={{
         minHeight: '100dvh',
         bgcolor: 'background.default',
-        display: 'grid',
-        placeItems: 'center',
-        p: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        px: 3,
+        py: 5,
       }}
     >
       <Stack alignItems="center" textAlign="center" sx={{ width: '100%', maxWidth: 380 }}>
-        <Box component="img" src="/apple-touch-icon.png" alt="" sx={{ width: 64, height: 64, mb: 3, borderRadius: 2 }} />
+        <Box component="img" src="/apple-touch-icon.png" alt="" sx={{ width: 64, height: 64, mb: 2.5, borderRadius: 2 }} />
 
-        <Typography component="h1" sx={{ fontSize: 32, fontWeight: 700, letterSpacing: '-.025em' }}>
-          Autro
+        <Typography component="h1" sx={{ fontSize: 30, fontWeight: 700, letterSpacing: '-.025em' }}>
+          Sign in to Autro
         </Typography>
 
-        <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, mt: 1, mb: 4.5, maxWidth: '32ch' }}>
-          Garage management, simplified. Vehicles, estimates and invoices in one place.
+        <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, mt: 1, mb: 3.5 }}>
+          Run your workshop from your phone.
         </Typography>
 
         {alreadyLoggedIn ? (
@@ -94,11 +107,30 @@ export default function LoginPage(): React.JSX.Element {
             >
               Continue with Google
             </Button>
-            <Typography sx={{ fontSize: 12.5, color: 'text.disabled', mt: 2 }}>
-              Owner login only. Staff sign in for attendance.
+            <Typography sx={{ fontSize: 12.5, color: 'text.disabled', mt: 2, lineHeight: 1.5 }}>
+              Garage owners sign in here. Staff: open the invite link your owner sent you.
             </Typography>
           </>
         )}
+
+        <Stack spacing={2} sx={{ mt: 5, width: '100%', textAlign: 'left' }}>
+          {FEATURES.map(({ icon: Icon, title, text }) => (
+            <Stack key={title} direction="row" spacing={1.75} alignItems="flex-start">
+              <Box
+                sx={(t) => ({
+                  width: 36, height: 36, flexShrink: 0, borderRadius: 1.5, display: 'grid', placeItems: 'center',
+                  bgcolor: alpha(t.palette.primary.main, 0.1), color: 'primary.main',
+                })}
+              >
+                <Icon sx={{ fontSize: 19 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>{title}</Typography>
+                <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>{text}</Typography>
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
       </Stack>
     </Box>
   )

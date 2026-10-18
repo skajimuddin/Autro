@@ -8,6 +8,28 @@ gets recorded.
 
 ## ⚠️ Pending — do this before your next deploy
 
+### Migration `0010_flippant_venus.sql` — GST settings + running bill numbers
+
+Adds `tenants.gst_enabled / gstin / gst_percent`, and `number` (unique per
+garage) on `invoices` and `estimates`:
+
+```bash
+cd apps/api
+wrangler d1 migrations apply autro-db --remote     # --local for the dev copy
+```
+
+**Existing invoices/estimates get no number** (the column is NULL), so they
+print as `INV-NaN`. The app is pre-launch, so the clean answer is to wipe the
+dev database and re-run migrations from scratch. New bills are numbered
+1, 2, 3… per garage automatically.
+
+GST is **off by default** for every garage. Turn it on in Settings → GST
+(needs a GSTIN). While it is off the editors show no tax at all.
+
+Bill totals are now rounded to the whole rupee (shown as a "Round off" line)
+and computed by one shared function, so the app, the PDF and the database
+agree.
+
 ### Two new migrations to apply
 
 `0008_secret_skrulls.sql` (tenant payroll/PDF settings columns) and

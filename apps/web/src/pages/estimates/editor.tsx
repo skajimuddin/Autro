@@ -1,72 +1,48 @@
-// Estimate editor — line items, discount, tax, total.
+// Estimate editor — line items, discount, GST, total.
 //
-// Migrated 2026-08-20 onto the MUI design system. The line-item row is the
-// whole screen, so it gets the room: description takes the width, quantity and
-// amount are fixed and right-aligned, and the running total sits at the bottom
-// where an owner reads it out to a customer.
-//
-// The arithmetic is deliberately the backend's: discount comes off the
-// subtotal, then tax applies to what is left. Taxing the pre-discount subtotal
-// disagrees with the total the server freezes, and the customer sees both.
-import { useState, useCallback, useEffect } from 'react'
+// Shares its form body with the invoice editor (components/domain/bill-form)
+// and its arithmetic with the API (computeBill in @autro/shared), so the
+// quotation a customer is shown always adds up to what the invoice will.
+// On a phone the total and the primary action ride in a bar fixed to the
+// bottom of the screen.
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Box, Button, Divider, IconButton, InputAdornment, Stack, Switch, TextField, Typography,
-} from '@mui/material'
-import AddIcon from '@mui/icons-material/AddRounded'
-import DeleteIcon from '@mui/icons-material/DeleteOutlineRounded'
+import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import SaveIcon from '@mui/icons-material/SaveOutlined'
 import ArrowIcon from '@mui/icons-material/ArrowForwardRounded'
 import PdfIcon from '@mui/icons-material/PictureAsPdfOutlined'
 import ShareIcon from '@mui/icons-material/IosShareRounded'
+import { computeBill } from '@autro/shared'
 
 import { apiFetch } from '@/lib/api'
+import { downloadEstimatePdf, shareEstimatePdf, type EstimatePdfData } from '@/lib/pdf'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { SectionCard } from '@/components/ui/section-card'
-import { SegmentedControl } from '@/components/ui/segmented-control'
+import { Kicker } from '@/components/ui/kicker'
 import { useToast, ToastContainer } from '@/components/ui/toast'
 import { FullPageSpinner } from '@/components/ui/loading'
-import { inr } from '@/lib/format'
-import { downloadEstimatePdf } from '@/lib/pdf'
-
-interface EstimateItem {
-  id: string
-  description: string
-  amount: number
-  quantity: number
-  sort_order: number
-}
+import { DiscountCard, GstCard, LineItemsCard, NotesCard, TotalsLines } from '@/components/domain/bill-form'
+import { blankItem, isFilled, toApiItems, toNumbers, type DraftItem } from '@/lib/bill-draft'
+import { docNumber, inr, inrExact } from '@/lib/format'
 
 interface EstimateDetail {
   id: string
+  number: number
   visit_id: string
-  items: EstimateItem[]
+  items: { id: string; description: string; amount: number; quantity: number }[]
   discount_type: 'FLAT' | 'PERCENT' | null
   discount_value: number
   tax_enabled: boolean
   tax_percent: number
   notes: string | null
   status: string
+  created_at: string
   registration_number?: string
   customer_name?: string
   customer_phone?: string
 }
-
-interface DraftItem {
-  tempId: string
-  description: string
-  amount: string
-  quantity: string
-}
-
-const blankItem = (): DraftItem => ({
-  tempId: crypto.randomUUID(),
-  description: '',
-  amount: '',
-  quantity: '1',
-})
 
 export default function EstimateEditorPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>()
@@ -78,12 +54,16 @@ export default function EstimateEditorPage(): React.JSX.Element {
   const { toasts, showToast, dismissToast } = useToast()
 
   const isNew = !id || id === 'new'
+  const gstAvailable = Boolean(tenant?.gst_enabled)
 
   const [items, setItems] = useState<DraftItem[]>([blankItem()])
-  const [taxEnabled, setTaxEnabled] = useState(false)
-  const [taxPercent, setTaxPercent] = useState('18')
+  // A garage that bills GST starts every new bill with it on.
+  const [taxEnabled, setTaxEnabled] = useState(gstAvailable)
+  const [taxPercent, setTaxPercent] = useState(String(tenant?.gst_percent ?? ''))
   const [discountType, setDiscountType] = useState<'FLAT' | 'PERCENT'>('FLAT')
-  const [discountValue, setDiscountValue] = useState('0')
+  const [discountValue, setDiscountValue] = useState('')
+  const [notes, setNotes] = useState('')
+  const [busy, setBusy] = useState<'pdf' | 'share' | null>(null)
 
   const { data: existing, isLoading } = useQuery<EstimateDetail>({
     queryKey: ['estimate', id],
@@ -101,263 +81,166 @@ export default function EstimateEditorPage(): React.JSX.Element {
         quantity: String(item.quantity),
       })),
     )
-    setTaxEnabled(existing.tax_enabled)
-    setTaxPercent(String(existing.tax_percent))
+    setTaxEnabled(Boolean(existing.tax_enabled))
+    setTaxPercent(String(existing.tax_percent || tenant?.gst_percent || ''))
     if (existing.discount_type) setDiscountType(existing.discount_type)
-    setDiscountValue(String(existing.discount_value))
-  }, [existing])
+    setDiscountValue(existing.discount_value ? String(existing.discount_value) : '')
+    setNotes(existing.notes ?? '')
+  }, [existing, tenant?.gst_percent])
 
-  const subtotal = items.reduce(
-    (sum, i) => sum + (Number(i.amount) || 0) * (Number(i.quantity) || 1),
-    0,
-  )
-  const discountAmount =
-    discountType === 'PERCENT'
-      ? (subtotal * (Number(discountValue) || 0)) / 100
-      : Number(discountValue) || 0
-  const afterDiscount = Math.max(0, subtotal - discountAmount)
-  const taxAmount = taxEnabled ? (afterDiscount * (Number(taxPercent) || 0)) / 100 : 0
-  const grandTotal = afterDiscount + taxAmount
+  const gstOn = gstAvailable && taxEnabled
+  const gstPercent = Number(taxPercent) || 0
+  const bill = computeBill({
+    items: toNumbers(items),
+    discountType: Number(discountValue) > 0 ? discountType : null,
+    discountValue: Number(discountValue) || 0,
+    taxEnabled: gstOn,
+    taxPercent: gstPercent,
+  })
 
-  const updateItem = useCallback((tempId: string, field: keyof DraftItem, value: string) => {
-    setItems((prev) => prev.map((i) => (i.tempId === tempId ? { ...i, [field]: value } : i)))
-  }, [])
+  const hasItems = items.some(isFilled)
+  const gstInvalid = gstOn && (gstPercent <= 0 || gstPercent > 100)
+  const canSave = hasItems && !gstInvalid
+  const numberLabel = existing ? docNumber('estimate', tenant?.pdf_template, existing.number) : null
 
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
-
-  // The heavy @react-pdf/renderer import lives in lib/pdf.ts so it only
-  // downloads when this actually runs.
-  const downloadPdf = useCallback(async () => {
-    if (!tenant) {
-      showToast('error', 'Garage details are still loading. Try again.')
-      return
+  const pdfData = (): EstimatePdfData => {
+    if (!tenant || !existing) throw new Error('Save the estimate first')
+    return {
+      number: existing.number,
+      date: existing.created_at,
+      garage: {
+        name: tenant.name,
+        phone: tenant.phone,
+        address: tenant.address,
+        logo_url: tenant.logo_url,
+        gstin: tenant.gst_enabled ? tenant.gstin : null,
+      },
+      template: tenant.pdf_template,
+      customer: {
+        name: existing.customer_name ?? '—',
+        phone: existing.customer_phone ?? '—',
+        registration: existing.registration_number ?? '—',
+      },
+      items: toApiItems(items),
+      bill,
+      gstPercent,
+      notes: notes.trim() || null,
     }
-    setIsGeneratingPdf(true)
+  }
+
+  const runPdf = async (mode: 'pdf' | 'share'): Promise<void> => {
+    setBusy(mode)
     try {
-      await downloadEstimatePdf({
-        reference: (existing?.id ?? id ?? 'draft').slice(0, 8).toUpperCase(),
-        date: new Date().toISOString(),
-        garage: { name: tenant.name, phone: tenant.phone, address: tenant.address, logo_url: tenant.logo_url },
-        template: tenant.pdf_template,
-        customer: {
-          name: existing?.customer_name ?? '—',
-          phone: existing?.customer_phone ?? '—',
-          registration: existing?.registration_number ?? '—',
-        },
-        items: items.map((i) => ({
-          description: i.description,
-          amount: Number(i.amount) || 0,
-          quantity: Number(i.quantity) || 1,
-        })),
-        subtotal,
-        taxEnabled,
-        taxPercent: Number(taxPercent) || 0,
-        taxAmount,
-        discountAmount,
-        total: grandTotal,
-        notes: existing?.notes ?? null,
-      })
+      if (mode === 'pdf') {
+        await downloadEstimatePdf(pdfData())
+      } else {
+        const message = `Quotation ${numberLabel} from ${tenant?.name}: ${inr(bill.total)}. Let us know if you'd like to go ahead.`
+        await shareEstimatePdf(pdfData(), message)
+      }
     } catch (err: unknown) {
       showToast('error', err instanceof Error ? err.message : 'Could not generate the PDF')
     } finally {
-      setIsGeneratingPdf(false)
+      setBusy(null)
     }
-  }, [tenant, existing, id, items, subtotal, taxEnabled, taxPercent, taxAmount, discountAmount, grandTotal, showToast])
-
-  const share = useCallback(async () => {
-    const text = `Quotation from ${tenant?.name ?? 'the workshop'}:\nTotal: ${inr(grandTotal)}\n\nLet us know if you'd like to go ahead.`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `Quotation from ${tenant?.name ?? 'the workshop'}`, text })
-        return
-      } catch (err) {
-        // A cancelled share is not a failure.
-        if ((err as Error).name === 'AbortError') return
-      }
-    }
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
-  }, [tenant?.name, grandTotal])
+  }
 
   const saveMutation = useMutation({
     mutationFn: () => {
       const body = {
-        visit_id: visitId,
-        items: items
-          .filter((i) => i.description.trim() && Number(i.amount) > 0)
-          .map((i, idx) => ({
-            description: i.description.trim(),
-            amount: Number(i.amount),
-            quantity: Number(i.quantity) || 1,
-            sort_order: idx,
-          })),
+        items: toApiItems(items),
         discount_type: Number(discountValue) > 0 ? discountType : null,
         discount_value: Number(discountValue) || 0,
-        tax_enabled: taxEnabled,
-        tax_percent: taxEnabled ? Number(taxPercent) || 0 : 0,
+        tax_enabled: gstOn,
+        tax_percent: gstOn ? gstPercent : 0,
+        notes: notes.trim(),
       }
       return isNew
         ? apiFetch<{ id: string }>('/estimates', {
             method: 'POST',
-            body: JSON.stringify(body),
+            body: JSON.stringify({ ...body, visit_id: visitId }),
             tenantId: tenant?.id,
           })
-        : apiFetch(`/estimates/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(body),
-            tenantId: tenant?.id,
-          })
+        : apiFetch(`/estimates/${id}`, { method: 'PATCH', body: JSON.stringify(body), tenantId: tenant?.id })
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       showToast('success', isNew ? 'Estimate created' : 'Estimate saved')
       queryClient.invalidateQueries({ queryKey: ['estimates'] })
+      queryClient.invalidateQueries({ queryKey: ['estimate', id] })
       // The vehicle screen prints this estimate's total.
       queryClient.invalidateQueries({ queryKey: ['vehicle'] })
-      if (isNew) void navigate(-1)
+      // Land on the saved estimate: sharing it or converting it is what comes next.
+      if (isNew) void navigate(`/estimates/${(res as { id: string }).id}`, { replace: true })
     },
     onError: (err: Error) => showToast('error', err.message || 'Failed to save estimate'),
   })
 
+  // The server copies the saved estimate into an invoice (and hands back the
+  // existing one if it was already converted), so convert the *saved* version.
+  const convertMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<{ invoice_id: string }>(`/invoices/from-estimate/${id}`, { method: 'POST', tenantId: tenant?.id }),
+    onSuccess: ({ invoice_id }) => {
+      queryClient.invalidateQueries({ queryKey: ['estimates'] })
+      queryClient.invalidateQueries({ queryKey: ['estimate', id] })
+      queryClient.invalidateQueries({ queryKey: ['invoices'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['vehicle'] })
+      void navigate(`/invoices/${invoice_id}`)
+    },
+    onError: (err: Error) => showToast('error', err.message || 'Could not convert the estimate'),
+  })
+
   if (isLoading && !isNew) return <FullPageSpinner />
 
-  const hasItems = items.some((i) => i.description.trim() && Number(i.amount) > 0)
+  const converted = existing?.status === 'CONVERTED'
+
+  const saveButton = (buttonId: string): React.JSX.Element => (
+    <Button
+      id={buttonId}
+      variant="contained"
+      startIcon={<SaveIcon />}
+      disabled={saveMutation.isPending || !canSave}
+      onClick={() => saveMutation.mutate()}
+      sx={{ height: 46 }}
+    >
+      {saveMutation.isPending ? 'Saving…' : isNew ? 'Create estimate' : 'Save changes'}
+    </Button>
+  )
 
   return (
-    <PageShell title="Estimate" mobileTitle="Estimate" showBack hideNav>
+    <PageShell
+      title={numberLabel ? `Estimate ${numberLabel}` : 'New estimate'}
+      mobileTitle="Estimate"
+      mobileSubtitle={existing?.registration_number}
+      showBack
+      hideNav
+    >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <SectionCard title="Items" padded>
-          <Stack spacing={1.25}>
-            {items.map((item) => (
-              <Stack key={item.tempId} direction="row" spacing={1} alignItems="center">
-                <TextField
-                  size="small"
-                  fullWidth
-                  value={item.description}
-                  onChange={(e) => updateItem(item.tempId, 'description', e.target.value)}
-                  placeholder="Item or service"
-                  inputProps={{ 'aria-label': 'Description' }}
-                />
-                <TextField
-                  size="small"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(item.tempId, 'quantity', e.target.value)}
-                  type="number"
-                  inputProps={{ 'aria-label': 'Quantity', style: { textAlign: 'center' } }}
-                  sx={{ width: 62, flexShrink: 0 }}
-                />
-                <TextField
-                  size="small"
-                  value={item.amount}
-                  onChange={(e) => updateItem(item.tempId, 'amount', e.target.value)}
-                  type="number"
-                  placeholder="0"
-                  inputProps={{ 'aria-label': 'Amount', style: { textAlign: 'right' } }}
-                  InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
-                  sx={{ width: 118, flexShrink: 0 }}
-                />
-                <IconButton
-                  aria-label="Remove item"
-                  // Never leave the list empty — an editor with no rows has no
-                  // affordance to start typing again.
-                  onClick={() =>
-                    setItems((prev) =>
-                      prev.length === 1 ? [blankItem()] : prev.filter((i) => i.tempId !== item.tempId),
-                    )
-                  }
-                  sx={{ color: 'text.disabled', flexShrink: 0, '&:hover': { color: 'error.main' } }}
-                >
-                  <DeleteIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Stack>
-            ))}
-
-            <Button
-              id="estimate-add-item"
-              startIcon={<AddIcon />}
-              onClick={() => setItems((prev) => [...prev, blankItem()])}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              Add line item
-            </Button>
-          </Stack>
-        </SectionCard>
-
-        <SectionCard title="Discount" padded>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <SegmentedControl
-              id="estimate-discount-type"
-              aria-label="Discount type"
-              value={discountType}
-              onChange={setDiscountType}
-              options={[
-                { value: 'FLAT', label: '₹ Flat' },
-                { value: 'PERCENT', label: '%' },
-              ]}
-            />
-            <TextField
-              size="small"
-              type="number"
-              value={discountValue}
-              onChange={(e) => setDiscountValue(e.target.value)}
-              placeholder="0"
-              inputProps={{ 'aria-label': 'Discount value', style: { textAlign: 'right' } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">{discountType === 'FLAT' ? '₹' : '%'}</InputAdornment>
-                ),
-              }}
-              sx={{ width: 140 }}
-            />
-          </Stack>
-        </SectionCard>
-
-        <SectionCard
-          title="Tax"
-          padded
-          action={
-            <Switch
-              checked={taxEnabled}
-              onChange={(e) => setTaxEnabled(e.target.checked)}
-              inputProps={{ 'aria-label': 'Add tax' }}
-            />
-          }
-        >
-          {taxEnabled ? (
-            <TextField
-              size="small"
-              type="number"
-              value={taxPercent}
-              onChange={(e) => setTaxPercent(e.target.value)}
-              placeholder="18"
-              inputProps={{ 'aria-label': 'Tax percent', style: { textAlign: 'right' } }}
-              InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
-              sx={{ width: 140 }}
-            />
-          ) : (
-            <Typography sx={{ fontSize: 12.5, color: 'text.disabled' }}>
-              No tax on this estimate
-            </Typography>
-          )}
-        </SectionCard>
+      <Box sx={{ px: { xs: 2, md: 3.5 }, pb: { xs: 12, md: 4 }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <LineItemsCard idPrefix="estimate" items={items} onChange={setItems} />
+        <DiscountCard
+          idPrefix="estimate"
+          type={discountType}
+          value={discountValue}
+          onType={setDiscountType}
+          onValue={setDiscountValue}
+        />
+        {gstAvailable && (
+          <GstCard enabled={taxEnabled} percent={taxPercent} onEnabled={setTaxEnabled} onPercent={setTaxPercent} />
+        )}
+        <NotesCard value={notes} onChange={setNotes} />
 
         <SectionCard id="estimate-totals" padded>
           <Stack spacing={1}>
-            <TotalLine label="Subtotal" value={subtotal} />
-            {discountAmount > 0 && (
-              <TotalLine
-                label={`Discount${discountType === 'PERCENT' ? ` (${discountValue}%)` : ''}`}
-                value={-discountAmount}
-              />
-            )}
-            {taxAmount > 0 && <TotalLine label={`Tax (${taxPercent}%)`} value={taxAmount} />}
+            <TotalsLines bill={bill} gstPercent={gstPercent} />
             <Divider sx={{ my: 0.5 }} />
             <Stack direction="row" justifyContent="space-between" alignItems="baseline">
               <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Total</Typography>
               <Typography
                 sx={{ fontSize: 26, fontWeight: 700, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}
               >
-                {inr(grandTotal)}
+                {inrExact(bill.total)}
               </Typography>
             </Stack>
           </Stack>
@@ -368,60 +251,65 @@ export default function EstimateEditorPage(): React.JSX.Element {
             id="estimate-share-whatsapp"
             variant="outlined"
             startIcon={<ShareIcon />}
-            disabled={!hasItems}
-            onClick={() => void share()}
+            disabled={isNew || busy !== null}
+            onClick={() => void runPdf('share')}
             sx={{ flex: 1, height: 46 }}
           >
-            Share
+            {busy === 'share' ? 'Preparing…' : 'Share'}
           </Button>
           <Button
             id="estimate-download-pdf"
             variant="outlined"
             startIcon={<PdfIcon />}
-            disabled={isGeneratingPdf || !hasItems}
-            onClick={() => void downloadPdf()}
+            disabled={isNew || busy !== null}
+            onClick={() => void runPdf('pdf')}
             sx={{ flex: 1, height: 46 }}
           >
-            {isGeneratingPdf ? 'Building…' : 'PDF'}
+            {busy === 'pdf' ? 'Building…' : 'PDF'}
           </Button>
         </Stack>
+        {isNew && (
+          <Typography sx={{ fontSize: 12, color: 'text.disabled', textAlign: 'center', mt: -1.5 }}>
+            Create the estimate to share it or download the PDF.
+          </Typography>
+        )}
 
-        <Stack spacing={1.5}>
-          <Button
-            id="estimate-save"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={saveMutation.isPending || !hasItems}
-            onClick={() => saveMutation.mutate()}
-            sx={{ height: 46 }}
-          >
-            {saveMutation.isPending ? 'Saving…' : isNew ? 'Create estimate' : 'Save estimate'}
-          </Button>
+        {!isNew && (
           <Button
             id="estimate-convert"
             variant="outlined"
             endIcon={<ArrowIcon />}
-            // Converting reads the saved estimate by id, so a draft that has
-            // never been saved has nothing to convert.
-            disabled={isNew}
-            onClick={() => void navigate(`/invoices/new?from_estimate=${id}`)}
+            disabled={convertMutation.isPending}
+            onClick={() => convertMutation.mutate()}
             sx={{ height: 46 }}
           >
-            {isNew ? 'Save first to convert' : 'Convert to invoice'}
+            {convertMutation.isPending ? 'Converting…' : converted ? 'View invoice' : 'Convert to invoice'}
           </Button>
-        </Stack>
-      </Box>
-    </PageShell>
-  )
-}
+        )}
 
-function TotalLine({ label, value }: { label: string; value: number }): React.JSX.Element {
-  return (
-    <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-      <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{label}</Typography>
-      <Typography sx={{ fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-        {inr(value)}
-      </Typography>
-    </Stack>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>{saveButton('estimate-save')}</Box>
+      </Box>
+
+      {/* ── Bottom bar (mobile): total + the primary action ─────────── */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={2}
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+          px: 2, pt: 1.25, pb: 'max(env(safe-area-inset-bottom, 0px), 12px)',
+          bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider',
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Kicker>Total</Kicker>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.15 }}>
+            {inrExact(bill.total)}
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{saveButton('estimate-save-mobile')}</Box>
+      </Stack>
+    </PageShell>
   )
 }

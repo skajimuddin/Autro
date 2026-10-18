@@ -100,10 +100,10 @@ export default function SettingsPdfTemplatePage(): React.JSX.Element {
             <Field
               id="pdf-footer-note"
               label="Footer note"
-              helper="One short line under the totals — a GSTIN, a UPI ID, a thank-you"
+              helper="One short line at the bottom of every page — a UPI ID, a thank-you"
               value={form.footer_note ?? ''}
               onChange={(e) => set('footer_note', e.target.value)}
-              placeholder="GSTIN: 21AAAAA0000A1Z5"
+              placeholder="UPI: garage@upi · Thank you for visiting!"
             />
             <Field
               id="pdf-terms"
