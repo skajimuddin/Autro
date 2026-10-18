@@ -32,6 +32,15 @@ jobs:
       - name: Build Web
         run: npm run build --workspace=apps/web
 
+      # Before the API deploy, so new code never runs against an old schema.
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply autro-db --remote
+          workingDirectory: apps/api
+
       - name: Deploy API (Cloudflare Workers)
         uses: cloudflare/wrangler-action@v3
         with:
