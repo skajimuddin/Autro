@@ -10,7 +10,7 @@ deployed yet. Do these in order.
 git pull origin main
 ```
 
-## 2. Apply the 2 new database migrations
+## 2. Apply the new database migrations (0008–0010)
 
 ```bash
 cd apps/api
@@ -55,7 +55,12 @@ until they do. This didn't matter before; it does now.
 Go through this on a real phone + a real desktop, not just at your desk:
 
 - [ ] Log in, dashboard loads
-- [ ] Settings has 5 pages: Garage, Location, Payroll, PDF, Account
+- [ ] Settings has 7 pages: Garage, Location, Payroll, GST, PDF, QR, Account
+- [ ] Settings → GST: enter a GSTIN, turn it on → a new invoice shows a GST card; PDF says TAX INVOICE with CGST/SGST
+- [ ] New invoice/estimate is numbered INV-0001 / EST-0001 and counts up
+- [ ] Estimate → Convert to invoice opens the new invoice with the items filled
+- [ ] On a phone: Share on an invoice offers the PDF to WhatsApp
+- [ ] Log in as staff: you land on check-in and typing /invoices bounces you back
 - [ ] Upload a logo in Settings → Garage — it shows up in the app header
 - [ ] Create/open an invoice → download PDF → logo + your details are on it
 - [ ] Create/open an estimate → download PDF (this is new — didn't exist before)

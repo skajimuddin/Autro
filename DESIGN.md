@@ -79,6 +79,8 @@ two screens show is one component, in one file:
 | `Field`        | `components/ui/field.tsx`            | every MUI form field                   |
 | format helpers | `lib/format.ts`                      | money, dates, times, day counts, stages |
 | photo upload   | `lib/upload.ts`                      | Add Vehicle, vehicle detail            |
+| `bill-form`    | `components/domain/bill-form.tsx`    | estimate editor, invoice editor        |
+| `computeBill`  | `packages/shared/src/bill.ts`        | both editors, the PDFs, the API        |
 
 This is not tidiness. The dashboard and `/vehicles` previously drew the same
 rows from two components and had already drifted: one painted `REPAIRING`
@@ -87,6 +89,10 @@ days-in-shop separately.
 
 Form fields get their height, radius, border and focus from the
 `MuiOutlinedInput` overrides in `theme.ts` — never from `sx` at a call site.
+
+**Bills.** Arithmetic lives only in `computeBill` (discount → GST on the taxable
+value → round to the rupee). Never re-derive a total in a screen or a route.
+GST is a garage-level switch (Settings → GST); with it off, no tax UI exists.
 
 **Icons.** Migrated screens use `@mui/icons-material`. `components/ui/icons.tsx`
 (Lucide) exists only for the screens still on Tailwind and shrinks as they
@@ -144,4 +150,4 @@ migrate; nothing new should be added to it.
 | `/staff/attendance` (owner)                   | `pages/staff/attendance.tsx` |
 | `/checkin` (staff)                            | `pages/staff/checkin.tsx`    |
 | `/invite/:token`                              | `pages/invite/accept.tsx`    |
-| `/settings`                                   | `pages/settings/index.tsx`   |
+| `/settings`, `/settings/*` (owner only)       | `pages/settings/*`           |
