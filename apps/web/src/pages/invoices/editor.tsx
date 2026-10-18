@@ -247,7 +247,9 @@ export default function InvoiceEditorPage(): React.JSX.Element {
           gap: 2.5, alignItems: 'start',
         }}
       >
-        <Stack spacing={2.5}>
+        {/* On a phone a saved invoice leads with its total and the money
+            actions; a new one leads with the items you are typing. */}
+        <Stack spacing={2.5} sx={{ order: { xs: isNew ? 0 : 1, md: 0 } }}>
           {isPaid && (
             <Stack
               direction="row"
@@ -278,7 +280,7 @@ export default function InvoiceEditorPage(): React.JSX.Element {
         </Stack>
 
         {/* ── Total due + the money actions ─────────────────────── */}
-        <Stack spacing={1.5}>
+        <Stack spacing={1.5} sx={{ order: { xs: isNew ? 1 : 0, md: 0 } }}>
           <Card id="invoice-totals" sx={{ p: 2.5 }}>
             <Stack spacing={1}>
               <TotalsLines bill={bill} gstPercent={gstPercent} />

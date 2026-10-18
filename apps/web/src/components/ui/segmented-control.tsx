@@ -49,6 +49,7 @@ export function SegmentedControl<T extends string>({
             fontSize: 12.5,
             fontWeight: 600,
             textTransform: 'none',
+            whiteSpace: 'nowrap',
             '&.Mui-selected': {
               bgcolor: alpha(t.palette.primary.main, 0.12),
               color: t.palette.primary.main,

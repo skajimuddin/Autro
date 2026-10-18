@@ -59,6 +59,8 @@ interface NavItem {
   label: string
   icon: React.ElementType
   ownerOnly?: boolean
+  /** Another route prefix that lights this tab (Bills covers estimates too). */
+  also?: string
 }
 
 const NAV_GROUPS: { heading: string; items: NavItem[] }[] = [
@@ -81,12 +83,12 @@ const NAV_GROUPS: { heading: string; items: NavItem[] }[] = [
   { heading: '', items: [{ to: '/settings', label: 'Settings', icon: SettingsIcon }] },
 ]
 
-/** Two tabs each side of the centre action. */
+/** Two tabs each side of the centre action. Settings is the gear in the dashboard's app bar. */
 const MOBILE_TABS: NavItem[] = [
   { to: '/', label: 'Home', icon: DashboardIcon },
   { to: '/vehicles', label: 'Vehicles', icon: CarIcon },
+  { to: '/invoices', label: 'Bills', icon: ReceiptIcon, also: '/estimates' },
   { to: '/staff', label: 'Staff', icon: PeopleIcon, ownerOnly: true },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 
 interface BottomNavProps {
@@ -133,8 +135,8 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
 
   const visible = (i: NavItem): boolean => !i.ownerOnly || role === 'OWNER'
   const tabs = MOBILE_TABS.filter(visible)
-  const isActive = (to: string): boolean =>
-    to === '/' ? pathname === '/' : pathname.startsWith(to)
+  const isActive = (to: string, also?: string): boolean =>
+    to === '/' ? pathname === '/' : pathname.startsWith(to) || Boolean(also && pathname.startsWith(also))
 
   return (
     <>
@@ -298,7 +300,7 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
       >
         <Stack direction="row" alignItems="stretch" sx={{ height: MOBILE_NAV_HEIGHT }}>
           {tabs.slice(0, 2).map((t) => (
-            <Tab key={t.to} item={t} active={isActive(t.to)} />
+            <Tab key={t.to} item={t} active={isActive(t.to, t.also)} />
           ))}
 
           {/* Centre action — the one thing an owner does all day. */}
@@ -323,7 +325,7 @@ export function BottomNav({ hideMobileBar = false }: BottomNavProps): React.JSX.
           </Box>
 
           {tabs.slice(2).map((t) => (
-            <Tab key={t.to} item={t} active={isActive(t.to)} />
+            <Tab key={t.to} item={t} active={isActive(t.to, t.also)} />
           ))}
         </Stack>
       </Paper>

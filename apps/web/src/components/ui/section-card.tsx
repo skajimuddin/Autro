@@ -3,7 +3,7 @@
 // Every panel on the dashboard and the vehicle screens is this shape, and
 // each one used to re-declare the same px/py and the same 14px/600 title.
 import type React from 'react'
-import { Card, Divider, Stack, Typography } from '@mui/material'
+import { Card, Divider, Stack, Typography, type SxProps, type Theme } from '@mui/material'
 
 interface SectionCardProps {
   /** Header title. Omit for a card with no header rule. */
@@ -17,6 +17,7 @@ interface SectionCardProps {
    *  bring their own padding so their dividers reach the card edges. */
   padded?: boolean
   id?: string
+  sx?: SxProps<Theme>
   children: React.ReactNode
 }
 
@@ -26,10 +27,11 @@ export function SectionCard({
   headerExtra,
   padded = false,
   id,
+  sx,
   children,
 }: SectionCardProps): React.JSX.Element {
   return (
-    <Card id={id} sx={{ overflow: 'hidden' }}>
+    <Card id={id} sx={[{ overflow: 'hidden' }, ...(Array.isArray(sx) ? sx : [sx])]}>
       {title && (
         <>
           <Stack

@@ -25,9 +25,9 @@ const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 const SHORT_LABEL: Record<number, string> = { 0: 'Su', 1: 'Mo', 2: 'Tu', 3: 'We', 4: 'Th', 5: 'Fr', 6: 'Sa' }
 
 const BASIS_OPTIONS: { value: SalaryBasis; label: string }[] = [
-  { value: 'ACTUAL_WORKING_DAYS', label: 'Working days' },
-  { value: 'CALENDAR_DAYS', label: 'Calendar days' },
-  { value: 'FIXED_DIVISOR', label: 'Fixed divisor' },
+  { value: 'ACTUAL_WORKING_DAYS', label: 'Working' },
+  { value: 'CALENDAR_DAYS', label: 'Calendar' },
+  { value: 'FIXED_DIVISOR', label: 'Fixed' },
 ]
 
 const BASIS_EXPLANATION: Record<SalaryBasis, string> = {
@@ -87,7 +87,7 @@ export default function SettingsPayrollPage(): React.JSX.Element {
             Days the workshop is open. Staff aren't expected to check in on the rest, and these are
             the days counted as "working days" for the calculation below.
           </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.75, maxWidth: 360 }}>
             {WEEKDAYS.map((day) => {
               const active = workDays.includes(day)
               return (
@@ -98,8 +98,10 @@ export default function SettingsPayrollPage(): React.JSX.Element {
                   onClick={() => toggleDay(day)}
                   title={WEEKDAY_LABEL[day]}
                   sx={(t) => ({
-                    width: 42,
+                    width: '100%',
+                    height: 34,
                     fontWeight: 700,
+                    '& .MuiChip-label': { px: 0 },
                     bgcolor: active ? t.palette.primary.main : alpha(t.palette.text.primary, 0.06),
                     color: active ? t.palette.primary.contrastText : 'text.secondary',
                     '&:hover': { bgcolor: active ? t.palette.primary.dark : alpha(t.palette.text.primary, 0.1) },
@@ -107,7 +109,7 @@ export default function SettingsPayrollPage(): React.JSX.Element {
                 />
               )
             })}
-          </Stack>
+          </Box>
         </SectionCard>
 
         <SectionCard id="settings-salary-basis-card" title="Salary calculation" padded>

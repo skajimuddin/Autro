@@ -42,6 +42,7 @@ import { apiFetch } from '@/lib/api'
 import { useTenant } from '@/providers/tenant-provider'
 import { PageShell } from '@/components/layout/page-shell'
 import { EmptyPanel } from '@/components/ui/empty-panel'
+import { BillsSwitch } from '@/components/domain/bills-switch'
 import { FilterTabs } from '@/components/ui/filter-tabs'
 import { inr, formatFullDate, docNumber } from '@/lib/format'
 
@@ -129,6 +130,7 @@ export default function EstimateListPage(): React.JSX.Element {
       <Box sx={{ px: { xs: 2, md: 3.5 }, pb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* On a phone the filters sit on the page ground — inside the card they
             would push the first estimate below the fold. */}
+        {!desktop && <BillsSwitch current="estimates" />}
         {!desktop && toolbar}
 
         <Card sx={{ overflow: 'hidden' }}>

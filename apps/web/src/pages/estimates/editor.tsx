@@ -193,6 +193,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
   if (isLoading && !isNew) return <FullPageSpinner />
 
   const converted = existing?.status === 'CONVERTED'
+  const lead = { order: { xs: isNew ? 0 : -1, md: 0 } }
 
   const saveButton = (buttonId: string): React.JSX.Element => (
     <Button
@@ -218,6 +219,8 @@ export default function EstimateEditorPage(): React.JSX.Element {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <Box sx={{ px: { xs: 2, md: 3.5 }, pb: { xs: 12, md: 4 }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        {/* On a phone a saved estimate leads with its total, share and convert
+            (the blocks marked `lead`); a new one leads with the items. */}
         <LineItemsCard idPrefix="estimate" items={items} onChange={setItems} />
         <DiscountCard
           idPrefix="estimate"
@@ -231,7 +234,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
         )}
         <NotesCard value={notes} onChange={setNotes} />
 
-        <SectionCard id="estimate-totals" padded>
+        <SectionCard id="estimate-totals" padded sx={lead}>
           <Stack spacing={1}>
             <TotalsLines bill={bill} gstPercent={gstPercent} />
             <Divider sx={{ my: 0.5 }} />
@@ -246,7 +249,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
           </Stack>
         </SectionCard>
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction="row" spacing={1.5} sx={lead}>
           <Button
             id="estimate-share-whatsapp"
             variant="outlined"
@@ -281,7 +284,7 @@ export default function EstimateEditorPage(): React.JSX.Element {
             endIcon={<ArrowIcon />}
             disabled={convertMutation.isPending}
             onClick={() => convertMutation.mutate()}
-            sx={{ height: 46 }}
+            sx={{ height: 46, ...lead }}
           >
             {convertMutation.isPending ? 'Converting…' : converted ? 'View invoice' : 'Convert to invoice'}
           </Button>

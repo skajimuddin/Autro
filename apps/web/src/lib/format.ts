@@ -80,13 +80,13 @@ export function formatFullDate(iso: string | null): string {
 }
 
 /**
- * "09:30" — a check-in time, 24-hour. The dashboard's attendance panel and the
- * staff directory both print one, and they had already drifted: the dashboard
- * showed 24h while the staff list showed "09:30 AM".
+ * "9:30 am" — a check-in time, 12-hour as Indian garages read a clock. The
+ * dashboard's attendance panel and the staff directory both print one, so it is
+ * defined once.
  */
 export function formatTime(iso: string | null): string {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
 }

@@ -175,6 +175,7 @@ export default function InviteAcceptPage(): React.JSX.Element {
                   {user.name?.charAt(0).toUpperCase()}
                 </Avatar>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography noWrap sx={{ fontSize: 10.5, color: 'text.disabled', letterSpacing: '.08em', textTransform: 'uppercase' }}>Joining as</Typography>
                   <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 600 }}>{user.name}</Typography>
                   <Typography noWrap sx={{ fontSize: 11, color: 'text.disabled' }}>{user.email}</Typography>
                 </Box>
